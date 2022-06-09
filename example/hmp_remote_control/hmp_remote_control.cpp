@@ -3,7 +3,7 @@
 #include <vector>
 
 #include <labdev/tcpip_interface.hh>
-#include <labdev/devices/rhode-und-schwarz/hmp4000.hh>
+#include <labdev/devices/rohde-schwarz/hmp4000.hh>
 
 using namespace labdev;
 
