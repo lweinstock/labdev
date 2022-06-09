@@ -1,0 +1,25 @@
+# In order to ignore executables we have to...
+# ... ignore everything
+*
+# ... unignore files with extensions
+!*.*
+# ... unignore all Makefiles
+!Makefile
+# ... unignore all dirs
+!*/
+# ... and were done!
+
+# Ignore object files and compiled libraries
+*.o
+*.a
+
+# Ignore data sets
+*.csv
+*.root
+
+#Ignore macOS formatting
+*.DS_Store
+
+# Ignore visual studio code files 
+.vscode
+*.code-workspace

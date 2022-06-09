@@ -1,0 +1,10 @@
+prefix=/usr/local
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: labdev
+Description: Library for remote control and operation of lab devices
+Version: 0.0.1
+Cflags: -I${includedir}
+Libs: -L${libdir} -llabdev
+Requires: libusb-1.0 >= 0.29.2
