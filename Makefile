@@ -104,12 +104,12 @@ install: $(LIBNAME)
 	mkdir -p $(DESTDIR)$(PREFIX)/include
 	mkdir -p $(DESTDIR)$(PC_PATH)
 	cp $(LIBNAME) $(DESTDIR)$(PREFIX)/lib/$(LIBNAME)
-	cp -a $(INC)/ $(DESTDIR)$(PREFIX)/include/
+	cp -R $(INC)/labdev $(DESTDIR)$(PREFIX)/include/
 	cp labdev.pc $(DESTDIR)$(PC_PATH)/
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/lib/$(LIBNAME)
-	rm -rf $(DESTDIR)$(PREFIX)/include
+	rm -rf $(DESTDIR)$(PREFIX)/include/labdev
 	rm -f $(DESTDIR)$(PC_PATH)/labdev.pc
   
 clean:
