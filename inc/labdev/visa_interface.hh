@@ -67,6 +67,8 @@ namespace labdev {
             abort();
         }
 
+        visa_interface(std::string visa_id) : visa_interface() {}
+
         ~visa_interface() {}
 
 

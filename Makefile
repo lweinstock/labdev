@@ -4,21 +4,17 @@
 #
 ###
 
-UNAME=$(shell uname)
-# VISA support: compile with/without VISA (1/0)
-VISA=0
-
 # General compiler settings/flags
 CC=g++
 LDFLAGS=
-CFLAGS=-Wall -g --std=c++11
+CFLAGS=-Wall --std=c++11
 # Debugging
 CFLAGS+=-g -D LD_DEBUG
 
 # Library name and objects
+LIBNAME=liblabdev
 SRC=src
 INC=inc
-LIBNAME=liblabdev.a
 OBJ=
 
 # libusb compiler flags
@@ -39,7 +35,7 @@ OBJ+=$(SRC)/utils/config.o
 # Basic devices
 OBJ+=$(SRC)/devices/oscilloscope.o
 
-# Vendor devices
+# Vendor specific devices
 OBJ+=$(SRC)/devices/scpi_device.o
 OBJ+=$(SRC)/devices/feeltech/fy6900.o
 OBJ+=$(SRC)/devices/uni-t/ut61b.o
@@ -53,65 +49,62 @@ OBJ+=$(SRC)/devices/baumer/om70_l.o
 OBJ+=$(SRC)/devices/jenny-science/xenax_xvi_75v8.o
 OBJ+=$(SRC)/devices/musashi/ml-808gx.o
 
-### --- VISA SETUP --- ###
-ifeq ($(VISA), 1)  # Compile with VISA
+###   INSTALL SETUP   ###
 
-  # MACOS path (hard coded)
-  ifeq ($(UNAME),Darwin)
-    VISA_INC=/Library/Frameworks/RsVisa.framework/Versions/A/Headers
-  endif
-
-  # Linux path (hard coded)
-  ifeq ($(UNAME),Linux)
-    VISA_INC=/usr/include/rsvisa
-  endif
-
-  OBJ+=$(SRC)/visa_interface.o
-  CFLAGS+=-I$(VISA_INC)
-
-  CFLAGS+=-D LDVISA
-
-else  # Compile without VISA
-
-endif
-### --- END VISA SETUP --- ###
-
-# Install setup
 PREFIX=
 ifeq ($(PREFIX),)
 	PREFIX:=/usr/local
 endif
 
-# pkg-config setup
+# Generate pkg-config file
+define PKG_CONF_FILE
+prefix=$(PREFIX)
+includedir=$${prefix}/include
+libdir=$${prefix}/lib
+
+Name: labdev
+Description: Library for remote control and operation of lab devices
+Version: 0.0.1
+Cflags: --std=c++11 -I$${includedir}
+Libs: -L$${libdir} -llabdev
+Requires: libusb-1.0 >= 0.29.2
+endef
+export PKG_CONF_FILE
+
+# pkg-config .pc file path
 PC_PATH=
 ifeq ($(PC_PATH),)
 	PC_PATH:=$(PREFIX)/lib/pkgconfig
 endif
 
-.PHONY: all clean install uninstall
+.PHONY: all clean install uninstall $(LIBNAME).pc
 
-all: $(LIBNAME)
+all: $(LIBNAME).a
 
 %.o: %.cpp Makefile
 	$(CC) -c -o $@ $< $(CFLAGS) -I$(SRC) -I$(INC)
 
-$(LIBNAME): $(OBJ)
+$(LIBNAME).a: $(OBJ)
 	ar -rc $@ $^
 	ranlib $@
 
-install: $(LIBNAME)
+$(LIBNAME).pc:
+	@echo "$$PKG_CONF_FILE" > $@
+
+install: $(LIBNAME).a $(LIBNAME).pc
 	mkdir -p $(DESTDIR)$(PREFIX)/lib
-	mkdir -p $(DESTDIR)$(PREFIX)/include
 	mkdir -p $(DESTDIR)$(PC_PATH)
-	cp $(LIBNAME) $(DESTDIR)$(PREFIX)/lib/$(LIBNAME)
+	mkdir -p $(DESTDIR)$(PREFIX)/include
+	cp $(LIBNAME).a $(DESTDIR)$(PREFIX)/lib/$(LIBNAME).a
+	cp $(LIBNAME).pc $(DESTDIR)$(PC_PATH)/$(LIBNAME).pc
 	cp -R $(INC)/labdev $(DESTDIR)$(PREFIX)/include/
-	cp labdev.pc $(DESTDIR)$(PC_PATH)/
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/lib/$(LIBNAME)
+	rm -f $(DESTDIR)$(PREFIX)/lib/$(LIBNAME).a
+	rm -f $(DESTDIR)$(PC_PATH)/$(LIBNAME).pc
 	rm -rf $(DESTDIR)$(PREFIX)/include/labdev
-	rm -f $(DESTDIR)$(PC_PATH)/labdev.pc
   
 clean:
 	rm -f $(OBJ)
-	rm -f $(LIBNAME)
+	rm -f $(LIBNAME).a
+	rm -f $(LIBNAME).pc
