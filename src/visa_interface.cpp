@@ -90,30 +90,41 @@ namespace labdev {
         return ret;
     }
 
-    void visa_interface::write(const std::string &msg) {
-        char wbuf[MAX_BUF_SIZE] = {'\0'};
-        strncpy(wbuf, msg.c_str(), msg.size());
-
-        size_t bytes_left = msg.size();
+    int visa_interface::write_raw(const uint8_t* data, size_t len) {
+        size_t bytes_left =len;
         size_t bytes_written = 0;
         ssize_t nbytes = 0;
         ViStatus stat;
 
         while ( bytes_left > 0 ) {
-            stat = viWrite(m_instr, (ViBuf)wbuf, bytes_left, (ViUInt32*)&nbytes);
-            check_and_throw(stat, "Failed to write '" + msg + "' to device");
+            stat = viWrite(m_instr, (ViBuf)&data[bytes_written], bytes_left, (ViUInt32*)&nbytes);
+            check_and_throw(stat, "Failed to write to device");
             if (nbytes > 0) {
                 bytes_left -= nbytes;
+
+                debug_print("Written %zu bytes: ", nbytes);
+                #ifdef LD_DEBUG
+                if (nbytes > 20) {
+                    for (int i = 0; i < 10; i++)
+                        printf("0x%02X ", data[bytes_written + i]);
+                    printf("[...] ");
+                    for (int i = nbytes-10; i < nbytes; i++)
+                        printf("0x%02X ", data[bytes_written + i]);
+                } else {
+                    for (int i = 0; i < nbytes; i++)
+                        printf("0x%02X ", data[bytes_written + i]);
+                }
+                printf("(%zi bytes left)\n", bytes_left);
+                #endif
+
                 bytes_written += nbytes;
-                debug_print("Written %zu bytes: '%.*s' (%zu left)\n", nbytes,
-                    (int)nbytes, &wbuf[bytes_written-nbytes], bytes_left);
             }
         }
 
-        return;
+        return bytes_written;
     }
 
-    std::string visa_interface::read(unsigned timeout_ms) {
+    int visa_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) {
         ViStatus stat;
         if (timeout_ms != m_timeout) {
             stat = viSetAttribute(m_instr, VI_ATTR_TMO_VALUE, timeout_ms);
@@ -121,21 +132,43 @@ namespace labdev {
             m_timeout = timeout_ms;
         }
 
-        std::string msg("");
-        int nbytes;
-        char rbuf[MAX_BUF_SIZE];
+        uint8_t rbuf[s_dflt_buf_size] = {0};
+        ssize_t nbytes;
+        ssize_t bytes_received = 0;
         stat = VI_SUCCESS_MAX_CNT;
 
         debug_print("%s", "Reading from device\n");
         while (stat == VI_SUCCESS_MAX_CNT) {
-            stat = viRead(m_instr, (ViBuf)rbuf, sizeof(rbuf), (ViUInt32*)&nbytes);
+            stat = viRead(m_instr, (ViBuf)rbuf, max_len, (ViUInt32*)&nbytes);
             check_and_throw(stat, "failed to read data from device");
             if (nbytes > 0) {
-                msg.append(rbuf, nbytes);
-                debug_print("Read %i bytes: '%s'\n", nbytes, rbuf);
+                // Check for buffer overflow
+                if (bytes_received + nbytes > s_dflt_buf_size)
+                    throw bad_protocol("Read buffer too small", s_dflt_buf_size);
+
+                debug_print("Read %zi bytes: ", nbytes);
+                #ifdef LD_DEBUG
+                if (nbytes > 20) {
+                    for (int i = 0; i < 10; i++)
+                        printf("0x%02X ", rbuf[i]);
+                    printf("[...] ");
+                    for (int i = nbytes-10; i < nbytes; i++)
+                        printf("0x%02X ", rbuf[i]);
+                } else {
+                    for (int i = 0; i < nbytes; i++)
+                        printf("0x%02X ", rbuf[i]);
+                }
+                printf("\n");
+                #endif
+
+                // Append read buffer to output data array
+                for (ssize_t ibyte = 0; ibyte < nbytes; ibyte++)
+                    data[bytes_received + ibyte] = rbuf[ibyte];
+
+                bytes_received += nbytes;
             }
         }
-        return msg;
+        return bytes_received;
     }
 
     void visa_interface::flush_buffer(uint16_t flag) {

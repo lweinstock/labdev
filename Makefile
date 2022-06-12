@@ -53,10 +53,37 @@ OBJ+=$(SRC)/devices/musashi/ml-808gx.o
 
 PREFIX=
 ifeq ($(PREFIX),)
-	PREFIX:=/usr/local
+  PREFIX:=/usr/local
+endif
+
+UNAME=$(shell uname)
+
+# VISA support
+VISA=1
+ifeq ($(VISA),1)
+  OBJ+=$(SRC)/visa_interface.o
+  CFLAGS+=-D LDVISA
+
+  ifeq ($(UNAME),Darwin)  # macOS
+    CFLAGS+=-F/Library/Frameworks
+  else ifeq ($(UNAME),Linux)  # linux
+    # TODO!!
+  endif
 endif
 
 # Generate pkg-config file
+PC_CFLAGS=--std=c++11 -I$${includedir}
+PC_LDFLAGS=-L$${libdir} -llabdev
+
+ifeq ($(VISA),1)  # Add VISA dependencies
+  ifeq ($(UNAME), Darwin)
+    PC_CFLAGS+=-F/Library/Frameworks -D LDVISA
+    PC_LDFLAGS+=-F/Library/Frameworks -framework RsVisa
+  else ifeq ($(UNAME), Linux)
+    # TODO!!
+  endif
+endif
+
 define PKG_CONF_FILE
 prefix=$(PREFIX)
 includedir=$${prefix}/include
@@ -65,8 +92,8 @@ libdir=$${prefix}/lib
 Name: labdev
 Description: Library for remote control and operation of lab devices
 Version: 0.0.1
-Cflags: --std=c++11 -I$${includedir}
-Libs: -L$${libdir} -llabdev
+Cflags: $(PC_CFLAGS)
+Libs: $(PC_LDFLAGS)
 Requires: libusb-1.0 >= 0.29.2
 endef
 export PKG_CONF_FILE
@@ -74,7 +101,7 @@ export PKG_CONF_FILE
 # pkg-config .pc file path
 PC_PATH=
 ifeq ($(PC_PATH),)
-	PC_PATH:=$(PREFIX)/lib/pkgconfig
+  PC_PATH:=$(PREFIX)/lib/pkgconfig
 endif
 
 .PHONY: all clean install uninstall $(LIBNAME).pc

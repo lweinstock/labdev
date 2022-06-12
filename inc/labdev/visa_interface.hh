@@ -9,7 +9,11 @@
 
 #ifdef LDVISA
 
-#include <visa.h>
+#ifdef __APPLE__
+    #include <RsVisa/visa.h>
+#else
+    #include <visa.h>
+#endif
 
 namespace labdev {
     class visa_interface : public interface {
@@ -18,6 +22,7 @@ namespace labdev {
         visa_interface(std::string visa_id);
         ~visa_interface();
 
+        // Find all available VISA resource, returns list of VISA IDs
         std::vector<std::string> find_resources(std::string regex = "?*INSTR");
 
         // Open/close device
@@ -25,8 +30,8 @@ namespace labdev {
         void close() override;
 
 
-        void write(const std::string &msg) override;
-        std::string read(unsigned timeout_ms = DFLT_TIMEOUT_MS) override;
+        int write_raw(const uint8_t* data, size_t len) override;
+        int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override;
 
         Interface_type type() const override { return visa; }
 
@@ -71,10 +76,11 @@ namespace labdev {
 
         ~visa_interface() {}
 
+        void close() override {};
 
-        void write(const std::string& msg) override { return; }
-        std::string read(unsigned timeout_ms = 0) override
-            { return ""; }
+        int write_raw(const uint8_t* data, size_t len) override { return -1; }
+        int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override
+            { return -1; }
 
         Interface_type type() const override { return visa; }
 
