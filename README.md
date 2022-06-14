@@ -35,6 +35,8 @@ The installation can be undone by invoking `sudo make uninstall`.
 
 The labdev also provides interfaces using the Virtual Instrument Software Architecture (VISA). The implementation by Rohde und Schwarz (RsVisa) is strongly recommended since it receives more updates and supports more platfrms that other implementations (e.g. NIVISA). The most recent version of RsVisa can be obtained at https://www.rohde-schwarz.com/applications/r-s-visa-application-note_56280-148812.html (state 14.06.2022).
 
+Once RsVisa is installed (see below) liblabdev is compiled with VISA support by invoking `make VISA=1`.
+
 ### Install RsVisa on macOS
 
 Simply download the `rsvisaXX.YY.ZZ.pkg` file, double click and install. Headers and library are packaged as a framework and installed to `/Library/Frameworks/RsVisa.framework`.
