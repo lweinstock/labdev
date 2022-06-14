@@ -12,7 +12,7 @@
 #ifdef __APPLE__
     #include <RsVisa/visa.h>
 #else
-    #include <visa.h>
+    #include <rsvisa/visa.h>
 #endif
 
 namespace labdev {

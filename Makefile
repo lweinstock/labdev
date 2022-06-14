@@ -59,7 +59,7 @@ endif
 UNAME=$(shell uname)
 
 # VISA support
-VISA=1
+VISA=
 ifeq ($(VISA),1)
   OBJ+=$(SRC)/visa_interface.o
   CFLAGS+=-D LDVISA
@@ -67,7 +67,7 @@ ifeq ($(VISA),1)
   ifeq ($(UNAME),Darwin)  # macOS
     CFLAGS+=-F/Library/Frameworks
   else ifeq ($(UNAME),Linux)  # linux
-    # TODO!!
+    # nothing to do here (so far)
   endif
 endif
 
@@ -80,7 +80,8 @@ ifeq ($(VISA),1)  # Add VISA dependencies
     PC_CFLAGS+=-F/Library/Frameworks -D LDVISA
     PC_LDFLAGS+=-F/Library/Frameworks -framework RsVisa
   else ifeq ($(UNAME), Linux)
-    # TODO!!
+    PC_CFLAGS+=-D LDVISA
+    PC_LDFLAGS+=-lrsvisa
   endif
 endif
 
