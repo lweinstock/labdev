@@ -54,7 +54,7 @@ namespace labdev {
         check_and_throw(stat, "Failed to get termios attributes from " + path);
 
         // Control modes: no hw flow control
-        m_term_settings.c_cflag &= ~CRTSCTS;
+        //m_term_settings.c_cflag &= ~CRTSCTS;
 
         // Ignore modem control lines, enable receiver
         m_term_settings.c_cflag |= (CLOCAL | CREAD);
@@ -72,6 +72,7 @@ namespace labdev {
         m_term_settings.c_cc[VMIN] = 0;
         m_term_settings.c_cc[VTIME] = 0;
 
+        this->disable_hw_flow_ctrl();
         this->set_baud(baud);
         this->set_nbits(nbits);
         this->set_parity(par_en, par_even);
@@ -224,6 +225,14 @@ namespace labdev {
         tcflush(m_fd, TCIOFLUSH);
 
         m_update_settings = false;
+        return;
+    }
+
+    void serial_interface::set_hw_flow_ctrl(bool ena) {
+        if (ena) m_term_settings.c_cflag |= CRTSCTS;
+        else m_term_settings.c_cflag &= ~CRTSCTS;
+        debug_print("Hardware flow control %s\n", ena ? "enabled" : "disabled");
+        m_update_settings = true;
         return;
     }
 

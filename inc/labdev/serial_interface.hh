@@ -43,11 +43,16 @@ namespace labdev{
         bool get_parity() const { return m_par_en; }
         bool parity_even() const { return m_par_even; }
 
-        // Data Transfer Ready (DTR) flow control
+        // En-/disable hardware flow control
+        void set_hw_flow_ctrl(bool ena);
+        void enable_hw_flow_ctrl() { this->set_hw_flow_ctrl(true); }
+        void disable_hw_flow_ctrl() { this->set_hw_flow_ctrl(false); }
+
+        // Data Transfer Ready (DTR) for manual flow control
         void set_dtr();
         void clear_dtr();
 
-        // Request To Send (RTS) flow control
+        // Request To Send (RTS) for manual flow control
         void set_rts();
         void clear_rts();
 
