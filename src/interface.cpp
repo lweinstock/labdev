@@ -63,6 +63,12 @@ namespace labdev{
         return ret;
     }
 
+    std::string interface::read_until(const std::string& delim, 
+    unsigned timeout_ms) {
+        size_t temp= 0;
+        return this->read_until(delim, temp, timeout_ms);    
+    }
+
     string interface::query(const string& msg, unsigned timeout_ms) {
         write(msg);
         return read(timeout_ms);
