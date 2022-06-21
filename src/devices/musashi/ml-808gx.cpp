@@ -54,9 +54,9 @@ namespace labdev {
     void ml_808gx::set_channel_params(unsigned pressure, 
     unsigned dur, unsigned on_delay, unsigned off_delay) {
         debug_print("Setting parameters of ch %i to:\n", m_cur_ch);
-        debug_print("  p = %i x 100Pa\n", pressure);
-        debug_print("  t = %i ms\n", dur);
-        debug_print("  don/off = %i/%i x 0.1ms\n", on_delay, off_delay);
+        debug_print("p = %i x 100Pa\n", pressure);
+        debug_print("t = %i ms\n", dur);
+        debug_print("don/off = %i/%i x 0.1ms\n", on_delay, off_delay);
         std::string cmd = "SC  ";
         std::stringstream data("");
         data << "CH" << setfill('0') << setw(3) << m_cur_ch;
@@ -83,26 +83,42 @@ namespace labdev {
         dur       = std::stoi( resp.substr(resp.find('T')+1, 4) );
         on_delay  = std::stoi( resp.substr(resp.find("OD")+2, 7) );
         off_delay = std::stoi( resp.substr(resp.find("OF")+2, std::string::npos) );
-        debug_print("  p = %i x 100Pa\n", pressure);
-        debug_print("  t = %i ms\n", dur);
-        debug_print("  don/off = %i/%i x 0.1ms\n", on_delay, off_delay);
+        debug_print("p = %i x 100Pa\n", pressure);
+        debug_print("t = %i ms\n", dur);
+        debug_print("don/off = %i/%i x 0.1ms\n", on_delay, off_delay);
         
 
         return;
     }
 
     void ml_808gx::manual_mode() {
+        this->download_command("MT  ");
         return;
     }
     void ml_808gx::timed_mode() {
+        this->download_command("TT  ");
         return;
     }
 
     void ml_808gx::enable_vacuum(bool ena) {
+        this->download_command("VO  ", (ena ?  "1" : "0"));
         return;
     }
 
     void ml_808gx::set_vacuum_interval(unsigned on_ms, unsigned off_ms) {
+        if (on_ms > 4000) {
+            printf("Vacuum time %i out of range\n", on_ms);
+            abort();
+        }
+        if (off_ms > 4000) {
+            printf("Vacuum interval time %i out of range\n", off_ms);
+            abort();
+        }
+
+        std::stringstream data("");
+        data << "V" << setw(4) << setfill('0') << on_ms;
+        data << "I" << setw(4) << setfill('0') << off_ms;
+        this->download_command("VI  ", data.str());
         return;
     }
 
@@ -136,7 +152,7 @@ namespace labdev {
             throw bad_protocol("Did not receive ACK", resp.size());
         
         this->send_command(cmd, data);
-        resp = comm->read();
+        resp = comm->read_until(ETX);
         
         // Check response
         if ( resp == A2) {
