@@ -47,4 +47,4 @@ Download the `rsvisa_XX.YY.ZZ_amd64.deb` and install using `sudo apt install ./r
 
 ## License
 
-TODO!
+This project is licensed under the MIT license - see the LICENSE.md file for details.
