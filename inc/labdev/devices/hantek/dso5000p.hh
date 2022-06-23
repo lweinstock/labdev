@@ -3,6 +3,7 @@
 
 #include <labdev/exceptions.hh>
 #include <labdev/usb_interface.hh>
+#include <labdev/devices/oscilloscope.hh>
 #include <vector>
 
 namespace labdev {
@@ -11,7 +12,7 @@ namespace labdev {
      *      Hantek DSO5000P series digital storage oszilloscope
      */
 
-    class dso5000p {
+    class dso5000p : public oscilloscope {
     public:
         dso5000p();
         dso5000p(usb_interface* usb);
@@ -20,6 +21,85 @@ namespace labdev {
         // USB definitions
         static constexpr uint16_t VID = 0x049F;
         static constexpr uint16_t PID = 0x505A;
+
+        // Turn channel on/off
+        void enable_channel(unsigned channel, bool enable = true);
+
+        // Attenuation settings
+        void set_atten(unsigned channel, double att);
+        double get_atten(unsigned channel);
+
+        // Vertical settings
+        void set_vert_base(unsigned channel, double volts_per_div);
+        double get_vert_base(unsigned channel);
+
+        // Horizontal settings
+        void set_horz_base(double sec_per_div);
+        double get_horz_base();
+
+        // Acquisition settings
+        void start_acquisition();
+        void stop_acquisition();
+        void single_shot();
+
+        // Trigger settings
+        void set_trigger_type(trigger_type trig);
+        void set_trigger_level(double level);
+        void set_trigger_source(unsigned channel);
+
+        // Returns true if trigger conditions have been met
+        bool triggered();
+        // Returns true if data acquisition has stopped
+        bool stopped();
+
+        // Read sample data
+        void read_sample_data(unsigned channel,  
+            std::vector<double> &horz_data, std::vector<double> &vert_data);
+
+        /*
+
+        void beep();
+
+        void lock_panel();
+        void unlock_panel();
+
+        void start_acquisition();
+        void stop_acquisition();
+
+        // Returns true if DSO is triggered
+        bool triggered();
+
+        // Set probe attenuation to 1, 10, 100, or 1000
+        void set_probe_atten(int channel, int att);
+
+        // Set vertical resolution in volts/div
+        void set_vert_base(int channel, double volts_per_div);
+
+        // Set horizontal resoluton in sec/dic
+        void set_horz_base(double seconds_per_div);
+
+        // Set edge triggering with given threshold and edge type
+        // (rising, falling, or both)
+        void set_edge_trig(int channel, double thresh,
+            uint8_t edge = RISING_EDGE);
+
+        // Reads sample waveform from DSO
+        void read_sample_data(int channel, std::vector<double>& horz_data,
+            std::vector<double>& vert_data);
+
+        // Read file from DSO and save to destination (mainly for debugging...)
+        void read_file(std::string src_path, std::string dst_path);
+
+        */
+
+        // Apply settings; DSO might require several seconds to apply settings
+        // (depending on changes)
+        void read_dso_settings();
+        void apply_dso_settings();
+
+    private:
+        static const size_t MAX_BUF_SIZE = 1024*1024;   // 1MB buffer
+        static const unsigned SLEEP_US = 100e3;     // 1ms sleep
 
         // Protocol definitions
         enum MSG : uint8_t {
@@ -185,50 +265,6 @@ namespace labdev {
             len
         };
 
-        void beep();
-
-        void lock_panel();
-        void unlock_panel();
-
-        void start_acquisition();
-        void stop_acquisition();
-
-        // Returns true if DSO is triggered
-        bool triggered();
-
-        // Set probe attenuation to 1, 10, 100, or 1000
-        void set_probe_atten(int channel, int att);
-
-        // Set vertical resolution in volts/div
-        void set_vert_base(int channel, double volts_per_div);
-
-        // Set horizontal resoluton in sec/dic
-        void set_horz_base(double seconds_per_div);
-
-        // Set edge triggering with given threshold and edge type
-        // (rising, falling, or both)
-        void set_edge_trig(int channel, double thresh,
-            uint8_t edge = RISING_EDGE);
-
-        // Apply settings; DSO might require several seconds to apply settings
-        // (depending on changes)
-        void read_dso_settings();
-        void apply_dso_settings();
-
-        // Reads sample waveform from DSO
-        void read_sample_data(int channel, std::vector<double>& horz_data,
-            std::vector<double>& vert_data);
-
-        // Read file from DSO and save to destination (mainly for debugging...)
-        void read_file(std::string src_path, std::string dst_path);
-
-        // Returns when DSO is ready to receive new command (blocking)
-        void wait_until_ready(int max_timeout_ms = 1000);
-
-    private:
-        static const size_t MAX_BUF_SIZE = 1024*1024;   // 1MB buffer
-        static const unsigned SLEEP_US = 100e3;     // 1ms sleep
-
         usb_interface* comm;    // Has only one interface: USB!
 
         // DSO vertical and horizontal settings
@@ -237,6 +273,9 @@ namespace labdev {
         int m_vert_probe[2];
         int64_t m_horiz_trigtime;
         uint16_t m_vert_pos[2];
+
+        // Check if channel is valid
+        void check_channel(unsigned channel);
 
         // Convert hex settings to values required for calculations
         double get_volts_per_div(uint8_t vb);

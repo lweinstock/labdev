@@ -7,8 +7,8 @@
 
 namespace labdev {
 
-    dso5000p::dso5000p () : comm(nullptr), m_vert_vb{0,0},  m_horiz_tb(0), m_vert_probe{0,0},
-    m_horiz_trigtime(0), m_vert_pos{0,0} {
+    dso5000p::dso5000p () : oscilloscope(2), m_vert_vb{0,0},  m_horiz_tb(0), 
+    m_vert_probe{0,0}, m_horiz_trigtime(0), m_vert_pos{0,0} {
         return;
     }
 
@@ -37,6 +37,97 @@ namespace labdev {
     dso5000p::~dso5000p () {
         return;
     };
+
+    void dso5000p::enable_channel(unsigned channel, bool enable) {
+        this->check_channel(channel);
+        if (channel == 1) 
+            m_dso_settings[VERT_CH1_DISP] = (enable ? 0x01 : 0x00);
+        else 
+            m_dso_settings[VERT_CH2_DISP] = (enable ? 0x01 : 0x00);
+        this->apply_dso_settings();
+        return;
+    }
+
+    void dso5000p::set_atten(unsigned channel, double att) {
+        this->check_channel(channel);
+
+        // Convert attenuation setting
+        uint8_t atten;
+        if      (att == 1)    atten = 0x00;
+        else if (att == 10)   atten = 0x01;
+        else if (att == 100)  atten = 0x02;
+        else if (att == 1000) atten = 0x03;
+        else {
+            fprintf(stderr, "Invalid probe attenuation %f\n", att);
+            abort();
+        }
+
+        if (channel == 1) 
+            m_dso_settings[VERT_CH1_PROBE] = atten;
+        else 
+            m_dso_settings[VERT_CH2_PROBE] = atten;
+        this->apply_dso_settings();
+        return;
+    };
+
+    double dso5000p::get_atten(unsigned channel) {
+        return 0;
+    };
+
+    void dso5000p::set_vert_base(unsigned channel, double volts_per_div) {
+        return;
+    };
+
+    double dso5000p::get_vert_base(unsigned channel) {
+        return 0;
+    };
+
+    void dso5000p::set_horz_base(double sec_per_div) {
+        return;
+    };
+
+    double dso5000p::get_horz_base() {
+        return 0;
+    };
+
+    void dso5000p::start_acquisition() {
+        return;
+    };
+
+    void dso5000p::stop_acquisition() {
+        return;
+    };
+
+    void dso5000p::single_shot() {
+        return;
+    };
+
+    void dso5000p::set_trigger_type(trigger_type trig) {
+        return;
+    };
+
+    void dso5000p::set_trigger_level(double level) {
+        return;
+    };
+
+    void dso5000p::set_trigger_source(unsigned channel) {
+        return;
+    };
+
+    bool dso5000p::triggered() {
+        return false;
+    };
+
+    bool dso5000p::stopped() {
+        return false;
+    };
+
+    void dso5000p::read_sample_data(unsigned channel,  
+    std::vector<double> &horz_data, std::vector<double> &vert_data) {
+        return;
+    }
+    
+    /*
 
     void dso5000p::beep() {
         uint8_t payload[] = {0x01}, dummy[MAX_BUF_SIZE];
@@ -148,38 +239,38 @@ namespace labdev {
 
     void dso5000p::set_horz_base(double seconds_per_div) {
         uint8_t tb = 0x00;
-        if (seconds_per_div == 2e-9)        tb = 0x00;  // 2 ns/div
-        else if (seconds_per_div == 4e-9)   tb = 0x01;  // 4 ns/div
-        else if (seconds_per_div == 8e-9)   tb = 0x02;  // 8 ns/div
-        else if (seconds_per_div == 2e-8)   tb = 0x03;  // 20 ns/div
-        else if (seconds_per_div == 4e-8)   tb = 0x04;  // 40 ns/div
-        else if (seconds_per_div == 8e-8)   tb = 0x05;  // 80 ns/div
-        else if (seconds_per_div == 2e-7)   tb = 0x06;  // 200 ns/div
-        else if (seconds_per_div == 4e-7)   tb = 0x07;  // 400 ns/div
-        else if (seconds_per_div == 8e-7)   tb = 0x08;  // 800 ns/div
-        else if (seconds_per_div == 2e-6)   tb = 0x09;  // 2 us/div
-        else if (seconds_per_div == 4e-6)   tb = 0x0A;  // 4 us/div
-        else if (seconds_per_div == 8e-6)   tb = 0x0B;  // 8 us/div
-        else if (seconds_per_div == 2e-5)   tb = 0x0C;  // 20 us/div
-        else if (seconds_per_div == 4e-5)   tb = 0x0D;  // 40 us/div
-        else if (seconds_per_div == 8e-5)   tb = 0x0E;  // 80 us/div
-        else if (seconds_per_div == 2e-4)   tb = 0x0F;  // 200 us/div
-        else if (seconds_per_div == 4e-4)   tb = 0x10;  // 400 us/div
-        else if (seconds_per_div == 8e-4)   tb = 0x11;  // 800 us/div
-        else if (seconds_per_div == 2e-3)   tb = 0x12;  // 2 ms/div
-        else if (seconds_per_div == 4e-3)   tb = 0x13;  // 4 ms/div
-        else if (seconds_per_div == 8e-3)   tb = 0x14;  // 8 ms/div
-        else if (seconds_per_div == 2e-2)   tb = 0x15;  // 20 ms/div
-        else if (seconds_per_div == 4e-2)   tb = 0x16;  // 40 ms/div
-        else if (seconds_per_div == 8e-2)   tb = 0x17;  // 80 ms/div
-        else if (seconds_per_div == 2e-1)   tb = 0x18;  // 200 ms/div
-        else if (seconds_per_div == 4e-1)   tb = 0x19;  // 400 ms/div
-        else if (seconds_per_div == 8e-1)   tb = 0x1A;  // 800 ms/div
-        else if (seconds_per_div == 2.)     tb = 0x1B;  // 2 s/div
-        else if (seconds_per_div == 4.)     tb = 0x1C;  // 4 s/div
-        else if (seconds_per_div == 8.)     tb = 0x1D;  // 8 s/div
-        else if (seconds_per_div == 20.)    tb = 0x1E;  // 20 s/div
-        else if (seconds_per_div == 40.)    tb = 0x1F;  // 40 s/div
+        if      (seconds_per_div < 2e-9) tb = 0x00;  // 2 ns/div
+        else if (seconds_per_div < 4e-9) tb = 0x01;  // 4 ns/div
+        else if (seconds_per_div < 8e-9) tb = 0x02;  // 8 ns/div
+        else if (seconds_per_div < 2e-8) tb = 0x03;  // 20 ns/div
+        else if (seconds_per_div < 4e-8) tb = 0x04;  // 40 ns/div
+        else if (seconds_per_div < 8e-8) tb = 0x05;  // 80 ns/div
+        else if (seconds_per_div < 2e-7) tb = 0x06;  // 200 ns/div
+        else if (seconds_per_div < 4e-7) tb = 0x07;  // 400 ns/div
+        else if (seconds_per_div < 8e-7) tb = 0x08;  // 800 ns/div
+        else if (seconds_per_div < 2e-6) tb = 0x09;  // 2 us/div
+        else if (seconds_per_div < 4e-6) tb = 0x0A;  // 4 us/div
+        else if (seconds_per_div < 8e-6) tb = 0x0B;  // 8 us/div
+        else if (seconds_per_div < 2e-5) tb = 0x0C;  // 20 us/div
+        else if (seconds_per_div < 4e-5) tb = 0x0D;  // 40 us/div
+        else if (seconds_per_div < 8e-5) tb = 0x0E;  // 80 us/div
+        else if (seconds_per_div < 2e-4) tb = 0x0F;  // 200 us/div
+        else if (seconds_per_div < 4e-4) tb = 0x10;  // 400 us/div
+        else if (seconds_per_div < 8e-4) tb = 0x11;  // 800 us/div
+        else if (seconds_per_div < 2e-3) tb = 0x12;  // 2 ms/div
+        else if (seconds_per_div < 4e-3) tb = 0x13;  // 4 ms/div
+        else if (seconds_per_div < 8e-3) tb = 0x14;  // 8 ms/div
+        else if (seconds_per_div < 2e-2) tb = 0x15;  // 20 ms/div
+        else if (seconds_per_div < 4e-2) tb = 0x16;  // 40 ms/div
+        else if (seconds_per_div < 8e-2) tb = 0x17;  // 80 ms/div
+        else if (seconds_per_div < 2e-1) tb = 0x18;  // 200 ms/div
+        else if (seconds_per_div < 4e-1) tb = 0x19;  // 400 ms/div
+        else if (seconds_per_div < 8e-1) tb = 0x1A;  // 800 ms/div
+        else if (seconds_per_div < 2.)   tb = 0x1B;  // 2 s/div
+        else if (seconds_per_div < 4.)   tb = 0x1C;  // 4 s/div
+        else if (seconds_per_div < 8.)   tb = 0x1D;  // 8 s/div
+        else if (seconds_per_div < 20.)  tb = 0x1E;  // 20 s/div
+        else if (seconds_per_div < 40.)  tb = 0x1F;  // 40 s/div
         else {
             fprintf(stderr, "Invalid timebase %f\n", seconds_per_div);
             abort();
@@ -206,6 +297,8 @@ namespace labdev {
         return;
     }
 
+    */
+
     void dso5000p::read_dso_settings() {
         debug_print("%s", "Reading DSO settings\n");
         uint8_t payload[] = {};
@@ -224,13 +317,13 @@ namespace labdev {
         m_vert_probe[1]   = this->get_probe_attenuation(m_dso_settings[VERT_CH2_PROBE]);
         m_horiz_tb        = this->get_timebase(m_dso_settings[HORIZ_TB]);
         m_horiz_trigtime  = ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 7] << 56) |
-                          ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 6] << 48) |
-                          ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 5] << 40) |
-                          ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 4] << 32) |
-                          ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 3] << 24) |
-                          ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 2] << 16) |
-                          ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 1] <<  8) |
-                          ((uint64_t)m_dso_settings[HORIZ_TRIGTIME]);
+                            ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 6] << 48) |
+                            ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 5] << 40) |
+                            ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 4] << 32) |
+                            ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 3] << 24) |
+                            ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 2] << 16) |
+                            ((uint64_t)m_dso_settings[HORIZ_TRIGTIME + 1] <<  8) |
+                            ((uint64_t)m_dso_settings[HORIZ_TRIGTIME]);
 
         debug_print("vert_ch1_vb = %f V/div (0x%02X)\n", m_vert_vb[0],
             m_dso_settings[VERT_CH1_VB]);
@@ -259,11 +352,28 @@ namespace labdev {
     void dso5000p::apply_dso_settings() {
         debug_print("%s", "Applying DSO settings\n");
         uint8_t dummy[MAX_BUF_SIZE] = {0x00};
+        int ret = 0;
+
+        this->send_pkg(MSG_NORMAL, WRITE_CFG, m_dso_settings, settings::len);
+
+        while (ret == 0) {
+            try {
+                ret = this->read_pkg(MSG_NORMAL, WRITE_CFG, dummy, 100);
+            } catch (timeout &ex) {
+                debug_print("%s\n", "Caught timeout, resending...");
+                this->send_pkg(MSG_NORMAL, WRITE_CFG, m_dso_settings, settings::len);
+            }
+        }
+
+        /*
         this->send_pkg(MSG_NORMAL, WRITE_CFG, m_dso_settings, settings::len);
         usleep(SLEEP_US);  // 100 ms delay -> TODO: replace!!
         this->read_pkg(MSG_NORMAL, WRITE_CFG, dummy);
+        */
         return;
     }
+
+    /*
 
     void dso5000p::read_sample_data(int channel, std::vector<double> &horz_data, std::vector<double> &vert_data) {
         if ( (channel != 0) && (channel != 1) ) {
@@ -333,45 +443,19 @@ namespace labdev {
         return;
     }
 
-    void dso5000p::wait_until_ready(int max_timeout_ms) {
-
-        /*
-         *  GENERAL IDEA: after every bulk transfer the DSO is not able to
-         *      receive new commands for a short period of time. If a new
-         *      is issued during this time, the write will be ignored and the
-         *      subsequent read will time out. This dead time seems to be
-         *      platform dependant and not deterministic. Currently the issue
-         *      is circumvented by using usleep().
-         *
-         *      Similar to the OPC command in SCPI devices the echo function of
-         *      the DSO could be used to check if the device is ready to receive
-         *      another command instead of using usleep(). The problem is that
-         *      the DSO also times out if a bulk transfer happens too fast after
-         *      the echo transfer...
-         *
-         *      Still work to do!
-         */
-
-        uint8_t payload[1] = {0xAB}, echo[1];
-        bool echo_received = false;
-        int len = -1;
-
-        while ( !echo_received ) {
-            this->send_pkg(MSG_NORMAL, ECHO, payload,
-                sizeof(payload));
-            len = this->read_pkg(MSG_NORMAL, ECHO,
-                payload, max_timeout_ms);
-
-            if (payload[0] == echo[0])
-                echo_received = true;
-        }
-
-        return;
-    }
+    */
 
     /*
      *      P R I V A T E   M E T H O D S
      */
+
+    void dso5000p::check_channel(unsigned channel) {
+        if ( (channel == 0) || (channel > this->get_n_channels()) ) {
+            fprintf(stderr, "Invalid channel %i\n", channel);
+            abort();
+        }
+        return;
+    }
 
     double dso5000p::get_volts_per_div(uint8_t vb) {
         switch (vb) {
