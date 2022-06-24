@@ -40,7 +40,8 @@ namespace labdev{
         virtual void write(const std::string& msg);
 
         // C-style raw byte read
-        virtual int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) = 0;
+        virtual int read_raw(uint8_t* data, size_t max_len, 
+            unsigned timeout_ms = s_dflt_timeout_ms) = 0;
         // C++-style string read
         virtual std::string read(unsigned timeout_ms = s_dflt_timeout_ms);
         // Read until specified delimiter is found in the received message

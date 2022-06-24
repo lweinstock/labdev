@@ -1,25 +1,43 @@
 #include <labdev/devices/baumer/om70_l.hh>
+#include <labdev/tcpip_interface.hh>
 #include <labdev/exceptions.hh>
 
 namespace labdev {
 
-    om70_l::om70_l(tcpip_interface* tcpip) {
-        if (!tcpip) {
-            fprintf(stderr, "Invalid interface pointer\n");
-            abort();
-        }
-        if (!tcpip->connected()) {
-            fprintf(stderr, "Interface not connected\n");
-            abort();
-        }
-        comm = tcpip;
-        this->init();
+    om70_l::om70_l(const ip_address &ip_addr, unsigned port) {
+        this->open(ip_addr);
         return;
     }
 
-    om70_l::~om70_l() {
+    void om70_l::open(const ip_address &ip_addr, unsigned port) {
+        if ( this->good() ) {
+            fprintf(stderr, "Device is already connected!\n");
+            abort();
+        }
+        m_comm = new tcpip_interface(ip_addr.str, port);
         return;
     }
+
+    float om70_l::get_distance() {
+        this->get_measurement();
+        return m_distance;
+    }   
+
+    float om70_l::get_distance(int& quality, float& sample_rate, float& exposure,
+    float& delay) {
+        this->get_measurement();
+
+        quality = m_signal_quality;
+        sample_rate = m_sample_rate;
+        exposure = m_exposure;
+        delay = m_response_delay_ms;
+
+        return m_distance;
+    }
+
+    /*
+     *      P R I V A T E   M E T H O D S
+     */
 
     int om70_l::read_input_registers(uint16_t addr, uint16_t size, uint16_t* data) {
         uint8_t msg[12];
@@ -38,9 +56,9 @@ namespace labdev {
         msg[11] = (uint8_t)(size & 0xFF);
 
         // Send request to read and read
-        comm->write_raw(msg, sizeof(msg));
+        m_comm->write_raw(msg, sizeof(msg));
         uint8_t resp[MAX_MSG_LEN] = {0};
-        comm->read_raw(resp, MAX_MSG_LEN);
+        m_comm->read_raw(resp, MAX_MSG_LEN);
 
         // Check response
         if ( (resp[0] != msg[0]) &&  (resp[1] != msg[1]))
@@ -90,27 +108,5 @@ namespace labdev {
 
         return;
     }
-
-    float om70_l::get_distance(int& quality, float& sample_rate, float& exposure,
-    float& delay) {
-        this->get_measurement();
-
-        quality = m_signal_quality;
-        sample_rate = m_sample_rate;
-        exposure = m_exposure;
-        delay = m_response_delay_ms;
-
-        return m_distance;
-    }
-
-    /*
-     *      P R I V A T E   M E T H O D S
-     */
-
-    void om70_l::init() {
-        return;
-    }
-
-
 
 }

@@ -26,3 +26,6 @@
 # Ignore visual studio code files 
 .vscode
 *.code-workspace
+
+# Ignore local TODO-Folder
+TODO

@@ -2,6 +2,7 @@
 #include <iomanip>
 
 #include <labdev/devices/musashi/ml-808gx.hh>
+#include <labdev/serial_interface.hh>
 #include <labdev/exceptions.hh>
 #include "ld_debug.hh"
 
@@ -12,21 +13,17 @@ using std::uppercase;
 
 namespace labdev {
 
-    ml_808gx::ml_808gx(serial_interface* ser) {
-        if (!ser) {
-            fprintf(stderr, "Invalid interface pointer\n");
-            abort();
-        }
-        if (!ser->connected()) {
-            fprintf(stderr, "Interface is not connected\n");
-            abort();
-        }
-        comm = ser;
-        init();
+    ml_808gx::ml_808gx(const std::string &path, unsigned baud) {
+        this->open(path, baud);
         return;
     }
 
-    ml_808gx::~ml_808gx() {
+    void ml_808gx::open(const std::string &path, unsigned baud) {
+        if ( this->good() ) {
+            fprintf(stderr, "Device is already connected!\n");
+            abort();
+        }
+        m_comm = new serial_interface(path, baud, 8, false, false, 1);
         return;
     }
 
@@ -87,7 +84,6 @@ namespace labdev {
         debug_print("t = %i ms\n", dur);
         debug_print("don/off = %i/%i x 0.1ms\n", on_delay, off_delay);
         
-
         return;
     }
 
@@ -139,55 +135,55 @@ namespace labdev {
             checksum -= msg.str()[i];
         msg << uppercase << hex << (int)checksum;
         msg << ETX;
-        comm->write(msg.str());  
+        m_comm->write(msg.str());  
 
         return;
     }
 
     void ml_808gx::download_command(std::string cmd, std::string data) {
         // Initialize enquary
-        comm->write(ENQ);
-        std::string resp = comm->read();
+        m_comm->write(ENQ);
+        std::string resp = m_comm->read();
         if (resp != ACK)
             throw bad_protocol("Did not receive ACK", resp.size());
         
         this->send_command(cmd, data);
-        resp = comm->read_until(ETX);
+        resp = m_comm->read_until(ETX);
         
         // Check response
         if ( resp == A2) {
             // Handle error and throw
-            comm->write(CAN);
+            m_comm->write(CAN);
             throw bad_protocol("Received error A2", -1);
         }
 
         // End transmission
-        comm->write(EOT);
+        m_comm->write(EOT);
         return;
     }
 
     void ml_808gx::upload_command(std::string cmd, std::string& payload) {    
         // Initialize enquary
-        comm->write(ENQ);
-        std::string resp = comm->read();
+        m_comm->write(ENQ);
+        std::string resp = m_comm->read();
         if (resp != ACK)
             throw bad_protocol("Did not receive ACK", resp.size());
         
         this->send_command(cmd);
-        resp = comm->read();
+        resp = m_comm->read_until(ETX);
 
         // Check response
         if (resp == A2) {
             // Handle error and throw
-            comm->write(CAN);
+            m_comm->write(CAN);
             throw bad_protocol("Received error A2", -1);
         }
 
-        comm->write(ACK);
-        payload = comm->read_until(ETX);
+        m_comm->write(ACK);
+        payload = m_comm->read_until(ETX);
 
         // End transmission
-        comm->write(EOT);
+        m_comm->write(EOT);
         return;
     }
 
@@ -196,7 +192,6 @@ namespace labdev {
      */
 
     void ml_808gx::init() {
-        m_cur_ch = 0;
         this->select_channel(m_cur_ch);
         return;
     }

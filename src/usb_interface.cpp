@@ -26,7 +26,7 @@ namespace labdev {
     }
 
     usb_interface::usb_interface(uint16_t vendor_id, uint16_t product_id,
-        std::string serial_number):
+    std::string serial_number):
     usb_interface() {
         this->open(vendor_id, product_id, serial_number);
         return;

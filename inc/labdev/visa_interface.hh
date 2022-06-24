@@ -20,7 +20,7 @@ namespace labdev {
     public:
         visa_interface();
         visa_interface(std::string visa_id);
-        ~visa_interface();
+        virtual ~visa_interface();
 
         // Find all available VISA resource, returns list of VISA IDs
         std::vector<std::string> find_resources(std::string regex = "?*INSTR");
@@ -74,7 +74,7 @@ namespace labdev {
 
         visa_interface(std::string visa_id) : visa_interface() {}
 
-        ~visa_interface() {}
+        virtual ~visa_interface() {}
 
         void close() override {};
 

@@ -1,40 +1,22 @@
 #ifndef XENAX_XVI_75V8_HH
 #define XENAX_XVI_75V8_HH
 
-#include <labdev/tcpip_interface.hh>
-#include <labdev/serial_interface.hh>
+#include <labdev/devices/device.hh>
 #include <labdev/exceptions.hh>
 
 #include <vector>
 
 namespace labdev {
 
-    class xenax_xvi_error : public exception {
-    public:
-        xenax_xvi_error(const std::string& msg, int err = 0):
-            exception(msg, err) {};
-        virtual ~xenax_xvi_error() {};
-    };
-
-    class xenax_xvi_warning : public exception {
-    public:
-        xenax_xvi_warning(const std::string& msg, int err = 0):
-            exception(msg, err) {};
-        virtual ~xenax_xvi_warning() {};
-    };
-
-    class xenax_xvi_info : public exception {
-    public:
-        xenax_xvi_info(const std::string& msg, int err = 0):
-            exception(msg, err) {};
-        virtual ~xenax_xvi_info() {};
-    };
-
-    class xenax_xvi_75v8 {
+    class xenax_xvi_75v8 : public device {
     public:
         xenax_xvi_75v8();
-        xenax_xvi_75v8(tcpip_interface* tcpip);
-        xenax_xvi_75v8(serial_interface* serial);
+        xenax_xvi_75v8(const std::string &path);
+        xenax_xvi_75v8(const ip_address &ip_addr, unsigned port = 10001);
+        xenax_xvi_75v8(const xenax_xvi_75v8&) = delete;
+
+        void open(const std::string &path);
+        void open(const ip_address &ip_addr, unsigned port = 10001);
 
         // Process Status Register definition (manual p. 56)
         enum PSR : uint32_t {
@@ -100,9 +82,8 @@ namespace labdev {
         };
 
         // En-/disable power of Xenax motor controller
-        void set_power(bool enable);
-        void power_on()  { set_power(true); }
-        void power_off() { set_power(false); }
+        void power_on(bool enable = true);
+        void power_off() { power_on(false); }
         void power_continue();
 
         // Referencing for absolute position measurements
@@ -150,7 +131,7 @@ namespace labdev {
         uint32_t get_status_register();
 
         // Disable motion blocked by unconfigured Safety Motion Unit (SMU)
-        void disable_SMU() { this->query_command("DMBUS"); }
+        void disable_smu() { this->query_command("DMBUS"); }
 
         // Get error information
         unsigned get_error() { return m_error; }
@@ -162,7 +143,6 @@ namespace labdev {
         std::string query_command(std::string cmd);
 
     private:
-        interface* comm;
         std::string m_input_buffer, m_strerror;
         bool m_is_refrenced, m_in_motion, m_in_position, m_f_limit_reached;
         float m_force_const;   // I->F conversion factor [N/mA]

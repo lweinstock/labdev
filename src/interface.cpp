@@ -54,7 +54,6 @@ namespace labdev{
     string interface::read_until(const string& delim, size_t& pos, 
     unsigned timeout_ms) {
         string ret("");
-        // Read and append until delimeter is found
         while ( (pos = ret.find(delim)) == string::npos ) {
             string rbuf = this->read(timeout_ms);
             if (rbuf.size() > 0)

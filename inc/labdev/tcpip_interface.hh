@@ -11,7 +11,7 @@ namespace labdev {
     public:
         tcpip_interface();
         tcpip_interface(const std::string& ip_addr, unsigned port);
-        ~tcpip_interface();
+        virtual ~tcpip_interface();
 
         // Open TCP/IP socket with given IP and port
         void open(const std::string& ip_addr, unsigned port);

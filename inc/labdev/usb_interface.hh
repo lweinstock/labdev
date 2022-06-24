@@ -11,7 +11,7 @@ namespace labdev{
         usb_interface(uint16_t vendor_id, uint16_t product_id,
             std::string serial_number = "");
         usb_interface(uint8_t bus_address, uint8_t device_address);
-        ~usb_interface();
+        virtual ~usb_interface();
 
         void open(uint16_t vendor_id, uint16_t product_id,
             std::string serial_number = "");

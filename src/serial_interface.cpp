@@ -53,9 +53,6 @@ namespace labdev {
         int stat = tcgetattr(m_fd, &m_term_settings);
         check_and_throw(stat, "Failed to get termios attributes from " + path);
 
-        // Control modes: no hw flow control
-        //m_term_settings.c_cflag &= ~CRTSCTS;
-
         // Ignore modem control lines, enable receiver
         m_term_settings.c_cflag |= (CLOCAL | CREAD);
 

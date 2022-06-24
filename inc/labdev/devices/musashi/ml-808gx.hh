@@ -1,14 +1,18 @@
 #ifndef LD_ML_808_GX_HH
 #define LD_ML_808_GX_HH
 
-#include <labdev/serial_interface.hh>
+#include <labdev/devices/device.hh>
 
 namespace labdev {
-    class ml_808gx {
+    class ml_808gx : public device {
     public:
         ml_808gx() {};
-        ml_808gx(serial_interface* ser);
-        ~ml_808gx();
+        ml_808gx(const std::string &path, unsigned baud = 9600);
+        ml_808gx(const ml_808gx&) = delete;
+        ~ml_808gx() {};
+
+        // Open serial interface
+        void open(const std::string &path, unsigned baud = 9600);
 
         // Dispense glue using parameters from current channel
         void dispense();
@@ -44,9 +48,8 @@ namespace labdev {
         void upload_command(std::string cmd, std::string& payload);
 
     private:
-        serial_interface* comm;
         void init();
-        unsigned m_cur_ch;
+        unsigned m_cur_ch {0};
 
         // Protocol definitions (see manual p. 57)
         const static std::string STX;   // Start of text (ASCII)

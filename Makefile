@@ -33,18 +33,19 @@ OBJ+=$(SRC)/utils/utils.o
 OBJ+=$(SRC)/utils/config.o
 
 # Basic devices
-OBJ+=$(SRC)/devices/oscilloscope.o
+OBJ+=$(SRC)/devices/device.o
+#OBJ+=$(SRC)/devices/oscilloscope.o
 
 # Vendor specific devices
-OBJ+=$(SRC)/devices/scpi_device.o
-OBJ+=$(SRC)/devices/feeltech/fy6900.o
-OBJ+=$(SRC)/devices/uni-t/ut61b.o
-OBJ+=$(SRC)/devices/rigol/ds1000z.o
-OBJ+=$(SRC)/devices/rigol/dg4000.o
-OBJ+=$(SRC)/devices/hantek/dso5000p.o
-OBJ+=$(SRC)/devices/rohde-schwarz/hmp4000.o
-OBJ+=$(SRC)/devices/rohde-schwarz/rta4000.o
-OBJ+=$(SRC)/devices/tektronix/dpo5000b.o
+#OBJ+=$(SRC)/devices/scpi_device.o
+#OBJ+=$(SRC)/devices/feeltech/fy6900.o
+#OBJ+=$(SRC)/devices/uni-t/ut61b.o
+#OBJ+=$(SRC)/devices/rigol/ds1000z.o
+#OBJ+=$(SRC)/devices/rigol/dg4000.o
+#OBJ+=$(SRC)/devices/hantek/dso5000p.o
+#OBJ+=$(SRC)/devices/rohde-schwarz/hmp4000.o
+#OBJ+=$(SRC)/devices/rohde-schwarz/rta4000.o
+#OBJ+=$(SRC)/devices/tektronix/dpo5000b.o
 OBJ+=$(SRC)/devices/baumer/om70_l.o
 OBJ+=$(SRC)/devices/jenny-science/xenax_xvi_75v8.o
 OBJ+=$(SRC)/devices/musashi/ml-808gx.o

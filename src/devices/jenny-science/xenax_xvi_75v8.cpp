@@ -1,16 +1,18 @@
 #include <labdev/devices/jenny-science/xenax_xvi_75v8.hh>
-#include <labdev/exceptions.hh>
-#include <labdev/utils/utils.hh>
-#include "ld_debug.hh"
 
 #include <unistd.h>
 #include <sys/time.h>
 #include <cmath>
 
+#include <labdev/tcpip_interface.hh>
+#include <labdev/serial_interface.hh>
+#include <labdev/exceptions.hh>
+#include <labdev/utils/utils.hh>
+#include "ld_debug.hh"
+
 namespace labdev {
 
     xenax_xvi_75v8::xenax_xvi_75v8():
-        comm(nullptr),
         m_strerror(""),
         m_is_refrenced(false),
         m_in_motion(false),
@@ -21,42 +23,41 @@ namespace labdev {
         return;
     }
 
-    xenax_xvi_75v8::xenax_xvi_75v8(tcpip_interface* tcpip): xenax_xvi_75v8() {
-        if (!tcpip) {
-            fprintf(stderr, "Invalid interface pointer\n");
-            abort();
-        }
-        if (!tcpip->connected()) {
-            fprintf(stderr, "Interface not connected\n");
-            abort();
-        }
-        comm = tcpip;
+    xenax_xvi_75v8::xenax_xvi_75v8(const std::string &path): 
+    xenax_xvi_75v8() {
+        this->open(path);
         this->init();
         return;
     }
 
-    xenax_xvi_75v8::xenax_xvi_75v8(serial_interface* serial): xenax_xvi_75v8() {
-        if (!serial) {
-            fprintf(stderr, "Invalid interface pointer\n");
-            abort();
-        }
-        if (!serial->connected()) {
-            fprintf(stderr, "Interface not connected\n");
+    xenax_xvi_75v8::xenax_xvi_75v8(const ip_address &ip_addr, unsigned port): 
+    xenax_xvi_75v8() {
+        this->open(ip_addr, port);
+        this->init();
+        return;
+    }
+
+    void xenax_xvi_75v8::open(const std::string &path) {
+        if ( this->good() ) {
+            fprintf(stderr, "Device is already connected!\n");
             abort();
         }
         // Serial setup: 115200 8N1 (manual p. 28)
-        serial->set_baud(115200);
-        serial->set_nbits(8);
-        serial->set_parity(false);
-        serial->set_stop_bits(1);
-        serial->apply_settings();
-
-        comm = serial;
-        this->init();
+        m_comm = new serial_interface(path, 115200, 8, false, false, 1);
         return;
     }
 
-    void xenax_xvi_75v8::set_power(bool enable) {
+    void xenax_xvi_75v8::open(const ip_address &ip_addr, unsigned port) {
+        if ( this->good() ) {
+            fprintf(stderr, "Device is already connected!\n");
+            abort();
+        }
+        // Default port 10001
+        m_comm = new tcpip_interface(ip_addr.str, port);
+        return;
+    }
+
+    void xenax_xvi_75v8::power_on(bool enable) {
         this->query_command( enable? "PW" : "PQ");
         return;
     }
@@ -93,10 +94,17 @@ namespace labdev {
     void xenax_xvi_75v8::goto_position(int pos, unsigned interval_ms,
     unsigned timeout_ms) {
         this->move_position(pos);
+
+        /*    
         // First: check if the axis is moving
         int dx = abs(this->get_position() - pos);
         if (dx > 10)    // Perform first check, if distance is large enough!
             this->wait_status_set(IN_MOTION);
+        */
+
+       // Alternative: Wait for 100ms
+       usleep(100e3);
+
         // Second: check if the axis reached the position
         this->wait_status_set(IN_POSITION, interval_ms, timeout_ms);
         // Third: check if the axis is not moving anymore
@@ -225,12 +233,12 @@ namespace labdev {
 
     std::string xenax_xvi_75v8::query_command(std::string cmd) {
         // Send command and CR
-        comm->write(cmd + "\n");
+        m_comm->write(cmd + "\n");
         size_t pos;
 
         // Read until an EOM delimiter was received and store in buffer
         // (see applicatio note 'TCP_IP_KOMMUNIKATION.pdf' p. 1)
-        m_input_buffer.append( comm->read_until(">", pos) );
+        m_input_buffer.append( m_comm->read_until(">", pos) );
 
         // Split response into parameters and remove it from the buffer
         std::string resp = m_input_buffer.substr(0, pos);
@@ -273,14 +281,14 @@ namespace labdev {
         // Get force constant for force calculations
         this->get_force_constant();
         // Update status
-        //this->update_status();
+        this->update_status();
         return;
     }
 
     void xenax_xvi_75v8::flush_buffer() {
         debug_print("%s\n", "flushing read buffer...");
         while (true) {
-            try { comm->read(200); }
+            try { m_comm->read(200); }
             catch (const timeout &ex) { break; }
         }
         m_input_buffer.clear();
@@ -302,9 +310,9 @@ namespace labdev {
         if ( status & (ERROR | WARNING | INFO) ) {
             this->read_error_queue();
             if (status & ERROR)
-                throw xenax_xvi_error(m_strerror, m_error);
+                throw device_error(m_strerror, m_error);
             else if (status & WARNING)  // Does WARNING need an exception...?
-                throw xenax_xvi_warning(m_strerror, m_error);
+                throw device_error(m_strerror, m_error);
             //else if (status & INFO)   // Does INFO need an exception...?
             //    throw xenax_xvi_info(m_strerror, m_error);
         }
