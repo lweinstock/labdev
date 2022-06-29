@@ -14,10 +14,6 @@ namespace labdev {
 
     xenax_xvi_75v8::xenax_xvi_75v8():
         m_strerror(""),
-        m_is_refrenced(false),
-        m_in_motion(false),
-        m_in_position(false),
-        m_f_limit_reached(false),
         m_force_const(0),
         m_error(0) {
         return;
@@ -77,13 +73,11 @@ namespace labdev {
     }
 
     bool xenax_xvi_75v8::is_referenced() {
-        this->update_status();
-        return m_is_refrenced;
+        return (this->get_status_register() & REF);
     }
 
     bool xenax_xvi_75v8::force_limit_reached() {
-        this->update_status();
-        return m_f_limit_reached;
+        return (this->get_status_register() & I_FORCE_LIMIT_REACHED);
     }
 
     void xenax_xvi_75v8::move_position(int pos) {
@@ -117,13 +111,11 @@ namespace labdev {
     }
 
     bool xenax_xvi_75v8::in_motion() {
-        this->update_status();
-        return m_in_motion;
+        return (this->get_status_register() & IN_MOTION);
     }
 
     bool xenax_xvi_75v8::in_position() {
-        this->update_status();
-        return m_in_position;
+        return (this->get_status_register() & IN_POSITION);
     }
 
     void xenax_xvi_75v8::jog_pos() {
@@ -178,6 +170,7 @@ namespace labdev {
         this->query_command("FC" + std::to_string(len));
         this->wait_status_set(IN_MOTION, 200);
         this->wait_status_clr(FORCE_CALIBRATION_ACTIVE, 500);
+        this->get_force_constant();
         return;
     }
 
@@ -228,6 +221,20 @@ namespace labdev {
     uint32_t xenax_xvi_75v8::get_status_register() {
         std::string resp = this->query_command("TPSR");
         uint32_t status = std::stoi(resp, 0 , 16);
+
+        debug_print("status register = 0x%08X\n", status);
+
+        // Check error, warning, and info bit
+        if ( status & (ERROR | WARNING | INFO) ) {
+            this->read_error_queue();
+            if (status & ERROR)
+                throw device_error(m_strerror, m_error);
+            else if (status & WARNING)  // Does WARNING need an exception...?
+                throw device_error(m_strerror, m_error);
+            else if (status & INFO)     // Does INFO need an exception...?
+                throw device_error(m_strerror, m_error);
+        }
+
         return status;
     }
 
@@ -280,8 +287,6 @@ namespace labdev {
         this->query_command("EVT0");
         // Get force constant for force calculations
         this->get_force_constant();
-        // Update status
-        this->update_status();
         return;
     }
 
@@ -299,30 +304,6 @@ namespace labdev {
     void xenax_xvi_75v8::read_error_queue() {
         m_strerror = this->query_command("TES");
         m_error = std::stoi( this->query_command("TE") );
-        return;
-    }
-
-    void xenax_xvi_75v8::update_status() {
-        uint32_t status = this->get_status_register();
-        debug_print("status register = 0x%08X\n", status);
-
-        // Check error, warning, and info bit
-        if ( status & (ERROR | WARNING | INFO) ) {
-            this->read_error_queue();
-            if (status & ERROR)
-                throw device_error(m_strerror, m_error);
-            else if (status & WARNING)  // Does WARNING need an exception...?
-                throw device_error(m_strerror, m_error);
-            //else if (status & INFO)   // Does INFO need an exception...?
-            //    throw xenax_xvi_info(m_strerror, m_error);
-        }
-
-        // Update general status info
-        m_is_refrenced = status & REF;
-        m_in_motion = status & IN_MOTION;
-        m_in_position = status & IN_POSITION;
-        m_f_limit_reached = status & I_FORCE_LIMIT_REACHED;
-
         return;
     }
 

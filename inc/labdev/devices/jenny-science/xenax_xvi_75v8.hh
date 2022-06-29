@@ -127,7 +127,7 @@ namespace labdev {
         uint8_t get_output_state();
         uint16_t get_input_state();
 
-        // Read the Process Status Register (PSR)
+        // Read the Process Status Register (PSR) & update status
         uint32_t get_status_register();
 
         // Disable motion blocked by unconfigured Safety Motion Unit (SMU)
@@ -144,15 +144,11 @@ namespace labdev {
 
     private:
         std::string m_input_buffer, m_strerror;
-        bool m_is_refrenced, m_in_motion, m_in_position, m_f_limit_reached;
         float m_force_const;   // I->F conversion factor [N/mA]
         int m_error;
 
         void init();
         void flush_buffer();
-
-        // Read PSR and update members
-        void update_status();
 
         // Wait until status bits are set
         void wait_status_set(uint32_t status, unsigned interval_ms = 500,
