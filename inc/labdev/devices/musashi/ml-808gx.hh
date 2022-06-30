@@ -7,12 +7,12 @@ namespace labdev {
     class ml_808gx : public device {
     public:
         ml_808gx() {};
-        ml_808gx(const std::string &path, unsigned baud = 9600);
+        ml_808gx(const serial_config &ser);
         ml_808gx(const ml_808gx&) = delete;
         ~ml_808gx() {};
 
         // Open serial interface
-        void open(const std::string &path, unsigned baud = 9600);
+        void open(const serial_config &ser);
 
         // Dispense glue using parameters from current channel
         void dispense();

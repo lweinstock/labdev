@@ -2,21 +2,18 @@
 #define XENAX_XVI_75V8_HH
 
 #include <labdev/devices/device.hh>
-#include <labdev/exceptions.hh>
-
-#include <vector>
 
 namespace labdev {
 
     class xenax_xvi_75v8 : public device {
     public:
         xenax_xvi_75v8();
-        xenax_xvi_75v8(const std::string &path);
-        xenax_xvi_75v8(const ip_address &ip_addr, unsigned port = 10001);
+        xenax_xvi_75v8(const serial_config &ser);
+        xenax_xvi_75v8(const ip_address &ip_addr);
         xenax_xvi_75v8(const xenax_xvi_75v8&) = delete;
 
-        void open(const std::string &path);
-        void open(const ip_address &ip_addr, unsigned port = 10001);
+        void open(const serial_config &ser);
+        void open(const ip_address &ip_addr);
 
         // Process Status Register definition (manual p. 56)
         enum PSR : uint32_t {
@@ -92,7 +89,7 @@ namespace labdev {
 
         // Go to absolute position in micro meter (non blocking & blocking)
         void move_position(int pos);
-        void goto_position(int pos, unsigned interval_ms = 1000,
+        void goto_position(int pos, unsigned interval_ms = 500,
             unsigned timeout_ms = 10000);
         int get_position();
         bool in_motion();
@@ -111,7 +108,7 @@ namespace labdev {
         unsigned get_s_curve();         // [%]
 
         // Calibration for more precise force measurements (dF ~ 0.5 - 1.0 N)
-        void force_calibration(unsigned len);
+        void force_calibration(unsigned distance);
         // Motor current and force information
         int get_motor_current();        // [mA]
         float get_force_constant();     // [N/mA]

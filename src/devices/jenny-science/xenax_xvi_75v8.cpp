@@ -19,37 +19,37 @@ namespace labdev {
         return;
     }
 
-    xenax_xvi_75v8::xenax_xvi_75v8(const std::string &path): 
+    xenax_xvi_75v8::xenax_xvi_75v8(const serial_config &ser): 
     xenax_xvi_75v8() {
-        this->open(path);
+        this->open(ser);
         this->init();
         return;
     }
 
-    xenax_xvi_75v8::xenax_xvi_75v8(const ip_address &ip_addr, unsigned port): 
+    xenax_xvi_75v8::xenax_xvi_75v8(const ip_address &ip_addr): 
     xenax_xvi_75v8() {
-        this->open(ip_addr, port);
+        this->open(ip_addr);
         this->init();
         return;
     }
 
-    void xenax_xvi_75v8::open(const std::string &path) {
+    void xenax_xvi_75v8::open(const serial_config &ser) {
         if ( this->good() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();
         }
         // Serial setup: 115200 8N1 (manual p. 28)
-        m_comm = new serial_interface(path, 115200, 8, false, false, 1);
+        m_comm = new serial_interface(ser.path, 115200, 8, false, false, 1);
         return;
     }
 
-    void xenax_xvi_75v8::open(const ip_address &ip_addr, unsigned port) {
+    void xenax_xvi_75v8::open(const ip_address &ip_addr) {
         if ( this->good() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();
         }
         // Default port 10001
-        m_comm = new tcpip_interface(ip_addr.str, port);
+        m_comm = new tcpip_interface(ip_addr.ip, 10001);
         return;
     }
 
@@ -314,7 +314,7 @@ namespace labdev {
         gettimeofday(&tsta, NULL);
         float tdiff;
 
-        // Wait until all bits in status are set to '1'
+        // Wait until all masked bits in status are set to '1'
         while ( (this->get_status_register() & status) != status ) {
             usleep(interval_ms*1000);
 
@@ -323,8 +323,8 @@ namespace labdev {
             tdiff = (tsto.tv_sec - tsta.tv_sec) * 1000.;
             if (tdiff > timeout_ms) {
                 char buf[100];
-                sprintf(buf, "status 0x%08X not set (0x%08X)", status,
-                    this->get_status_register());
+                sprintf(buf, "status 0x%08X not set (current sreg: 0x%08X)", 
+                    status, this->get_status_register());
                 throw timeout(buf);
             }
         }
@@ -339,7 +339,7 @@ namespace labdev {
         gettimeofday(&tsta, NULL);
         float tdiff;
 
-        // Wait until all bits in status are cleared to '0'
+        // Wait until all masked bits in status are cleared to '0'
         while ( (this->get_status_register() & status) ) {
             usleep(interval_ms*1000);
 
@@ -348,8 +348,8 @@ namespace labdev {
             tdiff = (tsto.tv_sec - tsta.tv_sec) * 1000.;
             if (tdiff > timeout_ms) {
                 char buf[100];
-                sprintf(buf, "status 0x%08X not cleared (0x%08X)", status,
-                    this->get_status_register());
+                sprintf(buf, "status 0x%08X not cleared (current sreg: 0x%08X)", 
+                    status, this->get_status_register());
                 throw timeout(buf);
             }
         }

@@ -13,17 +13,22 @@ using std::uppercase;
 
 namespace labdev {
 
-    ml_808gx::ml_808gx(const std::string &path, unsigned baud) {
-        this->open(path, baud);
+    ml_808gx::ml_808gx(const serial_config &ser) {
+        this->open(ser);
         return;
     }
 
-    void ml_808gx::open(const std::string &path, unsigned baud) {
+    void ml_808gx::open(const serial_config &ser) {
         if ( this->good() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();
         }
-        m_comm = new serial_interface(path, baud, 8, false, false, 1);
+        // 8N1, supported baud = 9600/19200/38400 (see manual p. 24)
+        if ( ser.baud != 9600 && ser.baud != 19200 && ser.baud != 38400) {
+            fprintf(stderr, "Baud %i is not supported by ML-808GX\n", ser.baud);
+            abort();
+        }
+        m_comm = new serial_interface(ser.path, ser.baud, 8, false, false, 1);
         return;
     }
 

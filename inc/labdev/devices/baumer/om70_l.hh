@@ -1,5 +1,5 @@
-#ifndef LD_OM70_L_HH
-#define LD_OM70_L_HH
+#ifndef OM70_L_HH
+#define OM70_L_HH
 
 #include <labdev/devices/device.hh>
 
@@ -8,11 +8,11 @@ namespace labdev {
     class om70_l : public device {
     public:
         om70_l() {};
-        om70_l(const ip_address &ip_addr, unsigned port = 502);
+        om70_l(const ip_address &ip_addr);
         om70_l(const om70_l&) = delete;
         ~om70_l() {};
 
-        void open(const ip_address &ip_address, unsigned port = 502);
+        void open(const ip_address &ip_address);
 
         // Returns distance in mm
         float get_distance();
