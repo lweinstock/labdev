@@ -7,7 +7,7 @@
 # General compiler settings/flags
 CC=g++
 LDFLAGS=
-CFLAGS=-Wall --std=c++11
+CFLAGS=-Wall --std=c++11 -fPIC
 # Debugging
 CFLAGS+=-g #-D LD_DEBUG
 
