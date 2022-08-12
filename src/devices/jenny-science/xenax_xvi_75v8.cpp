@@ -186,6 +186,9 @@ namespace labdev {
     }
 
     float xenax_xvi_75v8::get_motor_force() {
+        if ( !(this->get_status_register() & FORCE_CALIBRATION_ACTIVE) )
+            throw device_error("No force calibration active, "
+                "run force_calibration(len) first\n", -1);
         return m_force_const*this->get_motor_current();
     }
 

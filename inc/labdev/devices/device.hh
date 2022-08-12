@@ -59,13 +59,13 @@ namespace labdev {
         virtual ~device();
 
         // Does a communication interface exist and is it connected?
-        bool good();
+        bool good() const { return (m_comm ? m_comm->connected() : false); }
         
         // Close the communication interface
         virtual void close();
 
-        // Returns pointer to current interface
-        interface* get_interface();
+        // Returns human readable information string about the interface
+        std::string get_info() const;
 
     protected:
         interface* m_comm;

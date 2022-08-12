@@ -23,6 +23,10 @@ namespace labdev {
         int read_raw(uint8_t* data, size_t max_len, 
             unsigned timeout_ms = s_dflt_timeout_ms) override;
 
+        // Returns IP and port
+        std::string get_ip() const { return m_ip_addr; }
+        unsigned get_port() const { return m_port; }
+
         // Set read/write buffer size
         void set_buffer_size(size_t buf_size);
 
@@ -35,11 +39,16 @@ namespace labdev {
         // Returns interface type
         Interface_type type() const override { return tcpip; }
 
+        // Returns human readable info string
+        std::string get_info() const override;
+
     private:
         int m_socket_fd;
         struct sockaddr_in m_instr_addr;
         struct timeval m_timeout;
         bool m_connected;
+        std::string m_ip_addr;
+        unsigned m_port;
 
         void check_and_throw(int stat, const std::string& msg) const;
     };

@@ -227,6 +227,12 @@ namespace labdev {
         return nbytes;
     };
 
+    std::string usb_interface::get_info() const {
+        std::string ret("USB " + std::to_string(m_bus) + ":" 
+            + std::to_string(m_port) );
+        return ret;
+    }
+
     int usb_interface::write_control(uint8_t request_type, uint8_t request,
     uint16_t value, uint16_t index, const uint8_t* data, int len) {
         this->check_interface();

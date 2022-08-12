@@ -6,17 +6,15 @@ namespace labdev {
         this->close();
     }
 
-    bool device::good() {
-        return (m_comm ? m_comm->connected() : false);
-    }
-
     void device::close() {
         delete m_comm;
         return;
     }
 
-    interface* device::get_interface() { 
-        return m_comm;
+    std::string device::get_info() const { 
+        if ( this->good() )
+            return m_comm->get_info();
+        return "no interface connected";
     }
-
+    
 }

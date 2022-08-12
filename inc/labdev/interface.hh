@@ -58,6 +58,9 @@ namespace labdev{
          *      Utility methods
          */
 
+        // Returns human readable string with information
+        virtual std::string get_info() const = 0;
+
         // Returns interface type; can be used to break abstraction
         virtual Interface_type type() const = 0;
         // Returns true if device is ready for communication

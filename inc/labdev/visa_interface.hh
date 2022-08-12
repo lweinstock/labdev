@@ -33,6 +33,8 @@ namespace labdev {
         int write_raw(const uint8_t* data, size_t len) override;
         int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override;
 
+        std::string get_info() const override { return m_visa_id; }
+
         Interface_type type() const override { return visa; }
 
         bool connected() const override { return m_connected; }
@@ -81,6 +83,8 @@ namespace labdev {
         int write_raw(const uint8_t* data, size_t len) override { return -1; }
         int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override
             { return -1; }
+
+        std::string get_info() const override { return ""; }
 
         Interface_type type() const override { return visa; }
 

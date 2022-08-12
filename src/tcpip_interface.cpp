@@ -15,7 +15,9 @@ namespace labdev {
         m_socket_fd(-1),
         m_instr_addr(),
         m_timeout(),
-        m_connected(false) {
+        m_connected(false),
+        m_ip_addr("-1"),
+        m_port(0) {
         return;
     }
 
@@ -57,6 +59,8 @@ namespace labdev {
             inet_ntoa(m_instr_addr.sin_addr), m_instr_addr.sin_port);
 
         m_connected = true;
+        m_ip_addr = ip_addr;
+        m_port = port;
 
         return;
     }
@@ -170,6 +174,11 @@ namespace labdev {
         check_and_throw(stat, err_msg.str());
 
         return;
+    }
+
+    std::string tcpip_interface::get_info() const {
+        std::string ret("IP " + m_ip_addr + "/" + std::to_string(m_port));
+        return ret;
     }
 
     /*

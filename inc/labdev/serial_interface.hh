@@ -23,6 +23,12 @@ namespace labdev{
         int read_raw(uint8_t* data, size_t max_len, 
             unsigned timeout_ms = s_dflt_timeout_ms) override;
 
+        // Returns human readable info string
+        std::string get_info() const override;
+
+        // Returns path to device file
+        std::string get_path() { return m_path; }
+
         // Set baud rate for serial interface
         void set_baud(unsigned baud);
         speed_t get_baud() const { return m_baud; }

@@ -34,6 +34,9 @@ namespace labdev{
         int read_control(uint8_t request_type, uint8_t request, uint16_t value,
             uint16_t index, const uint8_t* data, int len);
 
+        // Returns human readable info string
+        std::string get_info() const override;
+
         // libusb-style data transfer to bulk endpoints
         int write_bulk(const uint8_t* data, int len);
         int read_bulk(uint8_t* data, int max_len,
@@ -50,16 +53,16 @@ namespace labdev{
         void set_endpoint_out(uint8_t ep_addr);
 
         // Get information on the device
-        uint16_t get_vid() { return m_vid; }
-        uint16_t get_pid() { return m_pid; }
-        std::string get_serial() { return m_serial_no; }
-        uint8_t get_bus() { return m_bus; }
-        uint8_t get_port() { return m_port; }
+        uint16_t get_vid() const { return m_vid; }
+        uint16_t get_pid() const { return m_pid; }
+        std::string get_serial() const { return m_serial_no; }
+        uint8_t get_bus() const { return m_bus; }
+        uint8_t get_port() const { return m_port; }
 
         // Get information on the current interface
-        uint8_t get_interface_class() { return m_interface_class; }
-        uint8_t get_interface_subclass() { return m_interface_subclass; }
-        uint8_t get_interface_protocol() { return m_interface_protocol; }
+        uint8_t get_interface_class() const { return m_interface_class; }
+        uint8_t get_interface_subclass() const { return m_interface_subclass; }
+        uint8_t get_interface_protocol() const { return m_interface_protocol; }
 
     private:
         static const int s_no_interface = -1;
