@@ -241,14 +241,14 @@ namespace labdev {
         return status;
     }
 
-    std::string xenax_xvi_75v8::query_command(std::string cmd) {
+    std::string xenax_xvi_75v8::query_command(std::string cmd, unsigned timeout_ms) {
         // Send command and CR
         m_comm->write(cmd + "\n");
         size_t pos;
 
         // Read until an EOM delimiter was received and store in buffer
-        // (see applicatio note 'TCP_IP_KOMMUNIKATION.pdf' p. 1)
-        m_input_buffer.append( m_comm->read_until(">", pos) );
+        // (see application note 'TCP_IP_KOMMUNIKATION.pdf' p. 1)
+        m_input_buffer.append( m_comm->read_until(">", pos, timeout_ms) );
 
         // Split response into parameters and remove it from the buffer
         std::string resp = m_input_buffer.substr(0, pos);

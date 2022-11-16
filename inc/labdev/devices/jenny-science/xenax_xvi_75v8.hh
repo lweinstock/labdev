@@ -135,9 +135,9 @@ namespace labdev {
         std::string get_strerror() { return m_strerror; }
 
         // Motor type reset (in response to error 59)
-        void reset_motor_type() { this->query_command("RESM"); }
+        void reset_motor_type() { this->query_command("RESM", 10000); }
 
-        std::string query_command(std::string cmd);
+        std::string query_command(std::string cmd, unsigned timeout_ms = 1000);
 
     private:
         std::string m_input_buffer, m_strerror;
