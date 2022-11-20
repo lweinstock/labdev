@@ -50,7 +50,7 @@ namespace labdev {
         return;
     }
 
-    bool scpi_device::good() {
+    bool scpi_device::test() {
         std::string msg = m_comm->query("*TST?\n");
         if (msg.find("0") != std::string::npos) return true;
         else return false;

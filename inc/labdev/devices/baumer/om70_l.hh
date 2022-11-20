@@ -13,8 +13,10 @@ namespace labdev {
         om70_l(const om70_l&) = delete;
         ~om70_l() {};
 
+        
+
         // OM70 default port 502
-        static constexpr unsigned port = 502;
+        static constexpr unsigned PORT = 502;
 
         void open(tcpip_interface* tcpip);
 

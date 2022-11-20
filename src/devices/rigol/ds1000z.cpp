@@ -19,30 +19,21 @@ namespace labdev {
 
     ds1000z::ds1000z(tcpip_interface* tcpip):
     oscilloscope(4) {
-        // TODO: check port
-        m_comm = tcpip;
-        // General initialization
+        open(tcpip);
         init();
         return;
     }
 
     ds1000z::ds1000z(usbtmc_interface* usbtmc):
     oscilloscope(4) {
-        // USB initialization
-        usbtmc->claim_interface(0);
-        usbtmc->set_endpoint_in(0x02);
-        usbtmc->set_endpoint_out(0x03);
-        m_comm = usbtmc;
-
-        // General initialization
+        open(usbtmc);
         init();
         return;
     }
 
     ds1000z::ds1000z(visa_interface* visa):
     oscilloscope(4) {
-        m_comm = visa;
-        // General initialization
+        open(visa);
         init();
         return;
     }
@@ -50,6 +41,44 @@ namespace labdev {
     ds1000z::~ds1000z() {
         return;
     }
+
+    void ds1000z::open(tcpip_interface* tcpip) {
+        if ( this->good() ) {
+            fprintf(stderr, "Device is already connected!\n");
+            abort();
+        }
+        // Default port 5555
+        if (tcpip->get_port() != ds1000z::PORT) {
+            fprintf(stderr, "Rigol DS1000z only supports port %u.\n",
+                ds1000z::PORT);
+            abort();
+        }
+        m_comm = tcpip;
+        return;
+    }
+
+    void ds1000z::open(usbtmc_interface* usbtmc) {
+        if ( this->good() ) {
+            fprintf(stderr, "Device is already connected!\n");
+            abort();
+        }
+        // USB initialization
+        usbtmc->claim_interface(0);
+        usbtmc->set_endpoint_in(0x02);
+        usbtmc->set_endpoint_out(0x03);
+        m_comm = usbtmc;
+        return;
+    }
+
+    void ds1000z::open(visa_interface* visa) {
+        if ( this->good() ) {
+            fprintf(stderr, "Device is already connected!\n");
+            abort();
+        }
+        m_comm = visa;
+        return;
+    }
+
 
     void ds1000z::enable_channel(unsigned channel, bool enable) {
         this->check_channel(channel);

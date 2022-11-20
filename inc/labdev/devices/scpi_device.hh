@@ -46,7 +46,7 @@ namespace labdev {
         void reset();
 
         // Perfoms a self-test, returns true on success
-        bool good();
+        bool test();
 
         // Wait until all pending operations have been completed before execute
         // new commands

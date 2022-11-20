@@ -18,7 +18,7 @@ namespace labdev {
         void open(tcpip_interface* tcpip);
 
         // XENAX default port 10001
-        static constexpr unsigned port = 10001;
+        static constexpr unsigned PORT = 10001;
 
         // Process Status Register definition (manual p. 56)
         enum PSR : uint32_t {

@@ -23,8 +23,13 @@ namespace labdev {
         ds1000z(visa_interface* visa);
         ~ds1000z();
 
+        void open(tcpip_interface* tcpip);
+        void open(usbtmc_interface* usbtmc);
+        void open(visa_interface* visa);
+
         static constexpr uint16_t DS1104_VID = 0x1AB1;
         static constexpr uint16_t DS1104_PID = 0x04CE;
+        static constexpr uint16_t PORT = 5555;
 
         enum measurement_item : unsigned {
             MEAS_VMAX,

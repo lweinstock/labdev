@@ -53,9 +53,9 @@ namespace labdev {
             abort();
         }
         // Default port 10001
-        if (tcpip->get_port() != xenax_xvi_75v8::port) {
+        if (tcpip->get_port() != xenax_xvi_75v8::PORT) {
             fprintf(stderr, "XENAX Xvi 75v8 only supports port %u.\n",
-                xenax_xvi_75v8::port);
+                xenax_xvi_75v8::PORT);
             abort();
         }
         m_comm = tcpip;

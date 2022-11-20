@@ -15,8 +15,8 @@ namespace labdev {
             abort();
         }
         // Default port 502
-        if (tcpip->get_port() != om70_l::port) {
-            fprintf(stderr, "OM70-L only supports port %u.\n", om70_l::port);
+        if (tcpip->get_port() != om70_l::PORT) {
+            fprintf(stderr, "OM70-L only supports port %u.\n", om70_l::PORT);
             abort();
         }
         m_comm = tcpip;
