@@ -4,10 +4,11 @@ namespace labdev {
 
     device::~device() {
         this->close();
+        return;
     }
 
     void device::close() {
-        delete m_comm;
+        m_comm->close();
         return;
     }
 

@@ -2,17 +2,21 @@
 #define OM70_L_HH
 
 #include <labdev/devices/device.hh>
+#include <labdev/tcpip_interface.hh>
 
 namespace labdev {
 
     class om70_l : public device {
     public:
         om70_l() {};
-        om70_l(const ip_address &ip_addr);
+        om70_l(tcpip_interface* tcpip);
         om70_l(const om70_l&) = delete;
         ~om70_l() {};
 
-        void open(const ip_address &ip_address);
+        // OM70 default port 502
+        static constexpr unsigned port = 502;
+
+        void open(tcpip_interface* tcpip);
 
         // Returns distance in mm
         float get_distance();

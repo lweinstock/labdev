@@ -39,7 +39,7 @@ namespace labdev {
         check_and_throw(m_socket_fd, "Could not open socket.");
 
         set_buffer_size(s_dflt_buf_size);
-        set_timeout(s_dflt_timeout_ms);
+        set_timeout(0); // never time out -> will use select() for timeout
 
         // Set up instrument ip address
         m_instr_addr.sin_family = AF_INET;
@@ -177,7 +177,8 @@ namespace labdev {
     }
 
     std::string tcpip_interface::get_info() const {
-        std::string ret("IP " + m_ip_addr + "/" + std::to_string(m_port));
+        // Format example: tcpip;192.168.0.1;10001
+        std::string ret("tcpip;" + m_ip_addr + ";" + std::to_string(m_port));
         return ret;
     }
 

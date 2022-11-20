@@ -161,9 +161,9 @@ namespace labdev {
     }
 
     std::string serial_interface::get_info() const {
-        // Format example: /dev/tty0 baud 9600 8N1
-        std::string ret(m_path + " baud " + std::to_string(m_baud));
-        ret += " " + std::to_string(m_nbits);
+        // Format example: serial;/dev/tty0;9600;8N1
+        std::string ret("serial;" + m_path + ";" + std::to_string(m_baud));
+        ret += ";" + std::to_string(m_nbits);
         if (m_par_en)
             if (m_par_even) ret += "E";
             else ret += "O";
@@ -171,7 +171,6 @@ namespace labdev {
         ret += std::to_string(m_stop_bits);
         return ret;
     }
-
 
     void serial_interface::set_baud(unsigned baud) {
         m_baud = this->check_baud(baud);

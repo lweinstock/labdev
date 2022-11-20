@@ -13,22 +13,28 @@ using std::uppercase;
 
 namespace labdev {
 
-    ml_808gx::ml_808gx(const serial_config &ser) {
+    ml_808gx::ml_808gx(serial_interface* ser) {
         this->open(ser);
         return;
     }
 
-    void ml_808gx::open(const serial_config &ser) {
+    void ml_808gx::open(serial_interface* ser) {
         if ( this->good() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();
         }
         // 8N1, supported baud = 9600/19200/38400 (see manual p. 24)
-        if ( ser.baud != 9600 && ser.baud != 19200 && ser.baud != 38400) {
-            fprintf(stderr, "Baud %i is not supported by ML-808GX\n", ser.baud);
+        if ( ser->get_baud() != 9600 
+          && ser->get_baud() != 19200 
+          && ser->get_baud() != 38400) {
+            fprintf(stderr, "Baud %i is not supported by ML-808GX\n", 
+                ser->get_baud());
             abort();
         }
-        m_comm = new serial_interface(ser.path, ser.baud, 8, false, false, 1);
+        ser->set_nbits(8);
+        ser->set_parity(false, false);
+        ser->set_stop_bits(1);
+        m_comm = ser;
         return;
     }
 
@@ -127,7 +133,8 @@ namespace labdev {
         if (cmd.size() < 4)
             throw bad_protocol("Invalid command", cmd.size());
         
-        // Build message: stx(1) + nchars(2) + cmd(4) + data(n) + checksum(2) + etx(1)
+        // Build message: 
+        //      stx(1) + nchars(2) + cmd(4) + data(n) + checksum(2) + etx(1)
         unsigned nchars = data.size() + cmd.size();
         std::stringstream msg("");
         msg << STX;

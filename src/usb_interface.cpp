@@ -228,7 +228,8 @@ namespace labdev {
     };
 
     std::string usb_interface::get_info() const {
-        std::string ret("USB " + std::to_string(m_bus) + ":" 
+        // Format example: usb;002;001
+        std::string ret("usb;" + std::to_string(m_bus) + ";" 
             + std::to_string(m_port) );
         return ret;
     }

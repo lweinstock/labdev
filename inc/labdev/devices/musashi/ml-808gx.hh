@@ -2,17 +2,18 @@
 #define LD_ML_808_GX_HH
 
 #include <labdev/devices/device.hh>
+#include <labdev/serial_interface.hh>
 
 namespace labdev {
     class ml_808gx : public device {
     public:
         ml_808gx() {};
-        ml_808gx(const serial_config &ser);
+        ml_808gx(serial_interface* ser);
         ml_808gx(const ml_808gx&) = delete;
         ~ml_808gx() {};
 
         // Open serial interface
-        void open(const serial_config &ser);
+        void open(serial_interface* ser);
 
         // Dispense glue using parameters from current channel
         void dispense();

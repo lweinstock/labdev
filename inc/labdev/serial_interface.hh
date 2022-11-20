@@ -31,7 +31,7 @@ namespace labdev{
 
         // Set baud rate for serial interface
         void set_baud(unsigned baud);
-        speed_t get_baud() const { return m_baud; }
+        unsigned get_baud() const { return m_baud; }
 
         // Set number of data bits per packet
         void set_nbits(unsigned nbits) noexcept;

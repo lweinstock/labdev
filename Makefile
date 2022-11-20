@@ -9,7 +9,7 @@ CC=g++
 LDFLAGS=
 CFLAGS=-Wall --std=c++11 -fPIC
 # Debugging
-CFLAGS+=-g #-D LD_DEBUG
+CFLAGS+=-g -D LD_DEBUG
 
 # Library name and objects
 LIBNAME=liblabdev
@@ -37,10 +37,10 @@ OBJ+=$(SRC)/devices/device.o
 #OBJ+=$(SRC)/devices/oscilloscope.o
 
 # Vendor specific devices
-#OBJ+=$(SRC)/devices/scpi_device.o
+OBJ+=$(SRC)/devices/scpi_device.o
 #OBJ+=$(SRC)/devices/feeltech/fy6900.o
 #OBJ+=$(SRC)/devices/uni-t/ut61b.o
-#OBJ+=$(SRC)/devices/rigol/ds1000z.o
+OBJ+=$(SRC)/devices/rigol/ds1000z.o
 #OBJ+=$(SRC)/devices/rigol/dg4000.o
 #OBJ+=$(SRC)/devices/hantek/dso5000p.o
 #OBJ+=$(SRC)/devices/rohde-schwarz/hmp4000.o

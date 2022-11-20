@@ -2,18 +2,23 @@
 #define XENAX_XVI_75V8_HH
 
 #include <labdev/devices/device.hh>
+#include <labdev/serial_interface.hh>
+#include <labdev/tcpip_interface.hh>
 
 namespace labdev {
 
     class xenax_xvi_75v8 : public device {
     public:
         xenax_xvi_75v8();
-        xenax_xvi_75v8(const serial_config &ser);
-        xenax_xvi_75v8(const ip_address &ip_addr);
+        xenax_xvi_75v8(serial_interface* ser);
+        xenax_xvi_75v8(tcpip_interface* tcpip);
         xenax_xvi_75v8(const xenax_xvi_75v8&) = delete;
 
-        void open(const serial_config &ser);
-        void open(const ip_address &ip_addr);
+        void open(serial_interface* ser);
+        void open(tcpip_interface* tcpip);
+
+        // XENAX default port 10001
+        static constexpr unsigned port = 10001;
 
         // Process Status Register definition (manual p. 56)
         enum PSR : uint32_t {

@@ -13,6 +13,6 @@
 #endif
 
 #define debug_print(msg, ...) \
-    do {if (PRINT_DEBUG)  fprintf(stderr, "%s:%d [%s()]: " msg, \
-    __FILE__, __LINE__, __func__, __VA_ARGS__); } while(0)
+    do { if (PRINT_DEBUG) fprintf(stderr, "%s:%d [%s()]: " msg, \
+        __FILE__, __LINE__, __func__, __VA_ARGS__); } while(0)
 #endif

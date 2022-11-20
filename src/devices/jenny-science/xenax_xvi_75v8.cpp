@@ -19,37 +19,46 @@ namespace labdev {
         return;
     }
 
-    xenax_xvi_75v8::xenax_xvi_75v8(const serial_config &ser): 
+    xenax_xvi_75v8::xenax_xvi_75v8(serial_interface* ser): 
     xenax_xvi_75v8() {
         this->open(ser);
         this->init();
         return;
     }
 
-    xenax_xvi_75v8::xenax_xvi_75v8(const ip_address &ip_addr): 
+    xenax_xvi_75v8::xenax_xvi_75v8(tcpip_interface* tcpip): 
     xenax_xvi_75v8() {
-        this->open(ip_addr);
+        this->open(tcpip);
         this->init();
         return;
     }
 
-    void xenax_xvi_75v8::open(const serial_config &ser) {
+    void xenax_xvi_75v8::open(serial_interface* ser) {
         if ( this->good() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();
         }
         // Serial setup: 115200 8N1 (manual p. 28)
-        m_comm = new serial_interface(ser.path, 115200, 8, false, false, 1);
+        ser->set_baud(115200);
+        ser->set_nbits(8);
+        ser->set_parity(false, false);
+        ser->set_stop_bits(1);
+        m_comm = ser;
         return;
     }
 
-    void xenax_xvi_75v8::open(const ip_address &ip_addr) {
+    void xenax_xvi_75v8::open(tcpip_interface* tcpip) {
         if ( this->good() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();
         }
         // Default port 10001
-        m_comm = new tcpip_interface(ip_addr.ip, 10001);
+        if (tcpip->get_port() != xenax_xvi_75v8::port) {
+            fprintf(stderr, "XENAX Xvi 75v8 only supports port %u.\n",
+                xenax_xvi_75v8::port);
+            abort();
+        }
+        m_comm = tcpip;
         return;
     }
 
