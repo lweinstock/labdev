@@ -13,55 +13,44 @@ namespace labdev{
      *  Abstract base class for all function generators
      */
 
-    class oscilloscope : public virtual device {
+    class function_generator : public virtual device {
     public:
-        oscilloscope(unsigned n_ch) : m_n_ch(n_ch) {};
-        virtual ~oscilloscope() {};
+        function_generator(unsigned n_ch) : m_n_ch(n_ch) {};
+        virtual ~function_generator() {};
 
-        // Generic trigger type definitions
-        enum trigger_type : uint16_t {
-            RISE    = 0x00,
-            FALL    = 0x01,
-            BOTH    = 0x02
-        };
+        enum waveform : unsigned {
+            SINE        = 0,
+            SQUARE      = 1,
+            RECTANGLE   = 2,
+            TRAPEZOID   = 3,
+            CMOS        = 4,
+            PULSE       = 5,
+            DC          = 6,
+            TRIANGLE    = 7,
+            POS_RAMP    = 8,
+            NEG_RAMP    = 9
+        };  // TODO: waveforms 10 to 99 (!!)
 
-        // Returns maximum number of channels
-        const int get_n_channels() const { return m_n_ch; }
+        void enable_ch(int ch, bool ena);
+        bool get_status(int ch);
 
-        // Turn channel on/off
-        virtual void enable_channel(unsigned channel, bool enable = true) = 0;
-        void disable_channel(unsigned channel) { enable_channel(channel, false); }
+        void set_waveform(int ch, int wvfm);
+        std::string get_waveform(int ch);
 
-        // Attenuation settings
-        virtual void set_atten(unsigned channel, double att) = 0;
-        virtual double get_atten(unsigned channel) = 0;
+        void set_freq(int ch, float freq_hz);
+        float get_freq(int ch);
 
-        // Vertical settings
-        virtual void set_vert_base(unsigned channel, double volts_per_div) = 0;
-        virtual double get_vert_base(unsigned channel) = 0;
+        void set_duty_cycle(int ch, float dcl);
+        float get_duty_cycle(int ch);
 
-        // Horizontal settings
-        virtual void set_horz_base(double sec_per_div) = 0;
-        virtual double get_horz_base() = 0;
+        void set_phase(int ch, float phase_deg);
+        float get_phase(int ch);
 
-        // Acquisition settings
-        virtual void start_acquisition() = 0;
-        virtual void stop_acquisition() = 0;
-        virtual void single_shot() = 0;
+        void set_ampl(int ch, float ampl_v);
+        float get_ampl(int ch);
 
-        // Trigger settings
-        virtual void set_trigger_type(trigger_type trig) = 0;
-        virtual void set_trigger_level(double level) = 0;
-        virtual void set_trigger_source(unsigned channel) = 0;
-
-        // Returns true if trigger conditions have been met
-        virtual bool triggered() = 0;
-        // Returns true if data acquisition has stopped
-        virtual bool stopped() = 0;
-
-        // Read sample data
-        virtual void read_sample_data(unsigned channel,  
-            std::vector<double> &horz_data, std::vector<double> &vert_data) = 0;
+        void set_offset(int ch, float offset_v);
+        float get_offset(int ch);
 
     private:
         const unsigned m_n_ch;
