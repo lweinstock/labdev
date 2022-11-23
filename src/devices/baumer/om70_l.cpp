@@ -5,11 +5,11 @@
 namespace labdev {
 
     om70_l::om70_l(tcpip_interface* tcpip) {
-        this->open(tcpip);
+        this->connect(tcpip);
         return;
     }
 
-    void om70_l::open(tcpip_interface* tcpip) {
+    void om70_l::connect(tcpip_interface* tcpip) {
         if ( this->good() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();

@@ -14,8 +14,8 @@ namespace labdev {
         xenax_xvi_75v8(tcpip_interface* tcpip);
         xenax_xvi_75v8(const xenax_xvi_75v8&) = delete;
 
-        void open(serial_interface* ser);
-        void open(tcpip_interface* tcpip);
+        void connect(serial_interface* ser);
+        void connect(tcpip_interface* tcpip);
 
         // XENAX default port 10001
         static constexpr unsigned PORT = 10001;

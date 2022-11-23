@@ -19,7 +19,7 @@ namespace labdev {
         bool good() const { return (m_comm ? m_comm->connected() : false); }
         
         // Close the communication interface
-        virtual void close();
+        virtual void disconnect();
 
         // Returns human readable information string about the interface
         std::string get_info() const;

@@ -18,7 +18,7 @@ namespace labdev {
         // OM70 default port 502
         static constexpr unsigned PORT = 502;
 
-        void open(tcpip_interface* tcpip);
+        void connect(tcpip_interface* tcpip);
 
         // Returns distance in mm
         float get_distance();

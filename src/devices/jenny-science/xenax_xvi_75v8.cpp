@@ -21,19 +21,19 @@ namespace labdev {
 
     xenax_xvi_75v8::xenax_xvi_75v8(serial_interface* ser): 
     xenax_xvi_75v8() {
-        this->open(ser);
+        this->connect(ser);
         this->init();
         return;
     }
 
     xenax_xvi_75v8::xenax_xvi_75v8(tcpip_interface* tcpip): 
     xenax_xvi_75v8() {
-        this->open(tcpip);
+        this->connect(tcpip);
         this->init();
         return;
     }
 
-    void xenax_xvi_75v8::open(serial_interface* ser) {
+    void xenax_xvi_75v8::connect(serial_interface* ser) {
         if ( this->good() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();
@@ -47,7 +47,7 @@ namespace labdev {
         return;
     }
 
-    void xenax_xvi_75v8::open(tcpip_interface* tcpip) {
+    void xenax_xvi_75v8::connect(tcpip_interface* tcpip) {
         if ( this->good() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();

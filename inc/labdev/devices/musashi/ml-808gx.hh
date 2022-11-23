@@ -13,7 +13,7 @@ namespace labdev {
         ~ml_808gx() {};
 
         // Open serial interface
-        void open(serial_interface* ser);
+        void connect(serial_interface* ser);
 
         // Dispense glue using parameters from current channel
         void dispense();
