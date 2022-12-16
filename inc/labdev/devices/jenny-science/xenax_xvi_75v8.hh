@@ -137,7 +137,7 @@ namespace labdev {
 
         // Get error information
         unsigned get_error() { return std::stoi(this->query_command("TE")); }
-        std::string get_strerror() { return this->query_command("TE"); }
+        std::string get_strerror() { return this->query_command("TES"); }
 
         // Motor type reset (in response to error 59)
         void reset_motor_type() { this->query_command("RESM", 10000); }
