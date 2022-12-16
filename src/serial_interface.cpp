@@ -173,16 +173,16 @@ namespace labdev {
     }
 
     void serial_interface::set_baud(unsigned baud) {
-        m_baud = this->check_baud(baud);
+        int good_baud = this->check_baud(baud);
         debug_print("Setting baudrate to %i\n", baud);
 
-        int stat = cfsetispeed(&m_term_settings, m_baud);
+        int stat = cfsetispeed(&m_term_settings, good_baud);
         check_and_throw(stat, "Failed to set in baudrate " +
             std::to_string(baud));
-        stat = cfsetospeed(&m_term_settings, m_baud);
+        stat = cfsetospeed(&m_term_settings, good_baud);
         check_and_throw(stat, "Failed to set out baudrate " +
             std::to_string(baud));
-
+		m_baud = baud;
         m_update_settings = true;
         return;
     }
