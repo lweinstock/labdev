@@ -14,11 +14,11 @@ using std::uppercase;
 namespace labdev {
 
     ml_808gx::ml_808gx(serial_interface* ser) {
-        this->open(ser);
+        this->connect(ser);
         return;
     }
 
-    void ml_808gx::open(serial_interface* ser) {
+    void ml_808gx::connect(serial_interface* ser) {
         if ( this->good() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();

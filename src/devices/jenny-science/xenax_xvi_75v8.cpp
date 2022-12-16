@@ -238,7 +238,8 @@ namespace labdev {
 
         // Check error, warning, and info bit
         if ( status & (ERROR | WARNING | INFO) ) {
-            this->read_error_queue();
+            m_error = this->get_error();
+            m_strerror = this->get_strerror();
             if (status & ERROR)
                 throw device_error(m_strerror, m_error);
             else if (status & WARNING)  // Does WARNING need an exception...?
@@ -310,12 +311,6 @@ namespace labdev {
         }
         m_input_buffer.clear();
         debug_print("%s\n", "buffer flushed");
-        return;
-    }
-
-    void xenax_xvi_75v8::read_error_queue() {
-        m_strerror = this->query_command("TES");
-        m_error = std::stoi( this->query_command("TE") );
         return;
     }
 

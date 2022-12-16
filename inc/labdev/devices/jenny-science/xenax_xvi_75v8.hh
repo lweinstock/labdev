@@ -136,8 +136,8 @@ namespace labdev {
         void disable_smu() { this->query_command("DMBUS"); }
 
         // Get error information
-        unsigned get_error() { return m_error; }
-        std::string get_strerror() { return m_strerror; }
+        unsigned get_error() { return std::stoi(this->query_command("TE")); }
+        std::string get_strerror() { return this->query_command("TE"); }
 
         // Motor type reset (in response to error 59)
         void reset_motor_type() { this->query_command("RESM", 10000); }

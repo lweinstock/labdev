@@ -9,7 +9,7 @@ CC=g++
 LDFLAGS=
 CFLAGS=-Wall --std=c++11 -fPIC
 # Debugging
-CFLAGS+=-g -D LD_DEBUG
+CFLAGS+=-g #-D LD_DEBUG
 
 # Library name and objects
 LIBNAME=liblabdev

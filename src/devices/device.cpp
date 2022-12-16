@@ -3,11 +3,11 @@
 namespace labdev {
 
     device::~device() {
-        this->close();
+        this->disconnect();
         return;
     }
 
-    void device::close() {
+    void device::disconnect() {
         m_comm->close();
         return;
     }
