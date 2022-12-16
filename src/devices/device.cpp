@@ -8,7 +8,8 @@ namespace labdev {
     }
 
     void device::disconnect() {
-        m_comm->close();
+        if(m_comm)
+			m_comm->close();
         return;
     }
 
