@@ -10,12 +10,12 @@ namespace labdev {
     class xenax_xvi_75v8 : public device {
     public:
         xenax_xvi_75v8();
-        xenax_xvi_75v8(serial_interface* ser);
-        xenax_xvi_75v8(tcpip_interface* tcpip);
+        xenax_xvi_75v8(serial_config &ser);
+        xenax_xvi_75v8(ip_address &ip);
         xenax_xvi_75v8(const xenax_xvi_75v8&) = delete;
 
-        void connect(serial_interface* ser);
-        void connect(tcpip_interface* tcpip);
+        void connect(serial_config &ser);
+        void connect(ip_address &ip);
 
         // XENAX default port 10001
         static constexpr unsigned PORT = 10001;

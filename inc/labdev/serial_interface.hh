@@ -5,12 +5,33 @@
 #include <termios.h>
 
 namespace labdev{
+
+    // brief struct for serial configuration
+    struct serial_config {
+        serial_config() : dev_file("/dev/tty0"), baud(9600), nbits(8), 
+            par_ena(false), par_even(false), stop_bits(1) {};
+        serial_config(std::string dev, unsigned baud = 9600, unsigned bits = 8,
+            bool par = false, bool even = false, unsigned sbits = 1) :
+            dev_file(dev), baud(baud), nbits(bits), par_ena(par), 
+            par_even(even),stop_bits(sbits) {};
+        std::string dev_file;
+        unsigned baud;
+        unsigned nbits;
+        bool par_ena;
+        bool par_even;
+        unsigned stop_bits;
+    };  
+
+
     class serial_interface : public interface {
     public:
         serial_interface();
         serial_interface(const std::string &path, unsigned baud = 9600,
             unsigned nbits = 8, bool par_en = false, bool par_even = false,
             unsigned stop_bits = 1);
+        serial_interface(serial_config &conf) : 
+            serial_interface(conf.dev_file, conf.baud, conf.nbits, conf.par_ena,
+            conf.par_even, conf.stop_bits) {};
         ~serial_interface();
 
         // Open or close device (default 9600 baud 8N1)
@@ -35,7 +56,7 @@ namespace labdev{
 
         // Set number of data bits per packet
         void set_nbits(unsigned nbits) noexcept;
-        uint32_t get_nbits() const { return m_nbits; }
+        unsigned get_nbits() const { return m_nbits; }
 
         // Send 1 or 2 stop bits
         void set_stop_bits(unsigned stop_bits) noexcept;
@@ -62,7 +83,7 @@ namespace labdev{
         void set_rts();
         void clear_rts();
 
-        bool connected() const override { return m_connected; }
+        bool good() const override { return m_connected; }
 
         Interface_type type() const override { return serial; }
 

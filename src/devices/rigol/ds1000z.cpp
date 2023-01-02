@@ -17,51 +17,49 @@ namespace labdev {
         return;
     }
 
-    ds1000z::ds1000z(tcpip_interface* tcpip):
+    ds1000z::ds1000z(ip_address &ip):
     oscilloscope(4) {
-        open(tcpip);
+        connect(ip);
         init();
         return;
     }
 
-    ds1000z::ds1000z(usbtmc_interface* usbtmc):
+    ds1000z::ds1000z(usb_config &conf):
     oscilloscope(4) {
-        open(usbtmc);
+        connect(conf);
         init();
         return;
     }
 
-    ds1000z::ds1000z(visa_interface* visa):
+    ds1000z::ds1000z(visa_identifier &visa_id):
     oscilloscope(4) {
-        open(visa);
+        connect(visa_id);
         init();
         return;
     }
 
-    ds1000z::~ds1000z() {
-        return;
-    }
-
-    void ds1000z::open(tcpip_interface* tcpip) {
-        if ( this->good() ) {
+    void ds1000z::connect(ip_address &ip) 
+    {
+        if ( this->connected() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();
         }
         // Default port 5555
-        if (tcpip->get_port() != ds1000z::PORT) {
-            fprintf(stderr, "Rigol DS1000z only supports port %u.\n",
-                ds1000z::PORT);
+        if (ip.port != ds1000z::PORT) {
+            fprintf(stderr, "Rigol DS1000z only supports port %u.\n", ds1000z::PORT);
             abort();
         }
-        m_comm = tcpip;
+        m_comm = new tcpip_interface(ip);
         return;
     }
 
-    void ds1000z::open(usbtmc_interface* usbtmc) {
-        if ( this->good() ) {
+    void ds1000z::connect(usb_config &conf) 
+    {
+        if ( this->connected() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();
         }
+        usbtmc_interface* usbtmc = new usbtmc_interface(conf);
         // USB initialization
         usbtmc->claim_interface(0);
         usbtmc->set_endpoint_in(0x02);
@@ -70,15 +68,10 @@ namespace labdev {
         return;
     }
 
-    void ds1000z::open(visa_interface* visa) {
-        if ( this->good() ) {
-            fprintf(stderr, "Device is already connected!\n");
-            abort();
-        }
-        m_comm = visa;
+    void ds1000z::connect(visa_identifier &visa_id) {
+        m_comm = new visa_interface(visa_id);
         return;
     }
-
 
     void ds1000z::enable_channel(unsigned channel, bool enable) {
         this->check_channel(channel);

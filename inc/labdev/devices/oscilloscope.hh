@@ -15,7 +15,7 @@ namespace labdev{
 
     class oscilloscope : public virtual device {
     public:
-        oscilloscope(unsigned n_ch) : m_n_ch(n_ch) {};
+        oscilloscope(unsigned n_ch) : device(), m_n_ch(n_ch) {};
         virtual ~oscilloscope() {};
 
         // Generic trigger type definitions

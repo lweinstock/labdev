@@ -7,6 +7,11 @@
 #include <labdev/interface.hh>
 #include <labdev/exceptions.hh>
 
+namespace labdev
+{
+    typedef std::string visa_identifier;
+}
+
 #ifdef LDVISA
 
 #ifdef __APPLE__
@@ -19,14 +24,14 @@ namespace labdev {
     class visa_interface : public interface {
     public:
         visa_interface();
-        visa_interface(std::string visa_id);
+        visa_interface(visa_identifier &visa_id);
         virtual ~visa_interface();
 
         // Find all available VISA resource, returns list of VISA IDs
         std::vector<std::string> find_resources(std::string regex = "?*INSTR");
 
         // Open/close device
-        void open(const std::string &visa_id);
+        void open(visa_identifier &visa_id);
         void close() override;
 
 
@@ -37,7 +42,7 @@ namespace labdev {
 
         Interface_type type() const override { return visa; }
 
-        bool connected() const override { return m_connected; }
+        bool good() const override { return m_connected; }
 
         // Clear I/O buffers
         void flush_buffer(uint16_t flag = VI_READ_BUF | VI_WRITE_BUF);
@@ -74,7 +79,7 @@ namespace labdev {
             abort();
         }
 
-        visa_interface(std::string visa_id) : visa_interface() {}
+        visa_interface(visa_identifier &visa_id) : visa_interface() {}
 
         virtual ~visa_interface() {}
 
@@ -88,7 +93,7 @@ namespace labdev {
 
         Interface_type type() const override { return visa; }
 
-        bool connected() const override { return false; }
+        bool good() const override { return false; }
 
         // Clear I/O buffers
         void flush_buffer() {};

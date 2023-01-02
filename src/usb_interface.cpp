@@ -21,30 +21,45 @@ namespace labdev {
     m_dev_protocol(0),
     m_interface_class(0),
     m_interface_subclass(0),
-    m_interface_protocol(0) {
+    m_interface_protocol(0) 
+    {
         return;
     }
 
     usb_interface::usb_interface(uint16_t vendor_id, uint16_t product_id,
     std::string serial_number):
-    usb_interface() {
+    usb_interface() 
+    {
         this->open(vendor_id, product_id, serial_number);
         return;
     }
 
     usb_interface::usb_interface(uint8_t bus_no, uint8_t port_no):
-    usb_interface() {
+    usb_interface() 
+    {
         this->open(bus_no, port_no);
         return;
     }
 
-    usb_interface::~usb_interface() {
+    usb_interface::usb_interface(usb_config &conf) : usb_interface()
+    {
+        if (conf.vid != 0x0000 && conf.pid != 0x0000) {
+                this->open(conf.vid, conf.pid, conf.serial);
+                return;
+        }
+        this->open(conf.bus_no, conf.port_no);
+        return;
+    }
+
+    usb_interface::~usb_interface() 
+    {
         this->close();
         return;
     }
 
     void usb_interface::open(uint16_t vendor_id, uint16_t product_id,
-    std::string serial_number) {
+    std::string serial_number) 
+    {
         int stat;
         // If first device, start new libusb session
         if (s_dev_count == 0) {
@@ -109,7 +124,8 @@ namespace labdev {
         return;
     }
 
-    void usb_interface::open(uint8_t bus_no, uint8_t port_no) {
+    void usb_interface::open(uint8_t bus_no, uint8_t port_no) 
+    {
         int stat;
         // If first device, start new libusb session
         if (s_dev_count == 0) {
@@ -153,7 +169,8 @@ namespace labdev {
         return;
     }
 
-    void usb_interface::close() {
+    void usb_interface::close() 
+    {
         // Release claimed interfaces and device
         if (m_cur_interface_no != s_no_interface)
             libusb_release_interface(m_usb_handle, m_cur_interface_no);
@@ -171,7 +188,8 @@ namespace labdev {
         return;
     }
 
-    int usb_interface::write_raw(const uint8_t* data, size_t len) {
+    int usb_interface::write_raw(const uint8_t* data, size_t len) 
+    {
         this->check_interface();
         size_t bytes_left = len;
         size_t bytes_written = 0;
@@ -202,7 +220,8 @@ namespace labdev {
         return bytes_written;
     };
 
-    int usb_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) {
+    int usb_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
+    {
         this->check_interface();
         ssize_t nbytes = 0;
         uint8_t rbuf[s_dflt_buf_size] = {'\0'};
@@ -227,7 +246,8 @@ namespace labdev {
         return nbytes;
     };
 
-    std::string usb_interface::get_info() const {
+    std::string usb_interface::get_info() const 
+    {
         // Format example: usb;002;001
         std::string ret("usb;" + std::to_string(m_bus) + ";" 
             + std::to_string(m_port) );
@@ -235,7 +255,8 @@ namespace labdev {
     }
 
     int usb_interface::write_control(uint8_t request_type, uint8_t request,
-    uint16_t value, uint16_t index, const uint8_t* data, int len) {
+    uint16_t value, uint16_t index, const uint8_t* data, int len) 
+    {
         this->check_interface();
 
         int nbytes = libusb_control_transfer(
@@ -261,7 +282,8 @@ namespace labdev {
     }
 
     int usb_interface::read_control(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index,
-    const uint8_t* data, int len) {
+    const uint8_t* data, int len) 
+    {
         this->check_interface();
 
         int nbytes = libusb_control_transfer(
@@ -287,7 +309,8 @@ namespace labdev {
     }
 
 
-    int usb_interface::write_bulk(const uint8_t* data, int len) {
+    int usb_interface::write_bulk(const uint8_t* data, int len) 
+    {
         this->check_interface();
 
         int nbytes = -1, stat;
@@ -319,7 +342,8 @@ namespace labdev {
         return nbytes;
     }
 
-    int usb_interface::read_bulk(uint8_t* data, int max_len, int timeout_ms) {
+    int usb_interface::read_bulk(uint8_t* data, int max_len, int timeout_ms) 
+    {
         this->check_interface();
 
         int nbytes = 0, stat;
@@ -351,18 +375,21 @@ namespace labdev {
         return nbytes;
     }
 
-    int usb_interface::write_interrupt(const uint8_t* data, int len) {
+    int usb_interface::write_interrupt(const uint8_t* data, int len) 
+    {
         // TODO
         return 0;
     }
 
     int usb_interface::read_interrupt(uint8_t* data, int max_len,
-        int timeout_ms) {
+        int timeout_ms) 
+        {
         // TODO
         return 0;
     }
 
-    void usb_interface::claim_interface(int interface_no, int alt_setting) {
+    void usb_interface::claim_interface(int interface_no, int alt_setting) 
+    {
         int stat;
         char buf[100];
         // Release current interface
@@ -399,12 +426,14 @@ namespace labdev {
         return;
     }
 
-    void usb_interface::set_endpoint_in(uint8_t ep_addr) {
+    void usb_interface::set_endpoint_in(uint8_t ep_addr) 
+    {
         m_cur_ep_in_addr = ep_addr;
         return;
     }
 
-    void usb_interface::set_endpoint_out(uint8_t ep_addr) {
+    void usb_interface::set_endpoint_out(uint8_t ep_addr) 
+    {
         m_cur_ep_out_addr = ep_addr;
         return;
     }
@@ -413,7 +442,8 @@ namespace labdev {
      *      P R I V A T E   M E T H O D S
      */
 
-    void usb_interface::gather_device_information() {
+    void usb_interface::gather_device_information() 
+    {
         if (!m_usb_dev)
             return;
 
@@ -452,7 +482,8 @@ namespace labdev {
         return;
     }
 
-    void usb_interface::gather_interface_information() {
+    void usb_interface::gather_interface_information() 
+    {
         this->check_interface();
 
         libusb_config_descriptor* cfg_desc;
@@ -478,8 +509,8 @@ namespace labdev {
         return;
     }
 
-    void usb_interface::check_and_throw(int stat, const std::string& msg)
-    const {
+    void usb_interface::check_and_throw(int stat, const std::string& msg) const 
+    {
         if (stat < 0) {
             char err_msg[256] = {'\0'};
             sprintf(err_msg, "%s (%s, %i)", msg.c_str(),
@@ -514,7 +545,8 @@ namespace labdev {
         return;
     }
 
-    void usb_interface::check_interface() {
+    void usb_interface::check_interface() 
+    {
         if (m_cur_interface_no == s_no_interface)
             throw bad_io("No USB interface claimed");
         return;

@@ -9,7 +9,7 @@ namespace labdev {
     class om70_l : public device {
     public:
         om70_l() {};
-        om70_l(tcpip_interface* tcpip);
+        om70_l(ip_address &ip);
         om70_l(const om70_l&) = delete;
         ~om70_l() {};
 
@@ -18,7 +18,7 @@ namespace labdev {
         // OM70 default port 502
         static constexpr unsigned PORT = 502;
 
-        void connect(tcpip_interface* tcpip);
+        void connect(ip_address &ip);
 
         // Returns distance in mm
         float get_distance();

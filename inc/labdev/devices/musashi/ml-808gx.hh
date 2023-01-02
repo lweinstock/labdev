@@ -8,12 +8,12 @@ namespace labdev {
     class ml_808gx : public device {
     public:
         ml_808gx() {};
-        ml_808gx(serial_interface* ser);
+        ml_808gx(serial_config &ser);
         ml_808gx(const ml_808gx&) = delete;
         ~ml_808gx() {};
 
         // Open serial interface
-        void connect(serial_interface* ser);
+        void connect(serial_config &ser);
 
         // Dispense glue using parameters from current channel
         void dispense();

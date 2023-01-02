@@ -10,6 +10,7 @@ namespace labdev{
         usbtmc_interface(uint16_t vendor_id, uint16_t product_id,
             std::string serial_number = "");
         usbtmc_interface(uint8_t bus_address, uint8_t device_address);
+        usbtmc_interface(usb_config &conf);
         virtual ~usbtmc_interface();
 
         // USBTMC protocol definitions
@@ -66,8 +67,6 @@ namespace labdev{
 
         uint8_t m_cur_tag, m_term_char;
         bool m_eom_cap;   // TODO: check if EOM is supported by device
-
-        void init();
 
         // Creates a USBTMC header
         void create_usbtmc_header(uint8_t* header, uint8_t message_id,

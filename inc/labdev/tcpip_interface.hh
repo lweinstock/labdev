@@ -7,10 +7,21 @@
 #include <arpa/inet.h>
 
 namespace labdev {
+
+    // brief struct for tcpip configuration
+    struct ip_address {
+        ip_address() : ip("127.0.0.1"), port(0) {};
+        ip_address(std::string ip, unsigned port) : ip(ip), port(port) {};
+        std::string ip;
+        unsigned port;
+    };
+
     class tcpip_interface : public interface {
     public:
         tcpip_interface();
         tcpip_interface(const std::string& ip_addr, unsigned port);
+        tcpip_interface(ip_address &ip_addr) : 
+            tcpip_interface(ip_addr.ip, ip_addr.port) {};
         virtual ~tcpip_interface();
 
         // Open TCP/IP socket with given IP and port
@@ -34,7 +45,7 @@ namespace labdev {
         void set_timeout(unsigned timeout_ms);
 
         // Returns true if socket is ready for IO
-        bool connected() const override { return m_connected; }
+        bool good() const override { return m_connected; }
 
         // Returns interface type
         Interface_type type() const override { return tcpip; }

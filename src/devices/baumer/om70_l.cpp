@@ -4,22 +4,22 @@
 
 namespace labdev {
 
-    om70_l::om70_l(tcpip_interface* tcpip) {
-        this->connect(tcpip);
+    om70_l::om70_l(ip_address &ip) : device() {
+        this->connect(ip);
         return;
     }
 
-    void om70_l::connect(tcpip_interface* tcpip) {
-        if ( this->good() ) {
+    void om70_l::connect(ip_address &ip) {
+        if ( this->connected() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();
         }
         // Default port 502
-        if (tcpip->get_port() != om70_l::PORT) {
+        if (ip.port != om70_l::PORT) {
             fprintf(stderr, "OM70-L only supports port %u.\n", om70_l::PORT);
             abort();
         }
-        m_comm = tcpip;
+        m_comm = new tcpip_interface(ip);
         return;
     }
 

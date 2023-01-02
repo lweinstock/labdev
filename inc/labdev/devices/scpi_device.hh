@@ -13,7 +13,7 @@ namespace labdev {
 
     class scpi_device : public virtual device {
     public:
-        scpi_device() {};
+        scpi_device() : device() {};
         virtual ~scpi_device();
 
         // Standard Event Status Register (SESR) definitions

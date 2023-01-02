@@ -6,20 +6,19 @@
 namespace labdev {
 
     /*
-     *  Abstract base class for devices
+     *  Abstract class for basic devices
      */
 
     class device {
     public:
         device() : m_comm(nullptr) {};
         device(const device&) = delete;
-        virtual ~device();
+        virtual ~device() { this->disconnect(); }
 
         // Does a communication interface exist and is it connected?
-        bool good() const { return (m_comm ? m_comm->connected() : false); }
-        
-        // Close the communication interface
-        virtual void disconnect();
+        bool connected() const { return (m_comm ? m_comm->good() : false); }
+
+        void disconnect();
 
         // Returns human readable information string about the interface
         std::string get_info() const;

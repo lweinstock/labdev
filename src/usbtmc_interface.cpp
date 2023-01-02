@@ -4,40 +4,59 @@
 
 namespace labdev {
 
-    usbtmc_interface::usbtmc_interface() : usb_interface() {
-        this->init();
+    usbtmc_interface::usbtmc_interface() : 
+    usb_interface(), 
+    m_cur_tag(0x01),
+    m_eom_cap(true) 
+    {
         return;
     }
 
     usbtmc_interface::usbtmc_interface(uint16_t vendor_id, uint16_t product_id,
     std::string serial_number):
-    usb_interface(vendor_id, product_id, serial_number) {
-        this->init();
+    usb_interface(vendor_id, product_id, serial_number),
+    m_cur_tag(0x01),
+    m_eom_cap(true)
+    {
         return;
     }
 
     usbtmc_interface::usbtmc_interface(uint8_t bus_address,
     uint8_t device_address):
-    usb_interface(bus_address, device_address) {
-        this->init();
+    usb_interface(bus_address, device_address),
+    m_cur_tag(0x01),
+    m_eom_cap(true) 
+    {
         return;
     }
 
-    usbtmc_interface::~usbtmc_interface() {
+    usbtmc_interface::usbtmc_interface(usb_config &conf):
+    usb_interface(conf),
+    m_cur_tag(0x01),
+    m_eom_cap(true) 
+    {
         return;
     }
 
-    void usbtmc_interface::write(const std::string& msg) {
+    usbtmc_interface::~usbtmc_interface() 
+    {
+        return;
+    }
+
+    void usbtmc_interface::write(const std::string& msg) 
+    {
         this->write_dev_dep_msg(msg);
         return;
     }
 
-    std::string usbtmc_interface::read(unsigned timeout_ms) {
+    std::string usbtmc_interface::read(unsigned timeout_ms) 
+    {
         return this->read_dev_dep_msg(timeout_ms);
     }
 
     int usbtmc_interface::write_dev_dep_msg(std::string msg,
-    uint8_t transfer_attr) {
+    uint8_t transfer_attr) 
+    {
         // add space for header + total length must be multiple of 4
         size_t tot_len = s_header_len + msg.size() + 4 - msg.size()%4;
         uint8_t* usbtmc_message = new uint8_t[tot_len];
@@ -60,7 +79,8 @@ namespace labdev {
     }
 
     std::string usbtmc_interface::read_dev_dep_msg(int timeout_ms,
-    uint8_t transfer_attr, uint8_t term_char) {
+    uint8_t transfer_attr, uint8_t term_char) 
+    {
         uint8_t read_request[s_header_len];
         uint8_t rbuf[s_dflt_buf_size] = { 0x00 };
 
@@ -113,7 +133,8 @@ namespace labdev {
         return ret;
     }
 
-    int usbtmc_interface::write_vendor_specific(std::string msg) {
+    int usbtmc_interface::write_vendor_specific(std::string msg) 
+    {
         // add space for header + total length must be multiple of 4
         size_t tot_len = s_header_len + msg.size() + 4 - msg.size()%4;
         uint8_t* usbtmc_message = new uint8_t[tot_len];
@@ -121,7 +142,8 @@ namespace labdev {
             msg.size());
 
         // Append data
-        for (int i = s_header_len; i < tot_len; i++) {
+        for (int i = s_header_len; i < tot_len; i++) 
+        {
             usbtmc_message[i] = msg.c_str()[i-s_header_len];
             if (i > msg.size()+s_header_len)
                 usbtmc_message[i] = 0x00;   // zero padding
@@ -134,7 +156,8 @@ namespace labdev {
         return nbytes;
     }
 
-    std::string usbtmc_interface::read_vendor_specific(int timeout_ms) {
+    std::string usbtmc_interface::read_vendor_specific(int timeout_ms) 
+    {
         uint8_t read_request[s_header_len], rbuf[s_dflt_buf_size];
         // Send read request
         debug_print("%s\n", "Sending vendor specific read request\n");
@@ -171,7 +194,8 @@ namespace labdev {
         return ret;
     }
 
-    void usbtmc_interface::clear_buffer() {
+    void usbtmc_interface::clear_buffer() 
+    {
         uint8_t buf[1];
         this->write_control(LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
         INITIATE_CLEAR, 0x0000, 0x0000, buf, 0x0001);
@@ -179,7 +203,8 @@ namespace labdev {
         return;
     }
 
-    void usbtmc_interface::claim_interface(int int_no, int alt_setting) {
+    void usbtmc_interface::claim_interface(int int_no, int alt_setting) 
+    {
         usb_interface::claim_interface(int_no, alt_setting);
         // Check for USBTMC interface
         if ( (this->get_interface_class() != LIBUSB_CLASS_APPLICATION) ||
@@ -195,15 +220,10 @@ namespace labdev {
      *      P R I V A T E   M E T H O D S
      */
 
-    void usbtmc_interface::init() {
-        m_cur_tag = 0x01;
-        m_eom_cap = true;
-        return;
-    }
-
     void usbtmc_interface::create_usbtmc_header(uint8_t* header,
     uint8_t message_id, uint8_t transfer_attr, uint32_t transfer_size,
-    uint8_t term_char) {
+    uint8_t term_char) 
+    {
         // Create USBTMC header
         header[0] = message_id;
         header[1] = m_cur_tag;
@@ -243,7 +263,8 @@ namespace labdev {
     }
 
     int usbtmc_interface::check_usbtmc_header(uint8_t* message,
-        uint8_t message_id) {
+    uint8_t message_id) 
+    {
         // Check MsgID field
         if ( message_id != message[0] ) {
             debug_print("Wrong MsgID returned : expected 0x%02X, received 0x%02X\n",

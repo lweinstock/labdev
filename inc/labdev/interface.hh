@@ -64,7 +64,7 @@ namespace labdev{
         // Returns interface type; can be used to break abstraction
         virtual Interface_type type() const = 0;
         // Returns true if device is ready for communication
-        virtual bool connected() const = 0;
+        virtual bool good() const = 0;
         // Closes communication
         virtual void close() = 0;
 

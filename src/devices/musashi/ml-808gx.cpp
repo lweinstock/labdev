@@ -13,39 +13,40 @@ using std::uppercase;
 
 namespace labdev {
 
-    ml_808gx::ml_808gx(serial_interface* ser) {
+    ml_808gx::ml_808gx(serial_config &ser) : device()
+    {
         this->connect(ser);
         return;
     }
 
-    void ml_808gx::connect(serial_interface* ser) {
-        if ( this->good() ) {
+    void ml_808gx::connect(serial_config &ser) 
+    {
+        if ( this->connected() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();
         }
         // 8N1, supported baud = 9600/19200/38400 (see manual p. 24)
-        if ( ser->get_baud() != 9600 
-          && ser->get_baud() != 19200 
-          && ser->get_baud() != 38400) {
-            fprintf(stderr, "Baud %i is not supported by ML-808GX\n", 
-                ser->get_baud());
+        if ( ser.baud != 9600  && ser.baud != 19200 && ser.baud != 38400) {
+            fprintf(stderr, "Baud %i is not supported by ML-808GX\n", ser.baud);
             abort();
         }
-        ser->set_nbits(8);
-        ser->set_parity(false, false);
-        ser->set_stop_bits(1);
-        m_comm = ser;
+        ser.nbits = 8;
+        ser.par_ena = false;
+        ser.stop_bits = 1;
+        m_comm = new serial_interface(ser);
         return;
     }
 
-    void ml_808gx::dispense() {
+    void ml_808gx::dispense() 
+    {
         debug_print("%s\n", "Dispensing");
         std::string cmd = "DI  ";
         this->download_command(cmd);
         return;
     }
 
-    void ml_808gx::select_channel(unsigned ch) {
+    void ml_808gx::select_channel(unsigned ch) 
+    {
         if (ch > 399) {
             printf("Invalid channel %i (allowed 0 - 399)\n", ch);
             abort();
@@ -60,7 +61,8 @@ namespace labdev {
     }
 
     void ml_808gx::set_channel_params(unsigned pressure, 
-    unsigned dur, unsigned on_delay, unsigned off_delay) {
+    unsigned dur, unsigned on_delay, unsigned off_delay) 
+    {
         debug_print("Setting parameters of ch %i to:\n", m_cur_ch);
         debug_print("p = %i x 100Pa\n", pressure);
         debug_print("t = %i ms\n", dur);
@@ -77,7 +79,8 @@ namespace labdev {
     }
 
     void ml_808gx::get_channel_params(unsigned& pressure, 
-    unsigned& dur, unsigned& on_delay, unsigned& off_delay) {
+    unsigned& dur, unsigned& on_delay, unsigned& off_delay) 
+    {
         debug_print("Reading parameters of ch %i...\n", m_cur_ch);
         std::string resp("");
         std::stringstream cmd("");
@@ -98,21 +101,25 @@ namespace labdev {
         return;
     }
 
-    void ml_808gx::manual_mode() {
+    void ml_808gx::manual_mode() 
+    {
         this->download_command("MT  ");
         return;
     }
-    void ml_808gx::timed_mode() {
+    void ml_808gx::timed_mode() 
+    {
         this->download_command("TT  ");
         return;
     }
 
-    void ml_808gx::enable_vacuum(bool ena) {
+    void ml_808gx::enable_vacuum(bool ena) 
+    {
         this->download_command("VO  ", (ena ?  "1" : "0"));
         return;
     }
 
-    void ml_808gx::set_vacuum_interval(unsigned on_ms, unsigned off_ms) {
+    void ml_808gx::set_vacuum_interval(unsigned on_ms, unsigned off_ms) 
+    {
         if (on_ms > 4000) {
             printf("Vacuum time %i out of range\n", on_ms);
             abort();
@@ -129,7 +136,8 @@ namespace labdev {
         return;
     }
 
-    void ml_808gx::send_command(std::string cmd, std::string data) {
+    void ml_808gx::send_command(std::string cmd, std::string data) 
+    {
         if (cmd.size() < 4)
             throw bad_protocol("Invalid command", cmd.size());
         
@@ -152,7 +160,8 @@ namespace labdev {
         return;
     }
 
-    void ml_808gx::download_command(std::string cmd, std::string data) {
+    void ml_808gx::download_command(std::string cmd, std::string data) 
+    {
         // Initialize enquary
         m_comm->write(ENQ);
         std::string resp = m_comm->read();
@@ -174,7 +183,8 @@ namespace labdev {
         return;
     }
 
-    void ml_808gx::upload_command(std::string cmd, std::string& payload) {    
+    void ml_808gx::upload_command(std::string cmd, std::string& payload) 
+    {    
         // Initialize enquary
         m_comm->write(ENQ);
         std::string resp = m_comm->read();
@@ -203,7 +213,8 @@ namespace labdev {
      *      P R I V A T E   M E T H O D S
      */
 
-    void ml_808gx::init() {
+    void ml_808gx::init() 
+    {
         this->select_channel(m_cur_ch);
         return;
     }

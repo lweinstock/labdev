@@ -18,14 +18,14 @@ namespace labdev {
     class ds1000z : public oscilloscope, public scpi_device {
     public:
         ds1000z();
-        ds1000z(tcpip_interface* tcpip);
-        ds1000z(usbtmc_interface* usbtmc);
-        ds1000z(visa_interface* visa);
-        ~ds1000z();
+        ds1000z(ip_address &ip);
+        ds1000z(usb_config &conf);
+        ds1000z(visa_identifier &visa_id);
+        ~ds1000z() {};
 
-        void open(tcpip_interface* tcpip);
-        void open(usbtmc_interface* usbtmc);
-        void open(visa_interface* visa);
+        void connect(ip_address &ip);
+        void connect(usb_config &conf);
+        void connect(visa_identifier &visa_id);
 
         static constexpr uint16_t DS1104_VID = 0x1AB1;
         static constexpr uint16_t DS1104_PID = 0x04CE;
