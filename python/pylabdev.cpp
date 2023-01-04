@@ -76,10 +76,15 @@ PYBIND11_MODULE(pylabdev, m) {
         .def(py::init<>())
         .def(py::init<ip_address&>())
         .def(py::init<serial_config&>())
+        .def("connect", 
+            static_cast<void (xenax_xvi_75v8::*)(ip_address&)>(&xenax_xvi_75v8::connect),
+            "Connect to given ip address")
+        .def("connect", 
+            static_cast<void (xenax_xvi_75v8::*)(serial_config&)>(&xenax_xvi_75v8::connect),
+            "Connect to given serial device")
         .def("__repr__", 
             [](const xenax_xvi_75v8 &self) {
-                return "XENAX Xvi 75V8 servo motor controller, "
-                + self.get_info();
+                return self.get_info();
             })
         .def("power_on", 
             &xenax_xvi_75v8::power_on, 
@@ -181,18 +186,17 @@ PYBIND11_MODULE(pylabdev, m) {
             &xenax_xvi_75v8::force_limit_reached, 
             "Returns true if force limit was reached")
     ;
-/*
+
     // Baumer laser distance sensor OM70
-    py::class_<om70_l>(m, "om70_l")
+    py::class_<om70_l, device>(m, "om70_l")
         .def(py::init<>())
-        .def(py::init<const ip_address &>())
-        .def("open", 
-            &om70_l::open, 
-            "Open device with given ip address")
+        .def(py::init<ip_address&>())
+        .def("connect", 
+            static_cast<void (om70_l::*)(ip_address&)>(&om70_l::connect),
+            "Connect to given ip address")
         .def("__repr__", 
             [](const om70_l &self) {
-                return "OM70-l laser distance sensor, "
-                + self.get_info();
+                return self.get_info();
             })
         .def("get_distance", 
             static_cast<float (om70_l::*)()>(&om70_l::get_distance), 
@@ -200,12 +204,12 @@ PYBIND11_MODULE(pylabdev, m) {
     ;
 
     // Musashi time-pressure dispenser ML-808 GX
-    py::class_<ml_808gx>(m, "ml_808gx")
+    py::class_<ml_808gx, device>(m, "ml_808gx")
         .def(py::init())
-        .def(py::init<const serial_config &>())
-        .def("open", 
-            &ml_808gx::open, 
-            "Open device with given serial configuration")
+        .def(py::init<serial_config&>())
+        .def("connect", 
+            static_cast<void (ml_808gx::*)(serial_config&)>(&ml_808gx::connect),
+            "Connect to given serial device")
         .def("__repr__", 
             [](const ml_808gx &self) {
                 return "ML-808gx dispenser unit, "
@@ -233,5 +237,4 @@ PYBIND11_MODULE(pylabdev, m) {
             py::arg("on_delay"), 
             py::arg("off_delay"))
     ;
-*/
 }

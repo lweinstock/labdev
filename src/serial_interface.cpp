@@ -188,10 +188,11 @@ namespace labdev {
     }
 
     void serial_interface::set_nbits(unsigned nbits) noexcept {
-        m_nbits = this->check_bits(nbits);
+        uint32_t good_nbits = this->check_bits(nbits);
         m_term_settings.c_cflag &= ~CSIZE;
-        m_term_settings.c_cflag |= m_nbits;
+        m_term_settings.c_cflag |= good_nbits;
         debug_print("Set number of bits to %i\n", nbits);
+        m_nbits = nbits;
         m_update_settings = true;
         return;
     }
