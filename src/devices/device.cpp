@@ -14,10 +14,10 @@ namespace labdev {
     }
 
     std::string device::get_info() const 
-    { 
+    {
         if ( this->connected() )
-            return m_comm->get_info();
-        return "no interface connected";
+            return m_dev_name + ";" + m_comm->get_info();
+        return m_dev_name + ";" + "no interface connected";
     }
     
 }

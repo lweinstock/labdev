@@ -8,12 +8,10 @@ namespace labdev {
 
     class om70_l : public device {
     public:
-        om70_l() {};
+        om70_l() : device("OM70-L") {};
         om70_l(ip_address &ip);
         om70_l(const om70_l&) = delete;
         ~om70_l() {};
-
-        
 
         // OM70 default port 502
         static constexpr unsigned PORT = 502;

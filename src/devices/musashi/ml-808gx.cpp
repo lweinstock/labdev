@@ -13,7 +13,7 @@ using std::uppercase;
 
 namespace labdev {
 
-    ml_808gx::ml_808gx(serial_config &ser) : device()
+    ml_808gx::ml_808gx(serial_config &ser) : device("ML-808GX")
     {
         this->connect(ser);
         return;

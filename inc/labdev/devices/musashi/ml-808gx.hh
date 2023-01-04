@@ -7,7 +7,7 @@
 namespace labdev {
     class ml_808gx : public device {
     public:
-        ml_808gx() {};
+        ml_808gx() : device("ML-808GX") {};
         ml_808gx(serial_config &ser);
         ml_808gx(const ml_808gx&) = delete;
         ~ml_808gx() {};

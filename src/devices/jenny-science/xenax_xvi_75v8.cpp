@@ -12,7 +12,7 @@
 
 namespace labdev {
 
-    xenax_xvi_75v8::xenax_xvi_75v8(): device(), m_strerror(""), 
+    xenax_xvi_75v8::xenax_xvi_75v8(): device("XENAX Xvi 75v8"), m_strerror(""), 
     m_force_const(0), m_error(0) 
     {
         return;
