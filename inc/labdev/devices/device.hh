@@ -16,7 +16,7 @@ namespace labdev {
         virtual ~device() { this->disconnect(); }
 
         // Returns true if the communication interface is ready and working
-        bool connected() const { return (m_comm ? m_comm->good() : false); }
+        bool connected() const;
 
         // Closes and deletes the communication interface;
         // every device needs to implement an open(...) method to create and
