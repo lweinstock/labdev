@@ -1,7 +1,10 @@
 #include <pybind11/pybind11.h>
 
 #include <labdev/interface.hh>
+#include <labdev/serial_interface.hh>
 #include <labdev/tcpip_interface.hh>
+#include <labdev/usb_interface.hh>
+#include <labdev/visa_interface.hh>
 
 #include <labdev/devices/device.hh>
 #include <labdev/devices/oscilloscope.hh>
@@ -11,8 +14,10 @@
 
 namespace py = pybind11;
 
-using labdev::interface;
-using labdev::tcpip_interface;
+using labdev::serial_config;
+using labdev::ip_address;
+using labdev::usb_config;
+using labdev::visa_identifier;
 
 using labdev::device;
 using labdev::oscilloscope;
@@ -23,47 +28,34 @@ using labdev::ml_808gx;
 PYBIND11_MODULE(pylabdev, m) {
     m.doc() = "Library to communicate with lab devices.";
 
-    /*   I N T E R F A C E S   */
+    /*   I N T E R F A C E   C O N F I G S   */
 
-    // Interface base class
-    py::class_<interface>(m, "interface")
-        .def("write", &interface::write, 
-            "write string", 
-            py::arg("msg"))
-        .def("read", &interface::read, 
-            "read string", 
-            py::arg("timeout_ms") = 1000)
-        .def("query", &interface::query, 
-            "write string and read response", 
-            py::arg("msg"),
-            py::arg("timeout_ms") = 1000)
+    py::class_<ip_address>(m, "ip_address")
+        .def(py::init<>())
+        .def(py::init<std::string, unsigned>(),
+            py::arg("ip"),
+            py::arg("port")
+        )
+        .def_readwrite("ip", &ip_address::ip)
+        .def_readwrite("port", &ip_address::port)
     ;
 
-    // TCP/IP interface
-    py::class_<tcpip_interface, interface>(m, "tcpip_interface")
-        .def(py::init())
-        .def(py::init<const std::string&, unsigned>(),
-            py::arg("ip_addr"), 
-            py::arg("port") = 0)
-        .def("open", &tcpip_interface::open,
-            "Open TCP/IP socket with given IP and port",
-            py::arg("ip_addr"),
-            py::arg("port"))
-        .def("close", &tcpip_interface::close,
-            "Close TCP/IP socket")
-        .def("write_raw", &tcpip_interface::write_raw, 
-            "write characters",
-            py::arg("data"), 
-            py::arg("len"))
-        .def("read_raw", &tcpip_interface::read_raw, 
-            "read characters",
-            py::arg("data"), 
-            py::arg("max_len"), 
-            py::arg("timeout_ms") = 1000)
-        .def("get_info", &tcpip_interface::get_info, 
-            "returns ip and port")
-        .def("connected", &tcpip_interface::connected, 
-            "returns true if socket is ready for io")
+    py::class_<serial_config>(m, "serial_config")
+        .def(py::init<>())
+        .def(py::init<std::string, unsigned, unsigned, bool, bool, unsigned>(),
+            py::arg("dev_file"),
+            py::arg("baud") = 9600,
+            py::arg("nbits") = 8,
+            py::arg("par_ena") = false,
+            py::arg("par_even") = false,
+            py::arg("stop_bits") = 1
+        )
+        .def_readwrite("dev_file", &serial_config::dev_file)
+        .def_readwrite("baud", &serial_config::baud)
+        .def_readwrite("nbits", &serial_config::nbits)
+        .def_readwrite("par_ena", &serial_config::par_ena)
+        .def_readwrite("par_even", &serial_config::par_even)
+        .def_readwrite("stop_bits", &serial_config::stop_bits)
     ;
 
     /*   D E V I C E S   */
@@ -71,25 +63,19 @@ PYBIND11_MODULE(pylabdev, m) {
     // Device base class
     py::class_<device>(m, "device")
         .def(py::init())
-        .def("good", &device::good,
+        .def("connected", &device::connected,
             "Returns true if device is ready for communication")
+        .def("disconnect", &device::disconnect, 
+            "Closes the communication interface")
         .def("get_info", &device::get_info,
             "Returns human readable information string about the interface")
     ;
 
-    // Oscilloscope base class
-    py::class_<oscilloscope, device>(m, "oscilloscope");
-
-    // Rigol DS1000Z
-/*
     // Xenax XVI motor controller
     py::class_<xenax_xvi_75v8, device>(m, "xenax_xvi")
         .def(py::init<>())
-        .def(py::init<tcpip_interface*>())
-        //.def("open", 
-        //    static_cast<void (xenax_xvi_75v8::*)(const ip_address &)> 
-        //        (&xenax_xvi_75v8::open), 
-        //    "Open device with given ip address")
+        .def(py::init<ip_address&>())
+        .def(py::init<serial_config&>())
         .def("__repr__", 
             [](const xenax_xvi_75v8 &self) {
                 return "XENAX Xvi 75V8 servo motor controller, "
@@ -195,7 +181,7 @@ PYBIND11_MODULE(pylabdev, m) {
             &xenax_xvi_75v8::force_limit_reached, 
             "Returns true if force limit was reached")
     ;
-
+/*
     // Baumer laser distance sensor OM70
     py::class_<om70_l>(m, "om70_l")
         .def(py::init<>())
