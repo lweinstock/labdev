@@ -17,7 +17,8 @@ namespace labdev {
         m_timeout(),
         m_connected(false),
         m_ip_addr("-1"),
-        m_port(0) {
+        m_port(0)
+    {
         return;
     }
 
@@ -39,7 +40,7 @@ namespace labdev {
         check_and_throw(m_socket_fd, "Could not open socket.");
 
         set_buffer_size(s_dflt_buf_size);
-        set_timeout(0); // never time out -> will use select() for timeout
+        set_timeout(0); // never time out -> we will use select() for timeout
 
         // Set up instrument ip address
         m_instr_addr.sin_family = AF_INET;

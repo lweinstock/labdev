@@ -20,7 +20,6 @@ using labdev::usb_config;
 using labdev::visa_identifier;
 
 using labdev::device;
-using labdev::oscilloscope;
 using labdev::xenax_xvi_75v8;
 using labdev::om70_l;
 using labdev::ml_808gx;
@@ -73,6 +72,8 @@ PYBIND11_MODULE(pylabdev, m) {
 
     // Xenax XVI motor controller
     py::class_<xenax_xvi_75v8, device>(m, "xenax_xvi")
+        .def_property_readonly_static("dflt_port", 
+            [](py::object) { return xenax_xvi_75v8::PORT; })
         .def(py::init<>())
         .def(py::init<ip_address&>())
         .def(py::init<serial_config&>())
@@ -189,6 +190,8 @@ PYBIND11_MODULE(pylabdev, m) {
 
     // Baumer laser distance sensor OM70
     py::class_<om70_l, device>(m, "om70_l")
+        .def_property_readonly_static("dflt_port", 
+            [](py::object) { return om70_l::PORT; })
         .def(py::init<>())
         .def(py::init<ip_address&>())
         .def("connect", 

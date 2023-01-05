@@ -34,8 +34,12 @@ namespace labdev {
         int read_raw(uint8_t* data, size_t max_len, 
             unsigned timeout_ms = s_dflt_timeout_ms) override;
 
-        // Returns IP and port
+        // Set/get ip address
+        void set_ip(std::string ip_addr) noexcept { m_ip_addr = ip_addr; }
         std::string get_ip() const { return m_ip_addr; }
+
+        // Set/get port number
+        void set_port(unsigned port) noexcept { m_port =  port; }
         unsigned get_port() const { return m_port; }
 
         // Set read/write buffer size
