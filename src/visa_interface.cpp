@@ -12,7 +12,8 @@ namespace labdev {
         m_instr(0),
         m_visa_id(),
         m_connected(false),
-        m_timeout(DFLT_TIMEOUT_MS) {
+        m_timeout(DFLT_TIMEOUT_MS) 
+    {
         ViStatus stat;
         if (s_interface_ctr == 0) {
             stat = viOpenDefaultRM(&s_default_rm);
@@ -24,12 +25,14 @@ namespace labdev {
         return;
     }
 
-    visa_interface::visa_interface(std::string visa_id) : visa_interface() {
+    visa_interface::visa_interface(std::string visa_id) : visa_interface()
+     {
         this->open(visa_id);
         return;
     }
 
-    visa_interface::~visa_interface() {
+    visa_interface::~visa_interface() 
+    {
         ViStatus stat;
         stat = viClose(m_instr);
         check_and_throw(stat, "Could not close instrument");
@@ -43,7 +46,8 @@ namespace labdev {
         return;
     }
 
-    void visa_interface::open(const std::string &visa_id) {
+    void visa_interface::open(const std::string &visa_id) 
+    {
         // Throw exception if a device has already been opened
         if (m_instr)
             throw bad_io("Interface is already opened");
@@ -57,7 +61,14 @@ namespace labdev {
         return;
     }
 
-    void visa_interface::close() {
+    void visa_interface::open() 
+    {
+        this->open(m_visa_id);
+        return;
+    }
+
+    void visa_interface::close() 
+    {
         // Do nothing if no device is opened
         if (!m_instr)
             return;
@@ -70,7 +81,8 @@ namespace labdev {
         return;
     }
 
-    std::vector<std::string> visa_interface::find_resources(std::string regex) {
+    std::vector<std::string> visa_interface::find_resources(std::string regex) 
+    {
         ViFindList rlist;
         unsigned nrsrc;
         char rname[VI_FIND_BUFLEN];
@@ -90,7 +102,8 @@ namespace labdev {
         return ret;
     }
 
-    int visa_interface::write_raw(const uint8_t* data, size_t len) {
+    int visa_interface::write_raw(const uint8_t* data, size_t len) 
+    {
         size_t bytes_left =len;
         size_t bytes_written = 0;
         ssize_t nbytes = 0;
@@ -124,7 +137,8 @@ namespace labdev {
         return bytes_written;
     }
 
-    int visa_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) {
+    int visa_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
+    {
         ViStatus stat;
         if (timeout_ms != m_timeout) {
             stat = viSetAttribute(m_instr, VI_ATTR_TMO_VALUE, timeout_ms);
@@ -171,14 +185,16 @@ namespace labdev {
         return bytes_received;
     }
 
-    void visa_interface::flush_buffer(uint16_t flag) {
+    void visa_interface::flush_buffer(uint16_t flag) 
+    {
         ViStatus stat = viFlush(m_instr, flag);
         check_and_throw(stat, "viFlush failed");
         debug_print("%s", "Flushing I/O buffers.\n");
         return;
     };
 
-    void visa_interface::clear_device() {
+    void visa_interface::clear_device() 
+    {
         ViStatus stat = viClear(m_instr);
         check_and_throw(stat, "viClear failed");
         debug_print("%s", "Clearing device.\n");
@@ -189,7 +205,8 @@ namespace labdev {
      *      P R I V A T E   M E T H O D S
      */
 
-    void visa_interface::init() {
+    void visa_interface::init() 
+    {
         ViStatus stat;
         if (s_interface_ctr == 0) {
             stat = viOpenDefaultRM(&s_default_rm);
@@ -201,8 +218,8 @@ namespace labdev {
         return;
     }
 
-    void visa_interface::check_and_throw(ViStatus status, const std::string &msg)
-        const {
+    void visa_interface::check_and_throw(ViStatus status, const std::string &msg) const 
+    {
         if (status < VI_SUCCESS) {
             char err_msg[256] = {'\0'}, vi_strerror[256] = {'\0'};
             // Get human readable error message

@@ -26,6 +26,8 @@ namespace labdev {
 
         // Open TCP/IP socket with given IP and port
         void open(const std::string& ip_addr, unsigned port);
+        // Open TCP/IP socket with stored information
+        void open() override;
 
         // Close TCP/IP socket
         void close() override;

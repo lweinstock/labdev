@@ -80,6 +80,11 @@ namespace labdev {
         return;
     }
 
+    void serial_interface::open() {
+        this->open(m_path, m_baud, m_nbits, m_par_en, m_par_even, m_stop_bits);
+        return;
+    }
+
     void serial_interface::close() {
         debug_print("Closing device '%s'\n", m_path.c_str());
         ::close(m_fd);

@@ -19,9 +19,12 @@ namespace labdev {
         bool connected() const;
 
         // Closes and deletes the communication interface;
-        // every device needs to implement an open(...) method to create and
+        // every device needs to implement an connect(...) method to create and
         // open a communication interface
         void disconnect();
+
+        // Dis- and reconnects the communication interface
+        void reconnect(unsigned wait_ms = 0);
 
         // Returns human readable information string to identify the device
         std::string get_info() const;

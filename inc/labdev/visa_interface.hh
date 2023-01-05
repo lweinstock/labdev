@@ -32,6 +32,7 @@ namespace labdev {
 
         // Open/close device
         void open(visa_identifier &visa_id);
+        void open() override;
         void close() override;
 
 
@@ -83,6 +84,7 @@ namespace labdev {
 
         virtual ~visa_interface() {}
 
+        void open() override {};
         void close() override {};
 
         int write_raw(const uint8_t* data, size_t len) override { return -1; }

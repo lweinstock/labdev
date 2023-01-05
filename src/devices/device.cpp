@@ -1,4 +1,5 @@
 #include <labdev/devices/device.hh>
+#include <unistd.h>
 
 namespace labdev {
 
@@ -17,6 +18,16 @@ namespace labdev {
             delete m_comm;
             m_comm = nullptr;   // delete does not set pointer to nullptr!
         }
+        return;
+    }
+
+    void device::reconnect(unsigned wait_ms)
+    {
+        if (m_comm)
+            m_comm->close();
+        if (wait_ms)
+            usleep(wait_ms*1e3);
+        m_comm->open();
         return;
     }
 

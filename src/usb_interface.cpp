@@ -169,6 +169,16 @@ namespace labdev {
         return;
     }
 
+    void usb_interface::open() 
+    {
+         if (m_vid != 0x0000 && m_pid != 0x0000) {
+                this->open(m_vid, m_pid, m_serial_no);
+                return;
+        }
+        this->open(m_bus, m_port);
+        return;
+    }
+
     void usb_interface::close() 
     {
         // Release claimed interfaces and device

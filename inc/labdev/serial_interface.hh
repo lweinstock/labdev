@@ -38,6 +38,7 @@ namespace labdev{
         void open(const std::string &path, unsigned baud = 9600,
             unsigned nbits = 8, bool par_en = false, bool par_even = false,
             unsigned stop_bits = 1);
+        void open() override;
         void close() override;
 
         int write_raw(const uint8_t* data, size_t len) override;

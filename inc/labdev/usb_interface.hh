@@ -33,6 +33,7 @@ namespace labdev{
         void open(uint16_t vendor_id, uint16_t product_id,
             std::string serial_number = "");
         void open(uint8_t bus_no, uint8_t port_no);
+        void open() override;
         void close() override;
 
         // Data transfer to and from bulk endpoint using current ep address

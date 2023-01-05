@@ -65,6 +65,8 @@ namespace labdev{
         virtual Interface_type type() const = 0;
         // Returns true if device is ready for communication
         virtual bool good() const = 0;
+        // Opens communication 
+        virtual void open() = 0;
         // Closes communication
         virtual void close() = 0;
 

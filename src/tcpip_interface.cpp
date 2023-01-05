@@ -66,6 +66,12 @@ namespace labdev {
         return;
     }
 
+    void tcpip_interface::open() 
+    {
+        this->open(m_ip_addr, m_port);
+        return;
+    }
+
     void tcpip_interface::close() {
         shutdown(m_socket_fd, SHUT_RDWR);
         m_connected = false;
