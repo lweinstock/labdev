@@ -66,6 +66,8 @@ PYBIND11_MODULE(pylabdev, m) {
             "Returns true if device is ready for communication")
         .def("disconnect", &device::disconnect, 
             "Closes the communication interface")
+        .def("reconnect", &device::reconnect,
+            "Re-establishes the current communication interface")
         .def("get_info", &device::get_info,
             "Returns human readable information string about the interface")
     ;
