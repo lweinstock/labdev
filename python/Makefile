@@ -10,6 +10,8 @@ LDFLAGS+=$(LIB_PYTHON)
 CFLAGS+=$(shell pkg-config liblabdev --cflags)
 LDFLAGS+=$(shell pkg-config liblabdev --libs)
 
+PYTHON_SITE=$(shell python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+
 # Change compiler flags for macOS/Linux
 UNAME=$(shell uname)
 ifeq ($(UNAME),Darwin)  # macOS
@@ -18,12 +20,18 @@ ifeq ($(UNAME),Darwin)  # macOS
     CFLAGS+=-fPIC
 endif
 
-.PHONY: all clean
+.PHONY: all clean install uninstall
 
 all: $(LIB)$(SUFF)
 
 $(LIB)$(SUFF): $(LIB).cpp
 	$(CC) $(CFLAGS) $(INC_PYBIND) $^ -o $@ $(LDFLAGS)
+
+install: $(LIB)$(SUFF)
+	cp $< $(PYTHON_SITE)
+
+uninstall:
+	rm $(PYTHON_SITE)/$(LIB)$(SUFF)
 
 clean:
 	rm -f *.so
