@@ -30,31 +30,43 @@ PYBIND11_MODULE(pylabdev, m) {
     /*   I N T E R F A C E   C O N F I G S   */
 
     py::class_<ip_address>(m, "ip_address")
-        .def(py::init<>())
+        .def(py::init<>(),
+            "Create empty IP address struct")
         .def(py::init<std::string, unsigned>(),
             py::arg("ip"),
-            py::arg("port")
+            py::arg("port"),
+            "Create IP address struct with given ip and port"
         )
-        .def_readwrite("ip", &ip_address::ip)
-        .def_readwrite("port", &ip_address::port)
+        .def_readwrite("ip", &ip_address::ip, 
+            "IPv4 of target device")
+        .def_readwrite("port", &ip_address::port, 
+            "Port of target device")
     ;
 
     py::class_<serial_config>(m, "serial_config")
-        .def(py::init<>())
+        .def(py::init<>(),
+            "Create empty serial config")
         .def(py::init<std::string, unsigned, unsigned, bool, bool, unsigned>(),
             py::arg("dev_file"),
             py::arg("baud") = 9600,
             py::arg("nbits") = 8,
             py::arg("par_ena") = false,
             py::arg("par_even") = false,
-            py::arg("stop_bits") = 1
+            py::arg("stop_bits") = 1,
+            "Create serial config with given arguments (default: BAUD 9600 8N1)"
         )
-        .def_readwrite("dev_file", &serial_config::dev_file)
-        .def_readwrite("baud", &serial_config::baud)
-        .def_readwrite("nbits", &serial_config::nbits)
-        .def_readwrite("par_ena", &serial_config::par_ena)
-        .def_readwrite("par_even", &serial_config::par_even)
-        .def_readwrite("stop_bits", &serial_config::stop_bits)
+        .def_readwrite("dev_file", &serial_config::dev_file, 
+            "Path to device file of target device")
+        .def_readwrite("baud", &serial_config::baud,
+            "Serial baudrate in bits per second")
+        .def_readwrite("nbits", &serial_config::nbits,
+            "Number of bits per transmission")
+        .def_readwrite("par_ena", &serial_config::par_ena,
+            "En-/disable parity bit for transmission")
+        .def_readwrite("par_even", &serial_config::par_even,
+            "Parity bit is even or oddå")
+        .def_readwrite("stop_bits", &serial_config::stop_bits,
+            "Number of stop bits per transmission")
     ;
 
     /*   D E V I C E S   */
@@ -188,6 +200,12 @@ PYBIND11_MODULE(pylabdev, m) {
         .def("force_limit_reached", 
             &xenax_xvi_75v8::force_limit_reached, 
             "Returns true if force limit was reached")
+        .def("get_error",
+            &xenax_xvi_75v8::get_error,
+            "Returns current error number")
+        .def("get_strerror",
+            &xenax_xvi_75v8::get_strerror,
+            "Returns current error string")
     ;
 
     // Baumer laser distance sensor OM70
