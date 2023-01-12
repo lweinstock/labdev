@@ -4,6 +4,8 @@
 #include <labdev/devices/device.hh>
 #include <labdev/serial_interface.hh>
 
+#include <tuple>
+
 namespace labdev {
     class ml_808gx : public device {
     public:
@@ -29,6 +31,8 @@ namespace labdev {
             unsigned on_delay, unsigned off_delay);
         void get_channel_params(unsigned& pressure, unsigned& dur, 
             unsigned& on_delay, unsigned& off_delay);
+        // Python-style tuple return (pressure, duration, on/off delay)
+        std::tuple<unsigned, unsigned, unsigned, unsigned> get_channel_params();
 
         // Manual and timed despense modes (see manual p. 16)
         void manual_mode();

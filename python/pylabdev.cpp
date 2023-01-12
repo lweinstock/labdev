@@ -259,5 +259,10 @@ PYBIND11_MODULE(pylabdev, m) {
             py::arg("dur"), 
             py::arg("on_delay"), 
             py::arg("off_delay"))
+        .def("get_channel_params",
+            static_cast<std::tuple<unsigned, unsigned, unsigned, unsigned> 
+                (ml_808gx::*)()>(&ml_808gx::get_channel_params),
+            "Returns parameters of current channel; pressure in 100 Pa, duration "
+            "in ms, on/off delay in 0.1ms")
     ;
 }

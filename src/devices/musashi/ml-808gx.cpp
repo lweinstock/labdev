@@ -101,6 +101,13 @@ namespace labdev {
         return;
     }
 
+    std::tuple<unsigned, unsigned, unsigned, unsigned> ml_808gx::get_channel_params()
+    {
+        unsigned p = 0, dt = 0, on = 0, off = 0;
+        this->get_channel_params(p, dt, on, off);
+        return std::make_tuple(p, dt, on, off);
+    }
+
     void ml_808gx::manual_mode() 
     {
         this->download_command("MT  ");
