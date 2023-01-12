@@ -28,7 +28,7 @@ $(LIB)$(SUFF): $(LIB).cpp
 	$(CC) $(CFLAGS) $(INC_PYBIND) $^ -o $@ $(LDFLAGS)
 
 install: $(LIB)$(SUFF)
-	cp $< $(PYTHON_SITE)
+	cp $< $(PYTHON_SITE)/$(LIB)$(SUFF)
 
 uninstall:
 	rm $(PYTHON_SITE)/$(LIB)$(SUFF)
