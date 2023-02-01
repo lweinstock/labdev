@@ -16,7 +16,9 @@ lds = pld.om70_l(iplds)
 ser = pld.serial_config("/dev/ttyUSB0", 38400)
 disp = pld.ml_808gx(ser)
 disp.select_channel(1)
-disp.get_channel_params()
+disp.timed_mode()
+p, dur, on, off = disp.get_channel_params()
+print(f'{p}, {dur}, {on}, {off}')
 
 # All axes have to be referenced
 if not x_axis.is_referenced():
@@ -28,8 +30,7 @@ x_axis.set_speed(25000)     # ~25000um/s
 # Blocking movement of single axis
 x_axis.goto_position(170000)
 
-# Dispense!
-#disp.dispense()
+disp.dispense()
 
 # Non-blocking movement
 x_axis.move_position(140000)
@@ -40,5 +41,7 @@ while not x_axis.in_position():
     print(f'x = {cur_pos}\td = {distance}\ti = {force}')
     sleep(0.1)
 
+disp.dispense()
+
 print("Done!")
-#x_axis.power_off()
+x_axis.power_off()
