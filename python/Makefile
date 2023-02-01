@@ -10,7 +10,7 @@ LDFLAGS+=$(LIB_PYTHON)
 CFLAGS+=$(shell pkg-config liblabdev --cflags)
 LDFLAGS+=$(shell pkg-config liblabdev --libs)
 
-PYTHON_SITE=$(shell python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+PYTHON_SITE=$(shell python3 -m site --user-site)
 
 # Change compiler flags for macOS/Linux
 UNAME=$(shell uname)
@@ -28,6 +28,7 @@ $(LIB)$(SUFF): $(LIB).cpp
 	$(CC) $(CFLAGS) $(INC_PYBIND) $^ -o $@ $(LDFLAGS)
 
 install: $(LIB)$(SUFF)
+	@mkdir -p $(PYTHON_SITE)
 	cp $< $(PYTHON_SITE)/$(LIB)$(SUFF)
 
 uninstall:
