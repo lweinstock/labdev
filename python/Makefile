@@ -6,6 +6,7 @@ SUFF=$(shell python3-config --extension-suffix)
 
 INC_PYBIND=$(shell python3 -m pybind11 --includes)
 LIB_PYTHON=$(shell python3-config --ldflags)
+CFLAGS+=$(shell python3-config --includes)
 LDFLAGS+=$(LIB_PYTHON)
 CFLAGS+=$(shell pkg-config liblabdev --cflags)
 LDFLAGS+=$(shell pkg-config liblabdev --libs)
