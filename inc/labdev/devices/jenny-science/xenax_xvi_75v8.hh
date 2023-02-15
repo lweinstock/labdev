@@ -53,34 +53,34 @@ namespace labdev {
 
         // GPIO Set Output Type (SOT) definitions (manual p. 26)
         enum SOT : uint16_t {
-            SOT00 = (1 << 0),
-            SOT01 = (1 << 1),
-            SOT10 = (1 << 2),
-            SOT11 = (1 << 3),
-            SOT20 = (1 << 4),
-            SOT21 = (1 << 5),
-            SOT30 = (1 << 6),
-            SOT31 = (1 << 7),
-            SOT40 = (1 << 8),
-            SOT41 = (1 << 9),
-            SOT50 = (1 << 10),
-            SOT51 = (1 << 11),
-            SOT60 = (1 << 12),
-            SOT61 = (1 << 13),
-            SOT70 = (1 << 14),
-            SOT71 = (1 << 15)
+            SOT10 = (1 << 0),
+            SOT11 = (1 << 1),
+            SOT20 = (1 << 2),
+            SOT21 = (1 << 3),
+            SOT30 = (1 << 4),
+            SOT31 = (1 << 5),
+            SOT40 = (1 << 6),
+            SOT41 = (1 << 7),
+            SOT50 = (1 << 8),
+            SOT51 = (1 << 9),
+            SOT60 = (1 << 10),
+            SOT61 = (1 << 11),
+            SOT70 = (1 << 12),
+            SOT71 = (1 << 13),
+            SOT80 = (1 << 14),
+            SOT81 = (1 << 15)
         };
 
         // GPIO Set Output Activity (SOA) definitions (manual p. 26)
         enum SOA : uint8_t {
-            SOA0 = (1 << 0),
-            SOA1 = (1 << 1),
-            SOA2 = (1 << 2),
-            SOA3 = (1 << 3),
-            SOA4 = (1 << 4),
-            SOA5 = (1 << 5),
-            SOA6 = (1 << 6),
-            SOA7 = (1 << 7)
+            SOA1 = (1 << 0),
+            SOA2 = (1 << 1),
+            SOA3 = (1 << 2),
+            SOA4 = (1 << 3),
+            SOA5 = (1 << 4),
+            SOA6 = (1 << 5),
+            SOA7 = (1 << 6),
+            SOA8 = (1 << 7)
         };
 
         // En-/disable power of Xenax motor controller
