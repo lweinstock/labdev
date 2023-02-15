@@ -85,8 +85,8 @@ PYBIND11_MODULE(pylabdev, m) {
     ;
 
     // Xenax XVI motor controller
-    py::class_<xenax_xvi_75v8, device>(m, "xenax_xvi")
-        .def_property_readonly_static("dflt_port", 
+    py::class_<xenax_xvi_75v8, device> xenax_xvi(m, "xenax_xvi");
+        xenax_xvi.def_property_readonly_static("dflt_port", 
             [](py::object) { return xenax_xvi_75v8::PORT; })
         .def(py::init<>())
         .def(py::init<ip_address&>())
@@ -206,6 +206,38 @@ PYBIND11_MODULE(pylabdev, m) {
         .def("get_strerror",
             &xenax_xvi_75v8::get_strerror,
             "Returns current error string")
+    ;
+
+    // Set Output Type (SOT) enums for Xenax Xvi 75v8
+    py::enum_<xenax_xvi_75v8::SOT>(xenax_xvi, "SOT")
+        .value("SOT10", xenax_xvi_75v8::SOT::SOT10)
+        .value("SOT11", xenax_xvi_75v8::SOT::SOT11)
+        .value("SOT20", xenax_xvi_75v8::SOT::SOT20)
+        .value("SOT21", xenax_xvi_75v8::SOT::SOT21)
+        .value("SOT30", xenax_xvi_75v8::SOT::SOT30)
+        .value("SOT31", xenax_xvi_75v8::SOT::SOT31)
+        .value("SOT40", xenax_xvi_75v8::SOT::SOT40)
+        .value("SOT41", xenax_xvi_75v8::SOT::SOT41)
+        .value("SOT50", xenax_xvi_75v8::SOT::SOT50)
+        .value("SOT51", xenax_xvi_75v8::SOT::SOT51)
+        .value("SOT60", xenax_xvi_75v8::SOT::SOT60)
+        .value("SOT61", xenax_xvi_75v8::SOT::SOT61)
+        .value("SOT70", xenax_xvi_75v8::SOT::SOT70)
+        .value("SOT71", xenax_xvi_75v8::SOT::SOT71)
+        .value("SOT80", xenax_xvi_75v8::SOT::SOT80)
+        .value("SOT81", xenax_xvi_75v8::SOT::SOT81)
+    ;
+
+    // Set Output Activity (SOA) enums for Xenax Xvi 75v8
+    py::enum_<xenax_xvi_75v8::SOA>(xenax_xvi, "SOA")
+        .value("SOA1", xenax_xvi_75v8::SOA::SOA1)
+        .value("SOA2", xenax_xvi_75v8::SOA::SOA2)
+        .value("SOA3", xenax_xvi_75v8::SOA::SOA3)
+        .value("SOA4", xenax_xvi_75v8::SOA::SOA4)
+        .value("SOA5", xenax_xvi_75v8::SOA::SOA5)
+        .value("SOA6", xenax_xvi_75v8::SOA::SOA6)
+        .value("SOA7", xenax_xvi_75v8::SOA::SOA7)
+        .value("SOA8", xenax_xvi_75v8::SOA::SOA8)
     ;
 
     // Baumer laser distance sensor OM70
