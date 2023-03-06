@@ -83,6 +83,17 @@ namespace labdev {
             SOA8 = (1 << 7)
         };
 
+        enum output_type : uint8_t {
+            SINK = 0b00,
+            SOURCE = 0b01,
+            PUSH_PULL = 0b10
+        };
+
+        enum output_state : uint8_t {
+            LOW = 0b00,
+            HIGH = 0b01
+        };
+
         // En-/disable power of Xenax motor controller
         void power_on(bool enable = true);
         void power_off() { power_on(false); }
@@ -124,10 +135,9 @@ namespace labdev {
         bool force_limit_reached();
 
         // Programmable Logic Controller (PLC) GPIO settings (manual p. 51ff)
-        void set_output_type(uint16_t mask);
-        void set_output_state(uint8_t state);
-        uint8_t get_output_state();
-        uint16_t get_input_state();
+        void set_output_type(unsigned output_no, output_type type);
+        void set_output_state(unsigned output_no, output_state state);
+        output_state get_input_state(unsigned input_no);
 
         // Read the Process Status Register (PSR) & update status
         uint32_t get_status_register();
@@ -135,7 +145,9 @@ namespace labdev {
         // Disable motion blocked by unconfigured Safety Motion Unit (SMU)
         void disable_smu() { this->query_command("DMBUS"); }
 
-        // Get error information
+        // Get error information 
+        //   COMMENT: better catch exception and use ex.error_numer() and ex.what()
+        //   but then again, when are these methods to be used? Better private??
         unsigned get_error() { return std::stoi(this->query_command("TE")); }
         std::string get_strerror() { return this->query_command("TES"); }
 
@@ -148,6 +160,8 @@ namespace labdev {
         std::string m_input_buffer, m_strerror;
         float m_force_const;   // I->F conversion factor [N/mA]
         int m_error;
+        uint16_t m_output_type;
+        uint8_t m_output_state;
 
         void init();
         void flush_buffer();
@@ -159,6 +173,12 @@ namespace labdev {
         // Wait until status bits are cleared
         void wait_status_clr(uint32_t status, unsigned interval_ms = 500,
             unsigned timeout_ms = 10000);
+
+        // GPIO register access
+        void set_output_type_reg(uint16_t mask);
+        void set_output_state_reg(uint8_t mask);
+        uint8_t get_output_state_reg();
+        uint16_t get_input_state_reg();
 
         void read_error_queue();
 

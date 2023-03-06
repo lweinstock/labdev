@@ -12,8 +12,13 @@
 
 namespace labdev {
 
-    xenax_xvi_75v8::xenax_xvi_75v8(): device("XENAX Xvi 75v8"), m_strerror(""), 
-    m_force_const(0), m_error(0) 
+    xenax_xvi_75v8::xenax_xvi_75v8(): 
+    device("XENAX Xvi 75v8"), 
+    m_strerror(""), 
+    m_force_const(0), 
+    m_error(0),
+    m_output_type(0x5555),
+    m_output_state(0xFF)
     {
         return;
     }
@@ -238,26 +243,44 @@ namespace labdev {
         return float(10.*flim_10mA*m_force_const);
     }
 
-    void xenax_xvi_75v8::set_output_type(uint16_t mask) 
+    void xenax_xvi_75v8::set_output_type(unsigned output_no, xenax_xvi_75v8::output_type type) 
     {
-        this->query_command("SOT" + std::to_string(mask));
+        if ( (output_no > 8) || (output_no < 1) ){
+            fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
+            abort();
+        }
+        // Clear bits for given gpio number
+        m_output_type &= ~(0b11 << 2*(output_no-1));
+        // Set bits corresponding to state
+        m_output_type |= (type << 2*(output_no-1));
+        this->set_output_type_reg(m_output_type);
         return;
     }
 
-    void xenax_xvi_75v8::set_output_state(uint8_t state) 
+    void xenax_xvi_75v8::set_output_state(unsigned output_no, xenax_xvi_75v8::output_state state) 
     {
-        this->query_command("SOA" + std::to_string(state));
+        if ( (output_no > 8) || (output_no < 1) ){
+            fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
+            abort();
+        }
+        // Clear bits
+        m_output_state &= ~(0b1 << (output_no-1));
+        // Set bits
+        m_output_state |= (state << (output_no-1));
+        this->set_output_state_reg(m_output_state);
         return;
     }
 
-    uint8_t xenax_xvi_75v8::get_output_state() 
+    xenax_xvi_75v8::output_state xenax_xvi_75v8::get_input_state(unsigned input_no)
     {
-        return std::stoi(this->query_command("TO"));
-    }
-
-    uint16_t xenax_xvi_75v8::get_input_state() 
-    {
-        return std::stoi(this->query_command("TI"));
+        if ( (input_no > 16) || (input_no < 1) ){
+            fprintf(stderr, "GPIO input number has to be between 1 and 16.\n");
+            abort();
+        }
+        uint16_t input_reg = this->get_input_state_reg();
+        if ( (1 << (input_no-1)) & input_reg )
+            return HIGH;
+        return LOW;
     }
 
     uint32_t xenax_xvi_75v8::get_status_register() 
@@ -398,6 +421,30 @@ namespace labdev {
         }
 
         return;
+    }
+
+    void xenax_xvi_75v8::set_output_type_reg(uint16_t mask) 
+    {
+        debug_print("Setting output type to 0x%08X\n", mask);
+        this->query_command("SOT" + std::to_string(mask));
+        return;
+    }
+
+    void xenax_xvi_75v8::set_output_state_reg(uint8_t mask) 
+    {
+        debug_print("Setting output state to 0x%04X\n", mask);
+        this->query_command("SOA" + std::to_string(mask));
+        return;
+    }
+
+    uint8_t xenax_xvi_75v8::get_output_state_reg() 
+    {
+        return std::stoi(this->query_command("TO"));
+    }
+
+    uint16_t xenax_xvi_75v8::get_input_state_reg() 
+    {
+        return std::stoi(this->query_command("TI"));
     }
 
 }
