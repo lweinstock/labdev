@@ -18,7 +18,7 @@ namespace labdev {
     m_force_const(0), 
     m_error(0),
     m_output_type(0x5555),
-    m_output_state(0xFF)
+    m_output_activity(0xFF)
     {
         return;
     }
@@ -257,21 +257,34 @@ namespace labdev {
         return;
     }
 
-    void xenax_xvi_75v8::set_output_state(unsigned output_no, xenax_xvi_75v8::output_state state) 
+    void xenax_xvi_75v8::set_output_activity(unsigned output_no, xenax_xvi_75v8::output_activity act) 
     {
         if ( (output_no > 8) || (output_no < 1) ){
             fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
             abort();
         }
         // Clear bits
-        m_output_state &= ~(0b1 << (output_no-1));
+        m_output_activity &= ~(0b1 << (output_no-1));
         // Set bits
-        m_output_state |= (state << (output_no-1));
-        this->set_output_state_reg(m_output_state);
+        m_output_activity |= (act << (output_no-1));
+        this->set_output_state_reg(m_output_activity);
         return;
     }
 
-    xenax_xvi_75v8::output_state xenax_xvi_75v8::get_input_state(unsigned input_no)
+    void xenax_xvi_75v8::set_output(unsigned output_no, io_state state)
+    {
+            if ( (output_no > 8) || (output_no < 1) ){
+            fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
+            abort();
+        }
+        if (state == HIGH)
+            this->query_command("SO" + std::to_string(output_no));
+        else 
+            this->query_command("CO" + std::to_string(output_no));
+        return;
+    }
+
+    xenax_xvi_75v8::io_state xenax_xvi_75v8::get_input(unsigned input_no)
     {
         if ( (input_no > 16) || (input_no < 1) ){
             fprintf(stderr, "GPIO input number has to be between 1 and 16.\n");
@@ -425,14 +438,14 @@ namespace labdev {
 
     void xenax_xvi_75v8::set_output_type_reg(uint16_t mask) 
     {
-        debug_print("Setting output type to 0x%08X\n", mask);
+        debug_print("Setting output type to 0x%04X\n", mask);
         this->query_command("SOT" + std::to_string(mask));
         return;
     }
 
     void xenax_xvi_75v8::set_output_state_reg(uint8_t mask) 
     {
-        debug_print("Setting output state to 0x%04X\n", mask);
+        debug_print("Setting output state to 0x%02X\n", mask);
         this->query_command("SOA" + std::to_string(mask));
         return;
     }

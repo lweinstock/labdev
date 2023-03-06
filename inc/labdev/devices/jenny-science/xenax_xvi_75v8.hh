@@ -86,12 +86,17 @@ namespace labdev {
         enum output_type : uint8_t {
             SINK = 0b00,
             SOURCE = 0b01,
-            PUSH_PULL = 0b10
+            SINK_SOURCE = 0b10
         };
 
-        enum output_state : uint8_t {
-            LOW = 0b00,
-            HIGH = 0b01
+        enum output_activity : uint8_t {
+            ACTIVE_LOW = 0b0,
+            ACTIVE_HIGH = 0b1
+        };
+
+        enum io_state : uint8_t {
+            LOW = 0b0,
+            HIGH = 0b1
         };
 
         // En-/disable power of Xenax motor controller
@@ -136,8 +141,9 @@ namespace labdev {
 
         // Programmable Logic Controller (PLC) GPIO settings (manual p. 51ff)
         void set_output_type(unsigned output_no, output_type type);
-        void set_output_state(unsigned output_no, output_state state);
-        output_state get_input_state(unsigned input_no);
+        void set_output_activity(unsigned output_no, output_activity act);
+        void set_output(unsigned output_no, io_state state);
+        io_state get_input(unsigned input_no);
 
         // Read the Process Status Register (PSR) & update status
         uint32_t get_status_register();
@@ -161,7 +167,7 @@ namespace labdev {
         float m_force_const;   // I->F conversion factor [N/mA]
         int m_error;
         uint16_t m_output_type;
-        uint8_t m_output_state;
+        uint8_t m_output_activity;
 
         void init();
         void flush_buffer();
