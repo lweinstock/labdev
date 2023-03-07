@@ -1,5 +1,5 @@
-#ifndef XENAX_XVI_75V8_HH
-#define XENAX_XVI_75V8_HH
+#ifndef XENAX_XVI_HH
+#define XENAX_XVI_HH
 
 #include <labdev/devices/device.hh>
 #include <labdev/serial_interface.hh>
@@ -7,12 +7,12 @@
 
 namespace labdev {
 
-    class xenax_xvi_75v8 : public device {
+    class xenax_xvi : public device {
     public:
-        xenax_xvi_75v8();
-        xenax_xvi_75v8(serial_config &ser);
-        xenax_xvi_75v8(ip_address &ip);
-        xenax_xvi_75v8(const xenax_xvi_75v8&) = delete;
+        xenax_xvi();
+        xenax_xvi(serial_config &ser);
+        xenax_xvi(ip_address &ip);
+        xenax_xvi(const xenax_xvi&) = delete;
 
         void connect(serial_config &ser);
         void connect(ip_address &ip);

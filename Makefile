@@ -47,7 +47,7 @@ OBJ+=$(SRC)/devices/rigol/ds1000z.o
 #OBJ+=$(SRC)/devices/rohde-schwarz/rta4000.o
 #OBJ+=$(SRC)/devices/tektronix/dpo5000b.o
 OBJ+=$(SRC)/devices/baumer/om70_l.o
-OBJ+=$(SRC)/devices/jenny-science/xenax_xvi_75v8.o
+OBJ+=$(SRC)/devices/jenny-science/xenax_xvi.o
 OBJ+=$(SRC)/devices/musashi/ml-808gx.o
 
 ###   INSTALL SETUP   ###

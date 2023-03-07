@@ -8,7 +8,7 @@
 
 #include <labdev/devices/device.hh>
 #include <labdev/devices/oscilloscope.hh>
-#include <labdev/devices/jenny-science/xenax_xvi_75v8.hh>
+#include <labdev/devices/jenny-science/xenax_xvi.hh>
 #include <labdev/devices/baumer/om70_l.hh>
 #include <labdev/devices/musashi/ml-808gx.hh>
 
@@ -20,7 +20,7 @@ using labdev::usb_config;
 using labdev::visa_identifier;
 
 using labdev::device;
-using labdev::xenax_xvi_75v8;
+using labdev::xenax_xvi;
 using labdev::om70_l;
 using labdev::ml_808gx;
 
@@ -85,159 +85,147 @@ PYBIND11_MODULE(pylabdev, m) {
     ;
 
     // Xenax XVI motor controller
-    py::class_<xenax_xvi_75v8, device> xenax_xvi(m, "xenax_xvi");
+    py::class_<xenax_xvi, device> xenax_xvi(m, "xenax_xvi");
         xenax_xvi.def_property_readonly_static("dflt_port", 
-            [](py::object) { return xenax_xvi_75v8::PORT; })
+            [](py::object) { return xenax_xvi::PORT; })
         .def(py::init<>())
         .def(py::init<ip_address&>())
         .def(py::init<serial_config&>())
         .def("connect", 
-            static_cast<void (xenax_xvi_75v8::*)(ip_address&)>(&xenax_xvi_75v8::connect),
+            static_cast<void (xenax_xvi::*)(ip_address&)>(&xenax_xvi::connect),
             "Connect to given ip address")
         .def("connect", 
-            static_cast<void (xenax_xvi_75v8::*)(serial_config&)>(&xenax_xvi_75v8::connect),
+            static_cast<void (xenax_xvi::*)(serial_config&)>(&xenax_xvi::connect),
             "Connect to given serial device")
         .def("__repr__", 
-            [](const xenax_xvi_75v8 &self) {
+            [](const class xenax_xvi &self) {
                 return self.get_info();
             })
         .def("power_on", 
-            &xenax_xvi_75v8::power_on, 
+            &xenax_xvi::power_on, 
             "Turn on motor power", 
             py::arg("enable") = true)
         .def("power_off", 
-            &xenax_xvi_75v8::power_off, 
+            &xenax_xvi::power_off, 
             "Turn off motor power")
         .def("reference_axis", 
-            &xenax_xvi_75v8::reference_axis, 
+            &xenax_xvi::reference_axis, 
             "Start referencing axis position")
         .def("is_referenced", 
-            &xenax_xvi_75v8::is_referenced, 
+            &xenax_xvi::is_referenced, 
             "Returns true if axis is referenced")
         .def("disable_smu", 
-            &xenax_xvi_75v8::disable_smu, 
+            &xenax_xvi::disable_smu, 
             "Disable safety motion unit")
         .def("move_position", 
-            &xenax_xvi_75v8::move_position, 
+            &xenax_xvi::move_position, 
             "Non-blocking movement to absolute position in incs",
             py::arg("pos"))
         .def("goto_position", 
-            &xenax_xvi_75v8::goto_position, 
+            &xenax_xvi::goto_position, 
             "Blocking movement to absolute position in incs",
             py::arg("pos"),
             py::arg("interval_ms") = 500,
             py::arg("timeout_ms") = 10000)
         .def("get_position", 
-            &xenax_xvi_75v8::get_position, 
+            &xenax_xvi::get_position, 
             "Returns absolute position in incs")
         .def("in_motion", 
-            &xenax_xvi_75v8::in_motion, 
+            &xenax_xvi::in_motion, 
             "Returns true if axis is moving")
         .def("in_position", 
-            &xenax_xvi_75v8::in_position, 
+            &xenax_xvi::in_position, 
             "Returns true if axis has reached its final position")
         .def("stop_motion", 
-            &xenax_xvi_75v8::stop_motion, 
+            &xenax_xvi::stop_motion, 
             "Immediatly stops all movement")
         .def("set_speed", 
-            &xenax_xvi_75v8::set_speed, 
+            &xenax_xvi::set_speed, 
             "Set movement speed in incs/sec",
             py::arg("inc_per_sec"))
         .def("get_speed", 
-            &xenax_xvi_75v8::get_speed, 
+            &xenax_xvi::get_speed, 
             "Returns current movement speed in incs/sec")
         .def("set_acceleration", 
-            &xenax_xvi_75v8::set_acceleration, 
+            &xenax_xvi::set_acceleration, 
             "Set movement acceleration in incs/sec2",
             py::arg("inc_per_sec2"))
         .def("get_acceleration", 
-            &xenax_xvi_75v8::get_acceleration, 
+            &xenax_xvi::get_acceleration, 
             "Returns current movement acceleration in incs/sec2")
         .def("set_s_curve", 
-            &xenax_xvi_75v8::set_s_curve, 
+            &xenax_xvi::set_s_curve, 
             "Set acceleration curve in %",
             py::arg("percent"))
         .def("get_s_curve", 
-            &xenax_xvi_75v8::get_s_curve, 
+            &xenax_xvi::get_s_curve, 
             "Returns current acceleration curve in %")
         .def("force_calibration",
-            &xenax_xvi_75v8::force_calibration, 
+            &xenax_xvi::force_calibration, 
             "Perform force calibration for force measurements", 
             py::arg("distance") = 1000)
         .def("get_motor_current",
-            &xenax_xvi_75v8::get_motor_current, 
+            &xenax_xvi::get_motor_current, 
             "Returns the motor current in mA")
         .def("get_force_constant",
-            &xenax_xvi_75v8::get_force_constant, 
+            &xenax_xvi::get_force_constant, 
             "Returns the force constant in N/mA")
         .def("get_motor_force",
-            &xenax_xvi_75v8::get_motor_force, 
+            &xenax_xvi::get_motor_force, 
             "Returns the motor force in N")
         .def("set_force_limit",
-            &xenax_xvi_75v8::set_force_limit, 
+            &xenax_xvi::set_force_limit, 
             "Set maximum force of axis in N",
             py::arg("flim_N"))
         .def("get_force_limit",
-            &xenax_xvi_75v8::get_force_limit, 
+            &xenax_xvi::get_force_limit, 
             "Returns maximum force of axis in N")
-        .def("set_output_type",
-            &xenax_xvi_75v8::set_output_type, 
-            "Sets the output type (sink/source/hiZ) of GPIO pins",
-            py::arg("mask"))
-        .def("set_output_state",
-            &xenax_xvi_75v8::set_output_state, 
-            "Sets the output state (high/low) of GPIO pins",
-            py::arg("gpio"))
-        .def("get_output_state",
-            &xenax_xvi_75v8::get_output_state, 
-            "Returns GPIO output state")
-        .def("get_input_state",
-            &xenax_xvi_75v8::get_input_state, 
-            "Returns GPIO input state")
         .def("reset_motor_type",
-            &xenax_xvi_75v8::reset_motor_type, 
+            &xenax_xvi::reset_motor_type, 
             "Required when motors are changed")
         .def("force_limit_reached", 
-            &xenax_xvi_75v8::force_limit_reached, 
+            &xenax_xvi::force_limit_reached, 
             "Returns true if force limit was reached")
         .def("get_error",
-            &xenax_xvi_75v8::get_error,
+            &xenax_xvi::get_error,
             "Returns current error number")
         .def("get_strerror",
-            &xenax_xvi_75v8::get_strerror,
+            &xenax_xvi::get_strerror,
             "Returns current error string")
+        .def("set_output_type",
+            &xenax_xvi::set_output_type,
+            "Set output type for given PLC output",
+            py::arg("output number"),
+            py::arg("output type"))
+        .def("set_output_activity",
+            &xenax_xvi::set_output_activity,
+            "Set output activity for given PLC output",
+            py::arg("output number"),
+            py::arg("output activity"))
+        .def("set_output",
+            &xenax_xvi::set_output,
+            "Set output state for given PLC output",
+            py::arg("output number"),
+            py::arg("output state"))
     ;
 
-    // Set Output Type (SOT) enums for Xenax Xvi 75v8
-    py::enum_<xenax_xvi_75v8::SOT>(xenax_xvi, "SOT")
-        .value("SOT10", xenax_xvi_75v8::SOT::SOT10)
-        .value("SOT11", xenax_xvi_75v8::SOT::SOT11)
-        .value("SOT20", xenax_xvi_75v8::SOT::SOT20)
-        .value("SOT21", xenax_xvi_75v8::SOT::SOT21)
-        .value("SOT30", xenax_xvi_75v8::SOT::SOT30)
-        .value("SOT31", xenax_xvi_75v8::SOT::SOT31)
-        .value("SOT40", xenax_xvi_75v8::SOT::SOT40)
-        .value("SOT41", xenax_xvi_75v8::SOT::SOT41)
-        .value("SOT50", xenax_xvi_75v8::SOT::SOT50)
-        .value("SOT51", xenax_xvi_75v8::SOT::SOT51)
-        .value("SOT60", xenax_xvi_75v8::SOT::SOT60)
-        .value("SOT61", xenax_xvi_75v8::SOT::SOT61)
-        .value("SOT70", xenax_xvi_75v8::SOT::SOT70)
-        .value("SOT71", xenax_xvi_75v8::SOT::SOT71)
-        .value("SOT80", xenax_xvi_75v8::SOT::SOT80)
-        .value("SOT81", xenax_xvi_75v8::SOT::SOT81)
+    // Output type enums for Xenax Xvi 75v8
+    py::enum_<xenax_xvi::output_type>(xenax_xvi, "output_type")
+        .value("sink", xenax_xvi::output_type::SINK)
+        .value("source", xenax_xvi::output_type::SOURCE)
+        .value("sink_source", xenax_xvi::output_type::SINK_SOURCE)
     ;
 
-    // Set Output Activity (SOA) enums for Xenax Xvi 75v8
-    py::enum_<xenax_xvi_75v8::SOA>(xenax_xvi, "SOA")
-        .value("SOA1", xenax_xvi_75v8::SOA::SOA1)
-        .value("SOA2", xenax_xvi_75v8::SOA::SOA2)
-        .value("SOA3", xenax_xvi_75v8::SOA::SOA3)
-        .value("SOA4", xenax_xvi_75v8::SOA::SOA4)
-        .value("SOA5", xenax_xvi_75v8::SOA::SOA5)
-        .value("SOA6", xenax_xvi_75v8::SOA::SOA6)
-        .value("SOA7", xenax_xvi_75v8::SOA::SOA7)
-        .value("SOA8", xenax_xvi_75v8::SOA::SOA8)
+    // Output activity enums for Xenax Xvi 75v8
+    py::enum_<xenax_xvi::output_activity>(xenax_xvi, "output_activity")
+        .value("active_low", xenax_xvi::output_activity::ACTIVE_LOW)
+        .value("active_high", xenax_xvi::output_activity::ACTIVE_HIGH)
+    ;
+
+    // I/O state enums for Xenax Xvi 75v8
+    py::enum_<xenax_xvi::io_state>(xenax_xvi, "io_state")
+        .value("low", xenax_xvi::io_state::LOW)
+        .value("high", xenax_xvi::io_state::HIGH)
     ;
 
     // Baumer laser distance sensor OM70

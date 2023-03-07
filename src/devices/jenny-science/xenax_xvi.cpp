@@ -1,4 +1,4 @@
-#include <labdev/devices/jenny-science/xenax_xvi_75v8.hh>
+#include <labdev/devices/jenny-science/xenax_xvi.hh>
 
 #include <unistd.h>
 #include <sys/time.h>
@@ -12,7 +12,7 @@
 
 namespace labdev {
 
-    xenax_xvi_75v8::xenax_xvi_75v8(): 
+    xenax_xvi::xenax_xvi(): 
     device("XENAX Xvi 75v8"), 
     m_strerror(""), 
     m_force_const(0), 
@@ -23,21 +23,21 @@ namespace labdev {
         return;
     }
 
-    xenax_xvi_75v8::xenax_xvi_75v8(serial_config &ser): xenax_xvi_75v8() 
+    xenax_xvi::xenax_xvi(serial_config &ser): xenax_xvi() 
     {
         this->connect(ser);
         this->init();
         return;
     }
 
-    xenax_xvi_75v8::xenax_xvi_75v8(ip_address &ip): xenax_xvi_75v8() 
+    xenax_xvi::xenax_xvi(ip_address &ip): xenax_xvi() 
     {
         this->connect(ip);
         this->init();
         return;
     }
 
-    void xenax_xvi_75v8::connect(serial_config &ser) 
+    void xenax_xvi::connect(serial_config &ser) 
     {
         if ( this->connected() ) {
             fprintf(stderr, "Device is already connected!\n");
@@ -52,35 +52,35 @@ namespace labdev {
         return;
     }
 
-    void xenax_xvi_75v8::connect(ip_address &ip) 
+    void xenax_xvi::connect(ip_address &ip) 
     {
         if ( this->connected() ) {
             fprintf(stderr, "Device is already connected!\n");
             abort();
         }
         // Default port 10001
-        if (ip.port != xenax_xvi_75v8::PORT) {
+        if (ip.port != xenax_xvi::PORT) {
             fprintf(stderr, "XENAX Xvi 75v8 only supports port %u.\n",
-                xenax_xvi_75v8::PORT);
+                xenax_xvi::PORT);
             abort();
         }
         m_comm = new tcpip_interface(ip);
         return;
     }
 
-    void xenax_xvi_75v8::power_on(bool enable) 
+    void xenax_xvi::power_on(bool enable) 
     {
         this->query_command( enable? "PW" : "PQ");
         return;
     }
 
-    void xenax_xvi_75v8::power_continue() 
+    void xenax_xvi::power_continue() 
     {
         this->query_command("PWC");
         return;
     }
 
-    void xenax_xvi_75v8::reference_axis() 
+    void xenax_xvi::reference_axis() 
     {
         this->query_command("REF");
         // Wait until referencing is complete (max. 10s)
@@ -90,23 +90,23 @@ namespace labdev {
         return;
     }
 
-    bool xenax_xvi_75v8::is_referenced() 
+    bool xenax_xvi::is_referenced() 
     {
         return (this->get_status_register() & REF);
     }
 
-    bool xenax_xvi_75v8::force_limit_reached() 
+    bool xenax_xvi::force_limit_reached() 
     {
         return (this->get_status_register() & I_FORCE_LIMIT_REACHED);
     }
 
-    void xenax_xvi_75v8::move_position(int pos) 
+    void xenax_xvi::move_position(int pos) 
     {
         this->query_command("G" + std::to_string(pos));
         return;
     }
 
-    void xenax_xvi_75v8::goto_position(int pos, unsigned interval_ms,
+    void xenax_xvi::goto_position(int pos, unsigned interval_ms,
     unsigned timeout_ms) 
     {
         this->move_position(pos);
@@ -128,63 +128,63 @@ namespace labdev {
         return;
     }
 
-    int xenax_xvi_75v8::get_position() 
+    int xenax_xvi::get_position() 
     {
         return std::stoi(this->query_command("TP"));
     }
 
-    bool xenax_xvi_75v8::in_motion() 
+    bool xenax_xvi::in_motion() 
     {
         return (this->get_status_register() & IN_MOTION);
     }
 
-    bool xenax_xvi_75v8::in_position() 
+    bool xenax_xvi::in_position() 
     {
         return (this->get_status_register() & IN_POSITION);
     }
 
-    void xenax_xvi_75v8::jog_pos() 
+    void xenax_xvi::jog_pos() 
     {
         this->query_command("JP");
         return;
     }
 
-    void xenax_xvi_75v8::jog_neg() 
+    void xenax_xvi::jog_neg() 
     {
         this->query_command("JN");
         return;
     }
 
-    void xenax_xvi_75v8::stop_motion() 
+    void xenax_xvi::stop_motion() 
     {
         this->query_command("SM");
         this->wait_status_clr(IN_MOTION, 200);
         return;
     }
 
-    void xenax_xvi_75v8::set_speed(unsigned inc_per_sec) 
+    void xenax_xvi::set_speed(unsigned inc_per_sec) 
     {
         this->query_command("SP" + std::to_string(inc_per_sec));
         return;
     }
 
-    unsigned xenax_xvi_75v8::get_speed() 
+    unsigned xenax_xvi::get_speed() 
     {
         return std::stoi( this-> query_command("SP?") );
     }
 
-    void xenax_xvi_75v8::set_acceleration(unsigned inc_per_sec2) 
+    void xenax_xvi::set_acceleration(unsigned inc_per_sec2) 
     {
         this->query_command("AC" + std::to_string(inc_per_sec2));
         return;
     }
 
-    unsigned xenax_xvi_75v8::get_acceleration() 
+    unsigned xenax_xvi::get_acceleration() 
     {
         return std::stoi( this-> query_command("AC?") );
     }
 
-    void xenax_xvi_75v8::set_s_curve(unsigned percent) 
+    void xenax_xvi::set_s_curve(unsigned percent) 
     {
         if (percent > 100) {
             printf("Invalid S-curve percentage value %i\n", percent);
@@ -194,12 +194,12 @@ namespace labdev {
         return;
     }
 
-    unsigned xenax_xvi_75v8::get_s_curve() 
+    unsigned xenax_xvi::get_s_curve() 
     {
         return std::stoi( this-> query_command("SCRV?") );
     }
 
-    void xenax_xvi_75v8::force_calibration(unsigned len) 
+    void xenax_xvi::force_calibration(unsigned len) 
     {
         debug_print("%s\n", "Performing force calibration...");
         this->query_command("FC" + std::to_string(len));
@@ -209,12 +209,12 @@ namespace labdev {
         return;
     }
 
-    int xenax_xvi_75v8::get_motor_current() 
+    int xenax_xvi::get_motor_current() 
     {
         return std::stoi( this-> query_command("TMC") );
     }
 
-    float xenax_xvi_75v8::get_force_constant() 
+    float xenax_xvi::get_force_constant() 
     {
         std::string resp = this->query_command("FCM?");
         m_force_const = 1e-6 * std::stoi(resp);
@@ -222,7 +222,7 @@ namespace labdev {
         return m_force_const;
     }
 
-    float xenax_xvi_75v8::get_motor_force() 
+    float xenax_xvi::get_motor_force() 
     {
         if ( !(this->get_status_register() & FORCE_CALIBRATION_ACTIVE) )
             throw device_error("No force calibration active, "
@@ -230,20 +230,20 @@ namespace labdev {
         return m_force_const*this->get_motor_current();
     }
 
-    void xenax_xvi_75v8::set_force_limit(float fmax_N) 
+    void xenax_xvi::set_force_limit(float fmax_N) 
     {
         int flim_10mA = int(0.1*fmax_N/m_force_const);
         this->query_command("LIF" + std::to_string(flim_10mA));
         return;
     }
 
-    float xenax_xvi_75v8::get_force_limit() 
+    float xenax_xvi::get_force_limit() 
     {
         int flim_10mA = std::stoi( this->query_command("LIF?") );
         return float(10.*flim_10mA*m_force_const);
     }
 
-    void xenax_xvi_75v8::set_output_type(unsigned output_no, xenax_xvi_75v8::output_type type) 
+    void xenax_xvi::set_output_type(unsigned output_no, xenax_xvi::output_type type) 
     {
         if ( (output_no > 8) || (output_no < 1) ){
             fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
@@ -257,7 +257,7 @@ namespace labdev {
         return;
     }
 
-    void xenax_xvi_75v8::set_output_activity(unsigned output_no, xenax_xvi_75v8::output_activity act) 
+    void xenax_xvi::set_output_activity(unsigned output_no, xenax_xvi::output_activity act) 
     {
         if ( (output_no > 8) || (output_no < 1) ){
             fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
@@ -271,9 +271,9 @@ namespace labdev {
         return;
     }
 
-    void xenax_xvi_75v8::set_output(unsigned output_no, io_state state)
+    void xenax_xvi::set_output(unsigned output_no, io_state state)
     {
-            if ( (output_no > 8) || (output_no < 1) ){
+        if ( (output_no > 8) || (output_no < 1) ){
             fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
             abort();
         }
@@ -284,7 +284,7 @@ namespace labdev {
         return;
     }
 
-    xenax_xvi_75v8::io_state xenax_xvi_75v8::get_input(unsigned input_no)
+    xenax_xvi::io_state xenax_xvi::get_input(unsigned input_no)
     {
         if ( (input_no > 16) || (input_no < 1) ){
             fprintf(stderr, "GPIO input number has to be between 1 and 16.\n");
@@ -296,7 +296,7 @@ namespace labdev {
         return LOW;
     }
 
-    uint32_t xenax_xvi_75v8::get_status_register() 
+    uint32_t xenax_xvi::get_status_register() 
     {
         std::string resp = this->query_command("TPSR");
         uint32_t status = std::stoi(resp, 0 , 16);
@@ -318,7 +318,7 @@ namespace labdev {
         return status;
     }
 
-    std::string xenax_xvi_75v8::query_command(std::string cmd, unsigned timeout_ms) 
+    std::string xenax_xvi::query_command(std::string cmd, unsigned timeout_ms) 
     {
         // Send command and CR
         m_comm->write(cmd + "\n");
@@ -361,7 +361,7 @@ namespace labdev {
      *      P R I V A T E   M E T H O D S
      */
 
-    void xenax_xvi_75v8::init() 
+    void xenax_xvi::init() 
     {
         // Clear input buffer
         this->flush_buffer();
@@ -372,7 +372,7 @@ namespace labdev {
         return;
     }
 
-    void xenax_xvi_75v8::flush_buffer() 
+    void xenax_xvi::flush_buffer() 
     {
         debug_print("%s\n", "flushing read buffer...");
         while (true) {
@@ -384,7 +384,7 @@ namespace labdev {
         return;
     }
 
-    void xenax_xvi_75v8::wait_status_set(uint32_t status, unsigned interval_ms,
+    void xenax_xvi::wait_status_set(uint32_t status, unsigned interval_ms,
     unsigned timeout_ms) 
     {
         // Setup timeout
@@ -410,7 +410,7 @@ namespace labdev {
         return;
     }
 
-    void xenax_xvi_75v8::wait_status_clr(uint32_t status, unsigned interval_ms,
+    void xenax_xvi::wait_status_clr(uint32_t status, unsigned interval_ms,
     unsigned timeout_ms) 
     {
         // Setup timeout
@@ -436,26 +436,26 @@ namespace labdev {
         return;
     }
 
-    void xenax_xvi_75v8::set_output_type_reg(uint16_t mask) 
+    void xenax_xvi::set_output_type_reg(uint16_t mask) 
     {
         debug_print("Setting output type to 0x%04X\n", mask);
         this->query_command("SOT" + std::to_string(mask));
         return;
     }
 
-    void xenax_xvi_75v8::set_output_state_reg(uint8_t mask) 
+    void xenax_xvi::set_output_state_reg(uint8_t mask) 
     {
         debug_print("Setting output state to 0x%02X\n", mask);
         this->query_command("SOA" + std::to_string(mask));
         return;
     }
 
-    uint8_t xenax_xvi_75v8::get_output_state_reg() 
+    uint8_t xenax_xvi::get_output_state_reg() 
     {
         return std::stoi(this->query_command("TO"));
     }
 
-    uint16_t xenax_xvi_75v8::get_input_state_reg() 
+    uint16_t xenax_xvi::get_input_state_reg() 
     {
         return std::stoi(this->query_command("TI"));
     }
