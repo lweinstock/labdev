@@ -34,6 +34,15 @@ namespace labdev {
         // Python-style tuple return (pressure, duration, on/off delay)
         std::tuple<unsigned, unsigned, unsigned, unsigned> get_channel_params();
 
+        // Setter and getter methods for single parameters of current channel
+        void set_pressure(unsigned pressure);
+        unsigned get_pressure();
+        void set_duration(unsigned dur);
+        unsigned get_duration();
+        void set_delays(unsigned on_delay, unsigned off_delay);
+        void get_delays(unsigned &on_delay, unsigned &off_delay);
+        std::tuple<unsigned, unsigned> get_delays();
+
         // Manual and timed despense modes (see manual p. 16)
         void manual_mode();
         void timed_mode();

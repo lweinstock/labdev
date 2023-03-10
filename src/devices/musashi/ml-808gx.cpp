@@ -101,12 +101,76 @@ namespace labdev {
         return;
     }
 
-    std::tuple<unsigned, unsigned, unsigned, unsigned> ml_808gx::get_channel_params()
+    std::tuple<unsigned, unsigned, unsigned, unsigned> 
+    ml_808gx::get_channel_params()
     {
         unsigned p = 0, dt = 0, on = 0, off = 0;
         this->get_channel_params(p, dt, on, off);
         return std::make_tuple(p, dt, on, off);
     }
+
+    void ml_808gx::set_pressure(unsigned pressure)
+    {
+        debug_print("Setting pressure of ch %i to %i x 100 kPa\n", m_cur_ch, pressure);
+        std::string cmd = "PH  ";
+        std::stringstream data("");
+        data << "CH" << setfill('0') << setw(3) << m_cur_ch;
+        data << "P"  << setfill('0') << setw(4) << pressure;
+        this->download_command(cmd, data.str());
+        return;
+    }
+
+    unsigned ml_808gx::get_pressure()
+    {
+        unsigned p = 0, dt = 0, on = 0, off = 0;
+        this->get_channel_params(p, dt, on, off);
+        return p;
+    }
+
+    void ml_808gx::set_duration(unsigned dur)
+    {
+        debug_print("Setting duration of ch %i to %i ms\n", m_cur_ch, dur);
+        std::string cmd = "DH  ";
+        std::stringstream data("");
+        data << "CH" << setfill('0') << setw(3) << m_cur_ch;
+        data << "T"  << setfill('0') << setw(4) << dur;
+        this->download_command(cmd, data.str());
+        return;
+    }
+
+    unsigned ml_808gx::get_duration()
+    {   
+        unsigned p = 0, dt = 0, on = 0, off = 0;
+        this->get_channel_params(p, dt, on, off);
+        return dt;
+    }
+
+    void ml_808gx::set_delays(unsigned on_delay, unsigned off_delay)
+    {
+        debug_print("Setting delays of ch %i to %i (on) %i (off) x 0.1 ms\n", 
+            m_cur_ch, on_delay, off_delay);
+        std::string cmd = "DD  ";
+        std::stringstream data("");
+        data << "CH" << setfill('0') << setw(3) << m_cur_ch;
+        data << "N"  << setfill('0') << setw(5) << on_delay;
+        data << "F"  << setfill('0') << setw(5) << off_delay;
+        this->download_command(cmd, data.str());
+        return;
+    }
+
+    void ml_808gx::get_delays(unsigned &on_delay, unsigned &off_delay)
+    {
+        unsigned p = 0, dt = 0;
+        this->get_channel_params(p, dt, on_delay, off_delay);
+    }
+
+    std::tuple<unsigned, unsigned> ml_808gx::get_delays()
+    {
+        unsigned on = 0, off = 0;
+        this->get_delays(on, off);
+        return std::make_tuple(on, off);
+    }
+
 
     void ml_808gx::manual_mode() 
     {
