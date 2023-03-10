@@ -103,7 +103,6 @@ namespace labdev {
 
         this->upload_command(cmd.str(), resp);
 
-        printf("%s\n", resp.c_str());
         // Extract data from string
         pressure  = std::stoi( resp.substr(resp.find('P')+1, 4) );
         dur       = std::stoi( resp.substr(resp.find('T')+1, 4) );
