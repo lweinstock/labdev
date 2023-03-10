@@ -66,7 +66,7 @@ namespace labdev {
             transfer_attr, msg.size());
 
         // Append data
-        for (int i = s_header_len; i < tot_len; i++) {
+        for (size_t i = s_header_len; i < tot_len; i++) {
             usbtmc_message[i] = msg.c_str()[i-s_header_len];
             if (i > msg.size()+s_header_len)
                 usbtmc_message[i] = 0x00;   // zero padding
@@ -144,7 +144,7 @@ namespace labdev {
             msg.size());
 
         // Append data
-        for (int i = s_header_len; i < tot_len; i++) 
+        for (size_t i = s_header_len; i < tot_len; i++) 
         {
             usbtmc_message[i] = msg.c_str()[i-s_header_len];
             if (i > msg.size()+s_header_len)

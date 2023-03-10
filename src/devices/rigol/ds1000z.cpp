@@ -253,7 +253,7 @@ namespace labdev {
 
         // Convert byte data using preamble
         double xval, yval;
-        for (int i = 0; i < mem_data.size(); i++) {
+        for (size_t i = 0; i < mem_data.size(); i++) {
             xval = i*m_xincr + m_xorg; 
             yval = (mem_data.at(i) - m_yref - m_yorg) * m_yinc;
             vert_data.push_back(xval);
@@ -349,17 +349,17 @@ namespace labdev {
         // Read data block
         string data = m_comm->query(":WAV:DATA?\n");
         // Extract header
-        int len = 0;
+        size_t len = 0;
         string header = data.substr(0, 11);
-        sscanf(header.c_str(), "#9%9d", &len);
-        debug_print("len = %i\n", len);
+        sscanf(header.c_str(), "#9%9zd", &len);
+        debug_print("len = %zu\n", len);
 
         // Read the waveform
         while (data.size() < len)
             data.append( m_comm->read() );
 
         vector<uint8_t> ret;
-        for (int i = 0; i < len; i++)
+        for (size_t i = 0; i < len; i++)
             ret.push_back( (uint8_t)data.at(i + header.size()) );
 
         return ret;   

@@ -26,7 +26,7 @@ namespace labdev{
         };
 
         // Returns maximum number of channels
-        const int get_n_channels() const { return m_n_ch; }
+        const unsigned get_n_channels() const { return m_n_ch; }
 
         // Turn channel on/off
         virtual void enable_channel(unsigned channel, bool enable = true) = 0;

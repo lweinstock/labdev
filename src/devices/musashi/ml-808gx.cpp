@@ -248,7 +248,7 @@ namespace labdev {
         msg << data;
         // Calculate and add checksum to message
         uint8_t checksum = 0x00;
-        for (int i = 1; i < msg.str().size(); i++)
+        for (size_t i = 1; i < msg.str().size(); i++)
             checksum -= msg.str()[i];
         msg << uppercase << hex << (int)checksum;
         msg << ETX;
