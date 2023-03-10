@@ -5,7 +5,7 @@
 #include <labdev/tcpip_interface.hh>
 #include <labdev/devices/rohde-schwarz/hmp4000.hh>
 
-using namespace std;
+using namespace labdev;
 
 int main () {
     printf("Starting remote control... ");
