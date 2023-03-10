@@ -63,6 +63,21 @@ namespace labdev {
     void ml_808gx::set_channel_params(unsigned pressure, 
     unsigned dur, unsigned on_delay, unsigned off_delay) 
     {
+        if ( (pressure < 200) || (pressure > 8000) ) {
+            fprintf(stderr, "Invalid pressure %i (allowed 200 - 8000)\n", 
+                pressure);
+            abort();
+        }
+        if ( (dur < 10) || (dur > 9999) ) {
+            fprintf(stderr, "Invalid duration %i (allowed 10 - 9999)\n", dur);
+            abort();
+        }
+        if ( (on_delay > 99999) || (off_delay > 99999) ) {
+            fprintf(stderr, "Invalid delay %i/%i (allowed 0 - 99999)\n", 
+                on_delay, off_delay);
+            abort();
+        }
+
         debug_print("Setting parameters of ch %i to:\n", m_cur_ch);
         debug_print("p = %i x 100Pa\n", pressure);
         debug_print("t = %i ms\n", dur);
@@ -111,6 +126,11 @@ namespace labdev {
 
     void ml_808gx::set_pressure(unsigned pressure)
     {
+        if ( (pressure < 200) || (pressure > 8000) ) {
+            fprintf(stderr, "Invalid pressure (valid range 20 - 800 kPa)\n");
+            abort();
+        }
+
         debug_print("Setting pressure of ch %i to %i x 100 Pa\n", m_cur_ch, pressure);
         std::string cmd = "PH  ";
         std::stringstream data("");
@@ -129,6 +149,11 @@ namespace labdev {
 
     void ml_808gx::set_duration(unsigned dur)
     {
+        if ( (dur < 10) || (dur > 9999) ) {
+            fprintf(stderr, "Invalid duration (valid range 0.01 - 9.999 s)\n");
+            abort();
+        }
+
         debug_print("Setting duration of ch %i to %i ms\n", m_cur_ch, dur);
         std::string cmd = "DH  ";
         std::stringstream data("");
@@ -147,6 +172,11 @@ namespace labdev {
 
     void ml_808gx::set_delays(unsigned on_delay, unsigned off_delay)
     {
+        if ( (on_delay > 99999) || (off_delay > 99999) ) {
+            fprintf(stderr, "Invalid delay (valid range 0 - 9.999 s)\n");
+            abort();
+        }
+
         debug_print("Setting delays of ch %i to %i (on) %i (off) x 0.1 ms\n", 
             m_cur_ch, on_delay, off_delay);
         std::string cmd = "DD  ";
