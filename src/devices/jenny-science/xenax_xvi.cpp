@@ -3,12 +3,17 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <cmath>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 
 #include <labdev/tcpip_interface.hh>
 #include <labdev/serial_interface.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/utils/utils.hh>
 #include "ld_debug.hh"
+
+using namespace std;
 
 namespace labdev {
 
@@ -102,7 +107,7 @@ namespace labdev {
 
     void xenax_xvi::move_position(int pos) 
     {
-        this->query_command("G" + std::to_string(pos));
+        this->query_command("G" + to_string(pos));
         return;
     }
 
@@ -130,7 +135,7 @@ namespace labdev {
 
     int xenax_xvi::get_position() 
     {
-        return std::stoi(this->query_command("TP"));
+        return stoi(this->query_command("TP"));
     }
 
     bool xenax_xvi::in_motion() 
@@ -164,24 +169,24 @@ namespace labdev {
 
     void xenax_xvi::set_speed(unsigned inc_per_sec) 
     {
-        this->query_command("SP" + std::to_string(inc_per_sec));
+        this->query_command("SP" + to_string(inc_per_sec));
         return;
     }
 
     unsigned xenax_xvi::get_speed() 
     {
-        return std::stoi( this-> query_command("SP?") );
+        return stoi( this-> query_command("SP?") );
     }
 
     void xenax_xvi::set_acceleration(unsigned inc_per_sec2) 
     {
-        this->query_command("AC" + std::to_string(inc_per_sec2));
+        this->query_command("AC" + to_string(inc_per_sec2));
         return;
     }
 
     unsigned xenax_xvi::get_acceleration() 
     {
-        return std::stoi( this-> query_command("AC?") );
+        return stoi( this-> query_command("AC?") );
     }
 
     void xenax_xvi::set_s_curve(unsigned percent) 
@@ -190,19 +195,19 @@ namespace labdev {
             printf("Invalid S-curve percentage value %i\n", percent);
             abort();
         }
-        this->query_command("SCRV" + std::to_string(percent));
+        this->query_command("SCRV" + to_string(percent));
         return;
     }
 
     unsigned xenax_xvi::get_s_curve() 
     {
-        return std::stoi( this-> query_command("SCRV?") );
+        return stoi( this-> query_command("SCRV?") );
     }
 
     void xenax_xvi::force_calibration(unsigned len) 
     {
         debug_print("%s\n", "Performing force calibration...");
-        this->query_command("FC" + std::to_string(len));
+        this->query_command("FC" + to_string(len));
         this->wait_status_set(IN_MOTION, 200);
         this->wait_status_clr(FORCE_CALIBRATION_ACTIVE, 500);
         this->get_force_constant();
@@ -211,13 +216,13 @@ namespace labdev {
 
     int xenax_xvi::get_motor_current() 
     {
-        return std::stoi( this-> query_command("TMC") );
+        return stoi( this-> query_command("TMC") );
     }
 
     float xenax_xvi::get_force_constant() 
     {
-        std::string resp = this->query_command("FCM?");
-        m_force_const = 1e-6 * std::stoi(resp);
+        string resp = this->query_command("FCM?");
+        m_force_const = 1e-6 * stoi(resp);
         debug_print("force constant = %f N/mA\n", m_force_const);
         return m_force_const;
     }
@@ -233,17 +238,17 @@ namespace labdev {
     void xenax_xvi::set_force_limit(float fmax_N) 
     {
         int flim_10mA = int(0.1*fmax_N/m_force_const);
-        this->query_command("LIF" + std::to_string(flim_10mA));
+        this->query_command("LIF" + to_string(flim_10mA));
         return;
     }
 
     float xenax_xvi::get_force_limit() 
     {
-        int flim_10mA = std::stoi( this->query_command("LIF?") );
+        int flim_10mA = stoi( this->query_command("LIF?") );
         return float(10.*flim_10mA*m_force_const);
     }
 
-    void xenax_xvi::set_output_type(unsigned output_no, xenax_xvi::output_type type) 
+    void xenax_xvi::set_output_type(unsigned output_no, output_type type) 
     {
         if ( (output_no > 8) || (output_no < 1) ){
             fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
@@ -257,7 +262,7 @@ namespace labdev {
         return;
     }
 
-    void xenax_xvi::set_output_activity(unsigned output_no, xenax_xvi::output_activity act) 
+    void xenax_xvi::set_output_activity(unsigned output_no, output_activity act) 
     {
         if ( (output_no > 8) || (output_no < 1) ){
             fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
@@ -278,9 +283,9 @@ namespace labdev {
             abort();
         }
         if (state == HIGH)
-            this->query_command("SO" + std::to_string(output_no));
+            this->query_command("SO" + to_string(output_no));
         else 
-            this->query_command("CO" + std::to_string(output_no));
+            this->query_command("CO" + to_string(output_no));
         return;
     }
 
@@ -298,8 +303,8 @@ namespace labdev {
 
     uint32_t xenax_xvi::get_status_register() 
     {
-        std::string resp = this->query_command("TPSR");
-        uint32_t status = std::stoi(resp, 0 , 16);
+        string resp = this->query_command("TPSR");
+        uint32_t status = stoi(resp, 0 , 16);
 
         debug_print("status register = 0x%08X\n", status);
 
@@ -318,7 +323,7 @@ namespace labdev {
         return status;
     }
 
-    std::string xenax_xvi::query_command(std::string cmd, unsigned timeout_ms) 
+    string xenax_xvi::query_command(string cmd, unsigned timeout_ms) 
     {
         // Send command and CR
         m_comm->write(cmd + "\n");
@@ -329,8 +334,8 @@ namespace labdev {
         m_input_buffer.append( m_comm->read_until(">", pos, timeout_ms) );
 
         // Split response into parameters and remove it from the buffer
-        std::string resp = m_input_buffer.substr(0, pos);
-        std::vector<std::string> par_list = split(resp, "\r\n", 10);
+        string resp = m_input_buffer.substr(0, pos);
+        vector<string> par_list = split(resp, "\r\n", 10);
         m_input_buffer.erase(0, pos+1);
 
         #ifdef LD_DEBUG
@@ -341,13 +346,13 @@ namespace labdev {
         #endif
 
         // First parameter should be cmd echo
-        if ( par_list.at(0).find(cmd) == std::string::npos )
+        if ( par_list.at(0).find(cmd) == string::npos )
             throw bad_protocol("No command echo for '" + cmd + "' received");
         // Second parameter is the payload
         if (par_list.size() == 2) {
-            if ( par_list.at(1).find("?") != std::string::npos)
+            if ( par_list.at(1).find("?") != string::npos)
                 throw bad_protocol("Invalid command '" + cmd + "'\n");
-            if ( par_list.at(1).find("#") != std::string::npos)
+            if ( par_list.at(1).find("#") != string::npos)
                 throw device_error("Cannot execute command, device busy ("
                     + par_list.at(1) + ")\n");
 
@@ -391,20 +396,25 @@ namespace labdev {
         struct timeval tsta, tsto;
         gettimeofday(&tsta, NULL);
         float tdiff;
+        uint32_t sreg = this->get_status_register();
 
         // Wait until all masked bits in status are set to '1'
-        while ( (this->get_status_register() & status) != status ) {
+        while ( (sreg & status) != status ) {
             usleep(interval_ms*1000);
 
             // Check for timeout
             gettimeofday(&tsto, NULL);
             tdiff = (tsto.tv_sec - tsta.tv_sec) * 1000.;
             if (tdiff > timeout_ms) {
-                char buf[100];
-                sprintf(buf, "status 0x%08X not set (current sreg: 0x%08X)", 
-                    status, this->get_status_register());
-                throw timeout(buf);
+                stringstream msg;
+                msg << "Timeout on SREG bits to set" << endl;
+                msg << "Expected 0x" << uppercase << setfill('0') << setw(8) 
+                    << hex << status << "to set" << endl; 
+                msg << "Current  0x" << uppercase << setfill('0') << setw(8) 
+                    << hex << sreg << endl; 
+                throw timeout(msg.str());
             }
+            sreg = this->get_status_register();
         }
 
         return;
@@ -417,20 +427,25 @@ namespace labdev {
         struct timeval tsta, tsto;
         gettimeofday(&tsta, NULL);
         float tdiff;
+        uint32_t sreg = this->get_status_register();
 
         // Wait until all masked bits in status are cleared to '0'
-        while ( (this->get_status_register() & status) ) {
+        while ( ( sreg & status) ) {
             usleep(interval_ms*1000);
 
             // Check for timeout
             gettimeofday(&tsto, NULL);
             tdiff = (tsto.tv_sec - tsta.tv_sec) * 1000.;
             if (tdiff > timeout_ms) {
-                char buf[100];
-                sprintf(buf, "status 0x%08X not cleared (current sreg: 0x%08X)", 
-                    status, this->get_status_register());
-                throw timeout(buf);
+                stringstream msg;
+                msg << "Timeout on SREG bits to clear" << endl;
+                msg << "Expected 0x" << uppercase << setfill('0') << setw(8) 
+                    << hex << status  << "to clear" << endl; 
+                msg << "Current  0x" << uppercase << setfill('0') << setw(8) 
+                    << hex << sreg << endl; 
+                throw timeout(msg.str());
             }
+            sreg = this->get_status_register();
         }
 
         return;
@@ -439,25 +454,25 @@ namespace labdev {
     void xenax_xvi::set_output_type_reg(uint16_t mask) 
     {
         debug_print("Setting output type to 0x%04X\n", mask);
-        this->query_command("SOT" + std::to_string(mask));
+        this->query_command("SOT" + to_string(mask));
         return;
     }
 
     void xenax_xvi::set_output_state_reg(uint8_t mask) 
     {
         debug_print("Setting output state to 0x%02X\n", mask);
-        this->query_command("SOA" + std::to_string(mask));
+        this->query_command("SOA" + to_string(mask));
         return;
     }
 
     uint8_t xenax_xvi::get_output_state_reg() 
     {
-        return std::stoi(this->query_command("TO"));
+        return stoi(this->query_command("TO"));
     }
 
     uint16_t xenax_xvi::get_input_state_reg() 
     {
-        return std::stoi(this->query_command("TI"));
+        return stoi(this->query_command("TI"));
     }
 
 }

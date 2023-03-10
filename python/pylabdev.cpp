@@ -14,6 +14,9 @@
 
 namespace py = pybind11;
 
+using string;
+using tuple;
+
 using labdev::serial_config;
 using labdev::ip_address;
 using labdev::usb_config;
@@ -32,7 +35,7 @@ PYBIND11_MODULE(pylabdev, m) {
     py::class_<ip_address>(m, "ip_address")
         .def(py::init<>(),
             "Create empty IP address struct")
-        .def(py::init<std::string, unsigned>(),
+        .def(py::init<string, unsigned>(),
             py::arg("ip"),
             py::arg("port"),
             "Create IP address struct with given ip and port"
@@ -46,7 +49,7 @@ PYBIND11_MODULE(pylabdev, m) {
     py::class_<serial_config>(m, "serial_config")
         .def(py::init<>(),
             "Create empty serial config")
-        .def(py::init<std::string, unsigned, unsigned, bool, bool, unsigned>(),
+        .def(py::init<string, unsigned, unsigned, bool, bool, unsigned>(),
             py::arg("dev_file"),
             py::arg("baud") = 9600,
             py::arg("nbits") = 8,
@@ -280,7 +283,7 @@ PYBIND11_MODULE(pylabdev, m) {
             py::arg("on_delay"), 
             py::arg("off_delay"))
         .def("get_channel_params",
-            static_cast<std::tuple<unsigned, unsigned, unsigned, unsigned> 
+            static_cast<tuple<unsigned, unsigned, unsigned, unsigned> 
                 (ml_808gx::*)()>(&ml_808gx::get_channel_params),
             "Returns parameters of current channel; pressure in 100 Pa, duration "
             "in ms, on/off delay in 0.1ms")
@@ -304,7 +307,7 @@ PYBIND11_MODULE(pylabdev, m) {
             &ml_808gx::get_duration,
             "Returns the duration of current channel in ms")
         .def("get_delays",
-            static_cast<std::tuple<unsigned, unsigned> 
+            static_cast<tuple<unsigned, unsigned> 
                 (ml_808gx::*)()> (&ml_808gx::get_delays),
             "Returns the on and off delay in units of 0.1 ms")
     ;

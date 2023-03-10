@@ -3,6 +3,8 @@
 
 #include <sys/time.h>   // struct timeval
 
+using namespace std;
+
 namespace labdev {
 
     scpi_device::~scpi_device() {
@@ -14,13 +16,13 @@ namespace labdev {
         return;
     }
 
-    std::string scpi_device::get_identifier() {
+    string scpi_device::get_identifier() {
         return m_comm->query("*IDN?\n");
     }
 
     bool scpi_device::operation_complete(unsigned timeout_ms) {
-        std::string msg = m_comm->query("*OPC?\n", timeout_ms);
-        if (msg.find("1") != std::string::npos)
+        string msg = m_comm->query("*OPC?\n", timeout_ms);
+        if (msg.find("1") != string::npos)
             return true;
         else
             return false;
@@ -51,8 +53,8 @@ namespace labdev {
     }
 
     bool scpi_device::test() {
-        std::string msg = m_comm->query("*TST?\n");
-        if (msg.find("0") != std::string::npos) return true;
+        string msg = m_comm->query("*TST?\n");
+        if (msg.find("0") != string::npos) return true;
         else return false;
     }
 
@@ -62,15 +64,15 @@ namespace labdev {
     }
 
     int scpi_device::get_error() {
-        std::string msg = m_comm->query("SYST:ERR?\n");
-        m_error = std::stoi( msg.substr(0, msg.find(',')) );
+        string msg = m_comm->query("SYST:ERR?\n");
+        m_error = stoi( msg.substr(0, msg.find(',')) );
         m_strerror = msg.substr(msg.find('"') + 1,
             msg.rfind('"') - msg.find('"') - 1);
         return m_error;
     }
 
     uint8_t scpi_device::get_event_status_register(unsigned timeout_ms) {
-        return (uint8_t)std::stoi( m_comm->query("*ESR?\n", timeout_ms) );
+        return (uint8_t)stoi( m_comm->query("*ESR?\n", timeout_ms) );
     }
 
 }

@@ -2,13 +2,13 @@
 #include <labdev/exceptions.hh>
 #include "ld_debug.hh"
 
-using std::string;
+using namespace std;
 
 namespace labdev{
 
     void interface::write(const string& msg) {
         uint8_t wbuf[s_dflt_buf_size] = {0};
-        std::copy(msg.begin(), msg.end(), std::begin(wbuf));
+        copy(msg.begin(), msg.end(), begin(wbuf));
         this->write_raw(wbuf, msg.size());
 
         debug_print("%s", "Sent message '");
@@ -62,7 +62,7 @@ namespace labdev{
         return ret;
     }
 
-    std::string interface::read_until(const std::string& delim, 
+    string interface::read_until(const string& delim, 
     unsigned timeout_ms) {
         size_t temp= 0;
         return this->read_until(delim, temp, timeout_ms);    

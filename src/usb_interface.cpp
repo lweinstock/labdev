@@ -2,6 +2,10 @@
 #include <labdev/exceptions.hh>
 #include "ld_debug.hh"
 
+#include <sstream>
+
+using namespace std;
+
 namespace labdev {
 
     libusb_context* usb_interface::s_default_ctx = NULL;
@@ -27,7 +31,7 @@ namespace labdev {
     }
 
     usb_interface::usb_interface(uint16_t vendor_id, uint16_t product_id,
-    std::string serial_number):
+    string serial_number):
     usb_interface() 
     {
         this->open(vendor_id, product_id, serial_number);
@@ -58,7 +62,7 @@ namespace labdev {
     }
 
     void usb_interface::open(uint16_t vendor_id, uint16_t product_id,
-    std::string serial_number) 
+    string serial_number) 
     {
         int stat;
         // If first device, start new libusb session
@@ -256,11 +260,11 @@ namespace labdev {
         return nbytes;
     };
 
-    std::string usb_interface::get_info() const 
+    string usb_interface::get_info() const 
     {
         // Format example: usb;002;001
-        std::string ret("usb;" + std::to_string(m_bus) + ";" 
-            + std::to_string(m_port) );
+        string ret("usb;" + to_string(m_bus) + ";" 
+            + to_string(m_port) );
         return ret;
     }
 
@@ -401,13 +405,13 @@ namespace labdev {
     void usb_interface::claim_interface(int interface_no, int alt_setting) 
     {
         int stat;
-        char buf[100];
+        string msg("");
         // Release current interface
         if ( (interface_no != m_cur_interface_no) &&
              (m_cur_interface_no != s_no_interface) ) {
             stat = libusb_release_interface(m_usb_handle, m_cur_interface_no);
-            sprintf(buf, "Failed to release interface %i", m_cur_interface_no);
-            check_and_throw(stat, buf);
+            msg = "Failed to release interface " + to_string(m_cur_interface_no);
+            check_and_throw(stat, msg);
         }
         // Detach kernel drivers if active
         if ( libusb_kernel_driver_active(m_usb_handle, interface_no) ) {
@@ -416,8 +420,8 @@ namespace labdev {
         }
         // Claim new interface
         stat = libusb_claim_interface(m_usb_handle, interface_no);
-        sprintf(buf, "Failed to claim interface %i", interface_no);
-        check_and_throw(stat, buf);
+        msg = "Failed to claim interface " + to_string(interface_no);
+        check_and_throw(stat, msg);
         m_cur_interface_no = interface_no;
         debug_print("Successfully claimed interface %i\n", m_cur_interface_no);
 
@@ -426,8 +430,8 @@ namespace labdev {
         if (alt_setting) {
             stat = libusb_set_interface_alt_setting(m_usb_handle,
                 m_cur_interface_no, alt_setting);
-            sprintf(buf, "Failed to apply alternate settings %i", alt_setting);
-            check_and_throw(stat, buf);
+            msg = "Failed to apply alternate settings " + to_string(alt_setting);
+            check_and_throw(stat, msg);
             m_cur_alt_setting = alt_setting;
             debug_print("Applied alternate settings %i\n", m_cur_alt_setting);
         }
@@ -519,36 +523,35 @@ namespace labdev {
         return;
     }
 
-    void usb_interface::check_and_throw(int stat, const std::string& msg) const 
+    void usb_interface::check_and_throw(int stat, const string& msg) const 
     {
         if (stat < 0) {
-            char err_msg[256] = {'\0'};
-            sprintf(err_msg, "%s (%s, %i)", msg.c_str(),
-                libusb_error_name(stat), stat);
-            debug_print("%s\n", err_msg);
+            stringstream err_msg;
+            err_msg << msg << " (" << libusb_error_name(stat) << ", " << stat << ")";
+            debug_print("%s\n", err_msg.str().c_str());
 
             switch (stat) {
             case LIBUSB_ERROR_TIMEOUT:
             case LIBUSB_ERROR_BUSY:
-                throw timeout(err_msg, stat);
+                throw timeout(err_msg.str().c_str(), stat);
                 break;
 
             case LIBUSB_ERROR_OVERFLOW:
             case LIBUSB_ERROR_IO:
             case LIBUSB_ERROR_NO_MEM:
             case LIBUSB_ERROR_OTHER:
-                throw bad_io(err_msg, stat);
+                throw bad_io(err_msg.str().c_str(), stat);
                 break;
 
             case LIBUSB_ERROR_ACCESS:
             case LIBUSB_ERROR_NO_DEVICE:
-                throw bad_connection(err_msg, stat);
+                throw bad_connection(err_msg.str().c_str(), stat);
                 break;
 
             case LIBUSB_ERROR_INVALID_PARAM:
             case LIBUSB_ERROR_NOT_SUPPORTED:
             default:
-                fprintf(stderr, "%s\n", err_msg);
+                fprintf(stderr, "%s\n", err_msg.str().c_str());
                 abort();
             }
         }

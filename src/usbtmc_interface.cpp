@@ -2,6 +2,8 @@
 #include <labdev/exceptions.hh>
 #include "ld_debug.hh"
 
+using namespace std;
+
 namespace labdev {
 
     usbtmc_interface::usbtmc_interface() : 
@@ -13,7 +15,7 @@ namespace labdev {
     }
 
     usbtmc_interface::usbtmc_interface(uint16_t vendor_id, uint16_t product_id,
-    std::string serial_number):
+    string serial_number):
     usb_interface(vendor_id, product_id, serial_number),
     m_cur_tag(0x01),
     m_eom_cap(true)
@@ -43,18 +45,18 @@ namespace labdev {
         return;
     }
 
-    void usbtmc_interface::write(const std::string& msg) 
+    void usbtmc_interface::write(const string& msg) 
     {
         this->write_dev_dep_msg(msg);
         return;
     }
 
-    std::string usbtmc_interface::read(unsigned timeout_ms) 
+    string usbtmc_interface::read(unsigned timeout_ms) 
     {
         return this->read_dev_dep_msg(timeout_ms);
     }
 
-    int usbtmc_interface::write_dev_dep_msg(std::string msg,
+    int usbtmc_interface::write_dev_dep_msg(string msg,
     uint8_t transfer_attr) 
     {
         // add space for header + total length must be multiple of 4
@@ -78,7 +80,7 @@ namespace labdev {
         return nbytes;
     }
 
-    std::string usbtmc_interface::read_dev_dep_msg(int timeout_ms,
+    string usbtmc_interface::read_dev_dep_msg(int timeout_ms,
     uint8_t transfer_attr, uint8_t term_char) 
     {
         uint8_t read_request[s_header_len];
@@ -102,13 +104,13 @@ namespace labdev {
         int transfer_size = check_usbtmc_header(rbuf, DEV_DEP_MSG_IN);
         // Remove header from return value
         len -= s_header_len;
-        std::string ret((const char*)rbuf + s_header_len, len);
+        string ret((const char*)rbuf + s_header_len, len);
 
         // If more data than received was anounced in the header, keep reading
         int bytes_left = transfer_size - len;
         while (bytes_left > 0) {
             int nbytes = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
-            ret.append((char*)rbuf, std::min(bytes_left, nbytes));
+            ret.append((char*)rbuf, min(bytes_left, nbytes));
             bytes_left -= nbytes;
         }
 
@@ -133,7 +135,7 @@ namespace labdev {
         return ret;
     }
 
-    int usbtmc_interface::write_vendor_specific(std::string msg) 
+    int usbtmc_interface::write_vendor_specific(string msg) 
     {
         // add space for header + total length must be multiple of 4
         size_t tot_len = s_header_len + msg.size() + 4 - msg.size()%4;
@@ -156,7 +158,7 @@ namespace labdev {
         return nbytes;
     }
 
-    std::string usbtmc_interface::read_vendor_specific(int timeout_ms) 
+    string usbtmc_interface::read_vendor_specific(int timeout_ms) 
     {
         uint8_t read_request[s_header_len], rbuf[s_dflt_buf_size];
         // Send read request
@@ -177,13 +179,13 @@ namespace labdev {
         int transfer_size = check_usbtmc_header(rbuf, DEV_DEP_MSG_IN);
         // Remove header from return value
         len -= s_header_len;
-        std::string ret((const char*)rbuf + s_header_len, len);
+        string ret((const char*)rbuf + s_header_len, len);
 
         // If more data than received was anounced in the header, keep reading
         int bytes_left = transfer_size - len;
         while (bytes_left > 0) {
             int nbytes = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
-            ret.append((char*)rbuf, std::min(bytes_left, nbytes));
+            ret.append((char*)rbuf, min(bytes_left, nbytes));
             bytes_left -= nbytes;
         }
         // Increase bTag for next communication

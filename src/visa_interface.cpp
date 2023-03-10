@@ -3,6 +3,8 @@
 
 #include <unistd.h>
 
+using namespace std;
+
 namespace labdev {
 
     ViSession visa_interface::s_default_rm;
@@ -25,8 +27,8 @@ namespace labdev {
         return;
     }
 
-    visa_interface::visa_interface(std::string visa_id) : visa_interface()
-     {
+    visa_interface::visa_interface(string visa_id) : visa_interface()
+    {
         this->open(visa_id);
         return;
     }
@@ -46,7 +48,7 @@ namespace labdev {
         return;
     }
 
-    void visa_interface::open(const std::string &visa_id) 
+    void visa_interface::open(const string &visa_id) 
     {
         // Throw exception if a device has already been opened
         if (m_instr)
@@ -81,22 +83,22 @@ namespace labdev {
         return;
     }
 
-    std::vector<std::string> visa_interface::find_resources(std::string regex) 
+    vector<string> visa_interface::find_resources(string regex) 
     {
         ViFindList rlist;
         unsigned nrsrc;
         char rname[VI_FIND_BUFLEN];
-        std::vector<std::string> ret;
+        vector<string> ret;
 
         // Find all resources matching the regular expression
         ViStatus stat = viFindRsrc(s_default_rm, regex.c_str(), &rlist, &nrsrc, rname);
         check_and_throw(stat, "Resource '" + regex + "' not found");
-        ret.push_back(std::string(rname));
+        ret.push_back(string(rname));
 
         for (int i = 1; i < nrsrc; i++) {
             stat = viFindNext(rlist, rname);
             check_and_throw(stat, "Next resource in list '" + regex + "' not found");
-            ret.push_back(std::string(rname));
+            ret.push_back(string(rname));
             debug_print("Found resource '%s'\n", rname);
         }
         return ret;
@@ -218,27 +220,28 @@ namespace labdev {
         return;
     }
 
-    void visa_interface::check_and_throw(ViStatus status, const std::string &msg) const 
+    void visa_interface::check_and_throw(ViStatus status, const string &msg) const 
     {
         if (status < VI_SUCCESS) {
-            char err_msg[256] = {'\0'}, vi_strerror[256] = {'\0'};
+            char vi_strerror[256] = {'\0'};
             // Get human readable error message
             viStatusDesc(m_instr, status, vi_strerror);
-            sprintf(err_msg, "%s (%s, %i)", msg.c_str(), vi_strerror, status);
+            stringstream err_msg;
+            err_msg << msg << " (" << vi_strerror << ", " << status << ")";
 
             switch (status) {
             case VI_ERROR_TMO:
-                throw timeout(err_msg, status);
+                throw timeout(err_msg.str().c_str(), status);
                 break;
 
             case VI_ERROR_OUTP_PROT_VIOL:   // Protocol violation
             case VI_ERROR_BERR:             // Bus error
-                throw bad_connection(err_msg, status);
+                throw bad_connection(err_msg.str().c_str(), status);
                 break;
 
             case VI_ERROR_IO:
             default:
-                throw bad_io(err_msg, status);
+                throw bad_io(err_msg.str().c_str(), status);
             }
         }
     }

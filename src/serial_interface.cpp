@@ -11,6 +11,9 @@
 #include <sys/ioctl.h>      // ioctl()
 #include <sys/select.h>     // select()
 #include <iostream>         // cout, cerr, ...
+#include <sstream>
+
+using namespace std;
 
 namespace labdev {
 
@@ -25,26 +28,28 @@ namespace labdev {
         m_connected(false),
         m_par_en(false),
         m_par_even(false),
-        m_update_settings(true) {
+        m_update_settings(true) 
+    {
         return;
     }
 
-    serial_interface::serial_interface(const std::string &path,
-            unsigned baud, unsigned nbits, bool par_en,
-            bool par_even, unsigned stop_bits):
-        serial_interface() {
+    serial_interface::serial_interface(const string &path, unsigned baud, 
+    unsigned nbits, bool par_en,bool par_even, unsigned stop_bits):
+    serial_interface() 
+    {
         this->open(path, baud, nbits, par_en, par_even, stop_bits);
         return;
     }
 
-    serial_interface::~serial_interface() {
+    serial_interface::~serial_interface() 
+    {
         this->close();
         return;
     }
 
-    void serial_interface::open(const std::string &path, unsigned baud,
-            unsigned nbits, bool par_en, bool par_even,
-            unsigned stop_bits) {
+    void serial_interface::open(const string &path, unsigned baud, 
+    unsigned nbits, bool par_en, bool par_even, unsigned stop_bits) 
+    {
         debug_print("Opening device '%s'\n", path.c_str());
         m_fd = ::open(path.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
         check_and_throw(m_fd, "Failed to open device " + path);
@@ -80,19 +85,22 @@ namespace labdev {
         return;
     }
 
-    void serial_interface::open() {
+    void serial_interface::open() 
+    {
         this->open(m_path, m_baud, m_nbits, m_par_en, m_par_even, m_stop_bits);
         return;
     }
 
-    void serial_interface::close() {
+    void serial_interface::close() 
+    {
         debug_print("Closing device '%s'\n", m_path.c_str());
         ::close(m_fd);
         m_connected = false;
         return;
     }
 
-    int serial_interface::write_raw(const uint8_t* data, size_t len) {
+    int serial_interface::write_raw(const uint8_t* data, size_t len) 
+    {
         if (m_update_settings) this->apply_settings();
 
         size_t bytes_left = len;
@@ -125,7 +133,8 @@ namespace labdev {
         return bytes_written;
     }
 
-    int serial_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) {
+    int serial_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
+    {
         if (m_update_settings) this->apply_settings();
 
         // Wait for I/O
@@ -165,34 +174,37 @@ namespace labdev {
         return nbytes;
     }
 
-    std::string serial_interface::get_info() const {
+    string serial_interface::get_info() const 
+    {
         // Format example: serial;/dev/tty0;9600;8N1
-        std::string ret("serial;" + m_path + ";" + std::to_string(m_baud));
-        ret += ";" + std::to_string(m_nbits);
+        string ret("serial;" + m_path + ";" + to_string(m_baud));
+        ret += ";" + to_string(m_nbits);
         if (m_par_en)
             if (m_par_even) ret += "E";
             else ret += "O";
         else ret += "N";
-        ret += std::to_string(m_stop_bits);
+        ret += to_string(m_stop_bits);
         return ret;
     }
 
-    void serial_interface::set_baud(unsigned baud) {
+    void serial_interface::set_baud(unsigned baud) 
+    {
         int good_baud = this->check_baud(baud);
         debug_print("Setting baudrate to %i\n", baud);
 
         int stat = cfsetispeed(&m_term_settings, good_baud);
         check_and_throw(stat, "Failed to set in baudrate " +
-            std::to_string(baud));
+            to_string(baud));
         stat = cfsetospeed(&m_term_settings, good_baud);
         check_and_throw(stat, "Failed to set out baudrate " +
-            std::to_string(baud));
+            to_string(baud));
 		m_baud = baud;
         m_update_settings = true;
         return;
     }
 
-    void serial_interface::set_nbits(unsigned nbits) noexcept {
+    void serial_interface::set_nbits(unsigned nbits) noexcept 
+    {
         uint32_t good_nbits = this->check_bits(nbits);
         m_term_settings.c_cflag &= ~CSIZE;
         m_term_settings.c_cflag |= good_nbits;
@@ -202,7 +214,8 @@ namespace labdev {
         return;
     }
 
-    void serial_interface::set_parity(bool en, bool even) noexcept {
+    void serial_interface::set_parity(bool en, bool even) noexcept 
+    {
         m_par_en = en;
         m_par_even = even;
         if (m_par_en) m_term_settings.c_cflag |= PARENB;
@@ -217,7 +230,8 @@ namespace labdev {
         return;
     }
 
-    void serial_interface::set_stop_bits(unsigned stop_bits) noexcept {
+    void serial_interface::set_stop_bits(unsigned stop_bits) noexcept 
+    {
         switch (stop_bits) {
         case 1: m_term_settings.c_cflag &= ~CSTOPB; break;
         case 2: m_term_settings.c_cflag |= CSTOPB;  break;
@@ -232,7 +246,8 @@ namespace labdev {
         return;
     }
 
-    void serial_interface::apply_settings() {
+    void serial_interface::apply_settings() 
+    {
         debug_print("%s", "Applying termio settings\n");
         int stat = tcsetattr(m_fd, TCSANOW, &m_term_settings);
         check_and_throw(stat, "Failed apply termios settings");
@@ -242,7 +257,8 @@ namespace labdev {
         return;
     }
 
-    void serial_interface::set_hw_flow_ctrl(bool ena) {
+    void serial_interface::set_hw_flow_ctrl(bool ena) 
+    {
         if (ena) m_term_settings.c_cflag |= CRTSCTS;
         else m_term_settings.c_cflag &= ~CRTSCTS;
         debug_print("Hardware flow control %s\n", ena ? "enabled" : "disabled");
@@ -250,28 +266,32 @@ namespace labdev {
         return;
     }
 
-    void serial_interface::set_dtr() {
+    void serial_interface::set_dtr() 
+    {
         int flag = TIOCM_DTR;
         int stat = ioctl(m_fd, TIOCMBIS, &flag);
         check_and_throw(stat, "Failed to set DTR");
         return;
     }
 
-    void serial_interface::clear_dtr() {
+    void serial_interface::clear_dtr() 
+    {
         int flag = TIOCM_DTR;
         int stat = ioctl(m_fd, TIOCMBIC, &flag);
         check_and_throw(stat, "Failed to clear DTR");
         return;
     }
 
-    void serial_interface::set_rts() {
+    void serial_interface::set_rts() 
+    {
         int flag = TIOCM_RTS;
         int stat = ioctl(m_fd, TIOCMBIS, &flag);
         check_and_throw(stat, "Failed to set RTS");
         return;
     }
 
-    void serial_interface::clear_rts() {
+    void serial_interface::clear_rts() 
+    {
         int flag = TIOCM_RTS;
         int stat = ioctl(m_fd, TIOCMBIC, &flag);
         check_and_throw(stat, "Failed to clear RTS");
@@ -282,31 +302,32 @@ namespace labdev {
      *      P R I V A T E   M E T H O D S
      */
 
-    void serial_interface::check_and_throw(int status, const std::string &msg)
-        const {
+    void serial_interface::check_and_throw(int status, const string &msg) const 
+    {
         if (status < 0) {
             int error = errno;
-            char err_msg[256] = {'\0'};
-            sprintf(err_msg, "%s (%s, %i)", msg.c_str(), strerror(error), error);
-            debug_print("%s\n", err_msg);
+            stringstream err_msg;
+            err_msg << msg << " (" << strerror(error) << ", " << error << ")";
+            debug_print("%s\n", err_msg.str().c_str());
 
             switch (error) {
             case EAGAIN:
-                throw timeout(err_msg, error);
+                throw timeout(err_msg.str().c_str(), error);
                 break;
 
             case ENXIO:
-                throw bad_connection(err_msg, error);
+                throw bad_connection(err_msg.str().c_str(), error);
                 break;
 
             default:
-                throw bad_io(err_msg, error);
+                throw bad_io(err_msg.str().c_str(), error);
             }
         }
         return;
     }
 
-    speed_t serial_interface::check_baud(unsigned baud) {
+    speed_t serial_interface::check_baud(unsigned baud)
+    {
         speed_t good_baud;
         switch (baud) {
         case 0:         good_baud = B0;       break;
@@ -335,7 +356,8 @@ namespace labdev {
         return good_baud;
     }
 
-    uint32_t serial_interface::check_bits(unsigned nbits) {
+    uint32_t serial_interface::check_bits(unsigned nbits)
+    {
         uint32_t good_nbits;
         switch (nbits) {
         case 5: good_nbits = CS5; break;

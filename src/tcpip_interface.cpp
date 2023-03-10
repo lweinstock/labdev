@@ -8,6 +8,8 @@
 #include <sstream>
 #include <iostream>
 
+using namespace std;
+
 namespace labdev {
 
     tcpip_interface::tcpip_interface():
@@ -22,7 +24,7 @@ namespace labdev {
         return;
     }
 
-    tcpip_interface::tcpip_interface(const std::string& ip_addr,
+    tcpip_interface::tcpip_interface(const string& ip_addr,
         unsigned port):
         tcpip_interface() {
         open(ip_addr, port);
@@ -34,7 +36,7 @@ namespace labdev {
         return;
     }
 
-    void tcpip_interface::open(const std::string& ip_addr, unsigned port) {
+    void tcpip_interface::open(const string& ip_addr, unsigned port) {
         // Create TCP/IP socket
         m_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
         check_and_throw(m_socket_fd, "Could not open socket.");
@@ -46,7 +48,7 @@ namespace labdev {
         m_instr_addr.sin_family = AF_INET;
         m_instr_addr.sin_port = htons(port);
         int stat = inet_aton(ip_addr.c_str(), &m_instr_addr.sin_addr);
-        std::stringstream err_msg("");
+        stringstream err_msg("");
         err_msg << "Address " << ip_addr << ":" << port << " is not supported.";
         check_and_throw(stat, err_msg.str());
 
@@ -149,7 +151,7 @@ namespace labdev {
         // Receive buffer
         int stat = setsockopt(m_socket_fd, SOL_SOCKET, SO_RCVBUF, (char*)&size,
             sizeof(int));
-        std::stringstream err_msg("");
+        stringstream err_msg("");
         err_msg << "Set receive buffer length to " << size << " failed.";
         check_and_throw(stat, err_msg.str());
 
@@ -170,7 +172,7 @@ namespace labdev {
 
         int stat = setsockopt(m_socket_fd, SOL_SOCKET, SO_RCVTIMEO,
             (char*)&timeout, sizeof(timeout));
-        std::stringstream err_msg("");
+        stringstream err_msg("");
         err_msg << "Set receive timeout to " << timeout_ms << "ms failed.";
         check_and_throw(stat, err_msg.str());
 
@@ -183,9 +185,9 @@ namespace labdev {
         return;
     }
 
-    std::string tcpip_interface::get_info() const {
+    string tcpip_interface::get_info() const {
         // Format example: tcpip;192.168.0.1;10001
-        std::string ret("tcpip;" + m_ip_addr + ";" + std::to_string(m_port));
+        string ret("tcpip;" + m_ip_addr + ";" + to_string(m_port));
         return ret;
     }
 
@@ -194,26 +196,26 @@ namespace labdev {
      */
 
 
-    void tcpip_interface::check_and_throw(int status, const std::string &msg)
+    void tcpip_interface::check_and_throw(int status, const string &msg)
         const {
         if (status < 0) {
             int error = errno;
-            char err_msg[256] = {'\0'};
-            sprintf(err_msg, "%s (%s, %i)", msg.c_str(), strerror(error), error);
-            debug_print("%s\n", err_msg);
+            stringstream err_msg;
+            err_msg << msg << " (" << strerror(error) << ", " << error << ")";
+            debug_print("%s\n", err_msg.str().c_str());
 
             switch (error) {
             case EAGAIN:
-                throw timeout(err_msg, error);
+                throw timeout(err_msg.str().c_str(), error);
                 break;
 
             case ENXIO:
             case ECONNREFUSED:
-                throw bad_connection(err_msg, error);
+                throw bad_connection(err_msg.str().c_str(), error);
                 break;
 
             default:
-                throw bad_io(err_msg, error);
+                throw bad_io(err_msg.str().c_str(), error);
             }
         }
         return;

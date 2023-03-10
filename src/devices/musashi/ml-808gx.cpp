@@ -6,10 +6,7 @@
 #include <labdev/exceptions.hh>
 #include "ld_debug.hh"
 
-using std::setw;
-using std::setfill;
-using std::hex;
-using std::uppercase;
+using namespace std;
 
 namespace labdev {
 
@@ -40,7 +37,7 @@ namespace labdev {
     void ml_808gx::dispense() 
     {
         debug_print("%s\n", "Dispensing");
-        std::string cmd = "DI  ";
+        string cmd = "DI  ";
         this->download_command(cmd);
         return;
     }
@@ -52,8 +49,8 @@ namespace labdev {
             abort();
         }
         debug_print("Switching channel to %i ...\n", ch);
-        std::string cmd = "CH  ";
-        std::stringstream data("");
+        string cmd = "CH  ";
+        stringstream data("");
         data << setfill('0') << setw(3) << ch;
         this->download_command(cmd, data.str());
         m_cur_ch = ch;
@@ -82,8 +79,8 @@ namespace labdev {
         debug_print("p = %i x 100Pa\n", pressure);
         debug_print("t = %i ms\n", dur);
         debug_print("don/off = %i/%i x 0.1ms\n", on_delay, off_delay);
-        std::string cmd = "SC  ";
-        std::stringstream data("");
+        string cmd = "SC  ";
+        stringstream data("");
         data << "CH" << setfill('0') << setw(3) << m_cur_ch;
         data << "P"  << setfill('0') << setw(4) << pressure;
         data << "T"  << setfill('0') << setw(4) << dur;
@@ -97,17 +94,17 @@ namespace labdev {
     unsigned& dur, unsigned& on_delay, unsigned& off_delay) 
     {
         debug_print("Reading parameters of ch %i...\n", m_cur_ch);
-        std::string resp("");
-        std::stringstream cmd("");
+        string resp("");
+        stringstream cmd("");
         cmd << "GC" << setfill('0') << setw(3) << m_cur_ch;
 
         this->upload_command(cmd.str(), resp);
 
         // Extract data from string
-        pressure  = std::stoi( resp.substr(resp.find('P')+1, 4) );
-        dur       = std::stoi( resp.substr(resp.find('T')+1, 4) );
-        on_delay  = std::stoi( resp.substr(resp.find("OD")+2, 7) );
-        off_delay = std::stoi( resp.substr(resp.find("OF")+2, std::string::npos) );
+        pressure  = stoi( resp.substr(resp.find('P')+1, 4) );
+        dur       = stoi( resp.substr(resp.find('T')+1, 4) );
+        on_delay  = stoi( resp.substr(resp.find("OD")+2, 7) );
+        off_delay = stoi( resp.substr(resp.find("OF")+2, string::npos) );
         debug_print("p = %i x 100Pa\n", pressure);
         debug_print("t = %i ms\n", dur);
         debug_print("don/off = %i/%i x 0.1ms\n", on_delay, off_delay);
@@ -115,12 +112,12 @@ namespace labdev {
         return;
     }
 
-    std::tuple<unsigned, unsigned, unsigned, unsigned> 
+    tuple<unsigned, unsigned, unsigned, unsigned> 
     ml_808gx::get_channel_params()
     {
         unsigned p = 0, dt = 0, on = 0, off = 0;
         this->get_channel_params(p, dt, on, off);
-        return std::make_tuple(p, dt, on, off);
+        return make_tuple(p, dt, on, off);
     }
 
     void ml_808gx::set_pressure(unsigned pressure)
@@ -131,8 +128,8 @@ namespace labdev {
         }
 
         debug_print("Setting pressure of ch %i to %i x 100 Pa\n", m_cur_ch, pressure);
-        std::string cmd = "PH  ";
-        std::stringstream data("");
+        string cmd = "PH  ";
+        stringstream data("");
         data << "CH" << setfill('0') << setw(3) << m_cur_ch;
         data << "P"  << setfill('0') << setw(4) << pressure;
         this->download_command(cmd, data.str());
@@ -154,8 +151,8 @@ namespace labdev {
         }
 
         debug_print("Setting duration of ch %i to %i ms\n", m_cur_ch, dur);
-        std::string cmd = "DH  ";
-        std::stringstream data("");
+        string cmd = "DH  ";
+        stringstream data("");
         data << "CH" << setfill('0') << setw(3) << m_cur_ch;
         data << "T"  << setfill('0') << setw(4) << dur;
         this->download_command(cmd, data.str());
@@ -178,8 +175,8 @@ namespace labdev {
 
         debug_print("Setting delays of ch %i to %i (on) %i (off) x 0.1 ms\n", 
             m_cur_ch, on_delay, off_delay);
-        std::string cmd = "DD  ";
-        std::stringstream data("");
+        string cmd = "DD  ";
+        stringstream data("");
         data << "CH" << setfill('0') << setw(3) << m_cur_ch;
         data << "N"  << setfill('0') << setw(5) << on_delay;
         data << "F"  << setfill('0') << setw(5) << off_delay;
@@ -193,11 +190,11 @@ namespace labdev {
         this->get_channel_params(p, dt, on_delay, off_delay);
     }
 
-    std::tuple<unsigned, unsigned> ml_808gx::get_delays()
+    tuple<unsigned, unsigned> ml_808gx::get_delays()
     {
         unsigned on = 0, off = 0;
         this->get_delays(on, off);
-        return std::make_tuple(on, off);
+        return make_tuple(on, off);
     }
 
 
@@ -229,14 +226,14 @@ namespace labdev {
             abort();
         }
 
-        std::stringstream data("");
+        stringstream data("");
         data << "V" << setw(4) << setfill('0') << on_ms;
         data << "I" << setw(4) << setfill('0') << off_ms;
         this->download_command("VI  ", data.str());
         return;
     }
 
-    void ml_808gx::send_command(std::string cmd, std::string data) 
+    void ml_808gx::send_command(string cmd, string data) 
     {
         if (cmd.size() < 4)
             throw bad_protocol("Invalid command", cmd.size());
@@ -244,7 +241,7 @@ namespace labdev {
         // Build message: 
         //      stx(1) + nchars(2) + cmd(4) + data(n) + checksum(2) + etx(1)
         unsigned nchars = data.size() + cmd.size();
-        std::stringstream msg("");
+        stringstream msg("");
         msg << STX;
         msg << setw(2) << setfill('0') << uppercase << hex << nchars;
         msg << cmd;
@@ -260,11 +257,11 @@ namespace labdev {
         return;
     }
 
-    void ml_808gx::download_command(std::string cmd, std::string data) 
+    void ml_808gx::download_command(string cmd, string data) 
     {
         // Initialize enquary
         m_comm->write(ENQ);
-        std::string resp = m_comm->read();
+        string resp = m_comm->read();
         if (resp != ACK)
             throw bad_protocol("Did not receive ACK", resp.size());
         
@@ -283,11 +280,11 @@ namespace labdev {
         return;
     }
 
-    void ml_808gx::upload_command(std::string cmd, std::string& payload) 
+    void ml_808gx::upload_command(string cmd, string& payload) 
     {    
         // Initialize enquary
         m_comm->write(ENQ);
-        std::string resp = m_comm->read();
+        string resp = m_comm->read();
         if (resp != ACK)
             throw bad_protocol("Did not receive ACK", resp.size());
         
@@ -320,12 +317,12 @@ namespace labdev {
     }
 
     // Static variables
-    const std::string ml_808gx::STX = "\x02";
-    const std::string ml_808gx::ETX = "\x03";
-    const std::string ml_808gx::EOT = "\x04";
-    const std::string ml_808gx::ENQ = "\x05";    
-    const std::string ml_808gx::ACK = "\x06";
-    const std::string ml_808gx::A0 = STX + "02A02D" + ETX;
-    const std::string ml_808gx::A2 = STX + "02A22B" + ETX; 
-    const std::string ml_808gx::CAN = STX + "0218186E" + ETX;
+    const string ml_808gx::STX = "\x02";
+    const string ml_808gx::ETX = "\x03";
+    const string ml_808gx::EOT = "\x04";
+    const string ml_808gx::ENQ = "\x05";    
+    const string ml_808gx::ACK = "\x06";
+    const string ml_808gx::A0 = STX + "02A02D" + ETX;
+    const string ml_808gx::A2 = STX + "02A22B" + ETX; 
+    const string ml_808gx::CAN = STX + "0218186E" + ETX;
 }

@@ -9,23 +9,28 @@
 #include <sstream>
 #include <unistd.h>
 
+using namespace std;
+
 namespace labdev {
 
     ds1000z::ds1000z():
     oscilloscope(4),
-    scpi_device() {
+    scpi_device() 
+    {
         return;
     }
 
     ds1000z::ds1000z(ip_address &ip):
-    oscilloscope(4) {
+    oscilloscope(4) 
+    {
         connect(ip);
         init();
         return;
     }
 
     ds1000z::ds1000z(usb_config &conf):
-    oscilloscope(4) {
+    oscilloscope(4) 
+    {
         connect(conf);
         init();
         return;
@@ -75,7 +80,7 @@ namespace labdev {
 
     void ds1000z::enable_channel(unsigned channel, bool enable) {
         this->check_channel(channel);
-        std::stringstream msg("");
+        stringstream msg("");
         msg << ":CHAN" << channel << ":DISP ";
         if (enable) msg << "1\n";
         else msg << "0\n";
@@ -85,7 +90,7 @@ namespace labdev {
 
     void ds1000z::set_atten(unsigned channel, double att) {
         this->check_channel(channel);
-        std::stringstream msg("");
+        stringstream msg("");
         msg << ":CHAN" << channel << ":PROB " << att << "\n";
         m_comm->write(msg.str());
         return;
@@ -93,15 +98,15 @@ namespace labdev {
 
     double ds1000z::get_atten(unsigned channel) {
         this->check_channel(channel);
-        std::stringstream msg("");
+        stringstream msg("");
         msg << ":CHAN" << channel << ":PROB?\n";
-        std::string resp = m_comm->query(msg.str());
-        return std::stof(resp);
+        string resp = m_comm->query(msg.str());
+        return stof(resp);
     }
 
     void ds1000z::set_vert_base(unsigned channel, double volts_per_div) {
         this->check_channel(channel);
-        std::stringstream msg("");
+        stringstream msg("");
         msg << ":CHAN" << channel << ":SCAL " << volts_per_div << "\n";
         m_comm->write(msg.str());
         return;
@@ -109,22 +114,22 @@ namespace labdev {
 
     double ds1000z::get_vert_base(unsigned channel) {
         this->check_channel(channel);
-        std::stringstream msg("");
+        stringstream msg("");
         msg << ":CHAN" << channel << ":SCAL?\n";
-        std::string resp = m_comm->query(msg.str());
-        return std::stof(resp);
+        string resp = m_comm->query(msg.str());
+        return stof(resp);
     }
 
     void ds1000z::set_horz_base(double sec_per_div) {
-        std::stringstream msg("");
+        stringstream msg("");
         msg << ":TIM:SCAL " << sec_per_div << "\n";
         m_comm->write(msg.str());
         return;
     }
 
     double ds1000z::get_horz_base() {
-        std::string msg = m_comm->query(":TIM:SCAL?\n");
-        return std::stof(msg);
+        string msg = m_comm->query(":TIM:SCAL?\n");
+        return stof(msg);
     }
 
     void ds1000z::start_acquisition() {
@@ -143,7 +148,7 @@ namespace labdev {
     }
 
     void ds1000z::set_trigger_type(trigger_type trig) {
-        std::stringstream msg("");
+        stringstream msg("");
         msg << ":TRIG:MODE EDGE\n";
         m_comm->write(msg.str().c_str());
 
@@ -169,7 +174,7 @@ namespace labdev {
     }
 
     void ds1000z::set_trigger_level(double level) {
-        std::stringstream msg("");
+        stringstream msg("");
         msg << ":TRIG:EDG:LEV " << level << "\n";
         m_comm->write(msg.str().c_str());
         return;
@@ -177,7 +182,7 @@ namespace labdev {
 
     void ds1000z::set_trigger_source(unsigned channel) {
         this->check_channel(channel);
-        std::stringstream msg("");
+        stringstream msg("");
         msg << ":TRIG:EDG:SOUR CHAN" << channel << "\n";
         m_comm->write(msg.str().c_str());
         return;
@@ -185,32 +190,32 @@ namespace labdev {
 
 
     bool ds1000z::triggered() {
-        std::string status = m_comm->query(":TRIG:STAT?\n");
-        if ( status.find("TD") != std::string::npos )
+        string status = m_comm->query(":TRIG:STAT?\n");
+        if ( status.find("TD") != string::npos )
             return true;
         return false;
     }
 
     bool ds1000z::stopped() {
-        std::string status = m_comm->query(":TRIG:STAT?\n");
-        if ( status.find("STOP") != std::string::npos )
+        string status = m_comm->query(":TRIG:STAT?\n");
+        if ( status.find("STOP") != string::npos )
             return true;
         return false;
     }
     
     void ds1000z::read_sample_data(unsigned channel,
-    std::vector<double> &horz_data, std::vector<double> &vert_data) {
+    vector<double> &horz_data, vector<double> &vert_data) {
         // Switch channel
         this->check_channel(channel);
-        m_comm->write(":WAV:SOUR CHAN" + std::to_string(channel) + "\n");
+        m_comm->write(":WAV:SOUR CHAN" + to_string(channel) + "\n");
 
         // Clear vectors
         horz_data.clear();
         vert_data.clear();
 
         // Get waveform preamble
-        std::string data = m_comm->query(":WAV:PRE?\n");
-        std::vector<std::string> preamble = split(data, ",", 10);
+        string data = m_comm->query(":WAV:PRE?\n");
+        vector<string> preamble = split(data, ",", 10);
         if (preamble.size() != 10) {
             debug_print("Received wrong preamble size: %s (%lu)\n",
                 data.c_str(), preamble.size());
@@ -218,13 +223,13 @@ namespace labdev {
         }
 
         // Extract data from preamble
-        m_npts  = std::stoi( preamble.at(2) );
-        m_xincr = std::stof( preamble.at(4) );
-        m_xorg  = std::stof( preamble.at(5) );
-        m_xref  = std::stof( preamble.at(6) );
-        m_yinc  = std::stof( preamble.at(7) );
-        m_yorg  = std::stoi( preamble.at(8) );
-        m_yref  = std::stoi( preamble.at(9) );
+        m_npts  = stoi( preamble.at(2) );
+        m_xincr = stof( preamble.at(4) );
+        m_xorg  = stof( preamble.at(5) );
+        m_xref  = stof( preamble.at(6) );
+        m_yinc  = stof( preamble.at(7) );
+        m_yorg  = stoi( preamble.at(8) );
+        m_yref  = stoi( preamble.at(9) );
 
         debug_print("pts = %i\n", m_npts);
         debug_print("xincr = %e\n", m_xincr);
@@ -235,7 +240,7 @@ namespace labdev {
         debug_print("yref = %i\n", m_yref);
 
         // Read waveform in chunks of 250kSa
-        std::vector<uint8_t> mem_data, temp;
+        vector<uint8_t> mem_data, temp;
         unsigned start = 1, stop = 250000;
         while (mem_data.size() < m_npts) {
             temp = this->read_mem_data(start, stop);
@@ -267,7 +272,7 @@ namespace labdev {
     unsigned item) {
         this->check_channel(channel1);
         this->check_channel(channel2);
-        std::stringstream msg("");
+        stringstream msg("");
         msg << ":MEAS:STAT:ITEM " << s_meas_item_string[item]
             << ",CHAN" << channel1 << ",CHAN" << channel2 << "\n";
         m_comm->write(msg.str());
@@ -277,14 +282,14 @@ namespace labdev {
     double ds1000z::get_measurement(unsigned channel1, unsigned channel2,
     unsigned item, unsigned type) {
         this->check_channel(channel1);
-        std::stringstream msg("");
+        stringstream msg("");
         msg << ":MEAS:STAT:ITEM? "
             << s_meas_type_string[type] << ","
             << s_meas_item_string[item] << ",CHAN"
             << channel1 << ",CHAN"
             << channel2 << "\n";
-        std::string resp = m_comm->query(msg.str());
-        return std::stod(resp);
+        string resp = m_comm->query(msg.str());
+        return stod(resp);
     }
 
     double ds1000z::get_measurement(unsigned channel, unsigned item,
@@ -306,12 +311,12 @@ namespace labdev {
      *      P R I V A T E   M E T H O D S
      */
 
-    const std::string ds1000z::s_meas_item_string[] = {"VMAX", "VMIN", "VPP",
+    const string ds1000z::s_meas_item_string[] = {"VMAX", "VMIN", "VPP",
         "VTOP", "VBAS", "VAMP", "VAVG", "VRMS", "OVER", "PRES", "MAR", "MPAR",
         "PER", "FREQ", "RTIM", "FTIM", "PWID", "NWID", "PDUT", "NDUT", "RDEL",
         "FDEL", "RPH", "FPH"};
 
-    const std::string ds1000z::s_meas_type_string[] = {"MAX", "MIN", "CURR",
+    const string ds1000z::s_meas_type_string[] = {"MAX", "MIN", "CURR",
         "AVER", "DEV"};
 
     void ds1000z::init() {
@@ -336,16 +341,16 @@ namespace labdev {
         return;
     }
 
-    std::vector<uint8_t> ds1000z::read_mem_data(unsigned sta, unsigned sto) {
+    vector<uint8_t> ds1000z::read_mem_data(unsigned sta, unsigned sto) {
         // Set start and stop address
-        m_comm->write(":WAV:STAR " + std::to_string(sta) + "\n");
-        m_comm->write(":WAV:STOP " + std::to_string(sto) + "\n");
+        m_comm->write(":WAV:STAR " + to_string(sta) + "\n");
+        m_comm->write(":WAV:STOP " + to_string(sto) + "\n");
 
         // Read data block
-        std::string data = m_comm->query(":WAV:DATA?\n");
+        string data = m_comm->query(":WAV:DATA?\n");
         // Extract header
         int len = 0;
-        std::string header = data.substr(0, 11);
+        string header = data.substr(0, 11);
         sscanf(header.c_str(), "#9%9d", &len);
         debug_print("len = %i\n", len);
 
@@ -353,7 +358,7 @@ namespace labdev {
         while (data.size() < len)
             data.append( m_comm->read() );
 
-        std::vector<uint8_t> ret;
+        vector<uint8_t> ret;
         for (int i = 0; i < len; i++)
             ret.push_back( (uint8_t)data.at(i + header.size()) );
 
