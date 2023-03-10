@@ -111,7 +111,7 @@ namespace labdev {
 
     void ml_808gx::set_pressure(unsigned pressure)
     {
-        debug_print("Setting pressure of ch %i to %i x 100 kPa\n", m_cur_ch, pressure);
+        debug_print("Setting pressure of ch %i to %i x 100 Pa\n", m_cur_ch, pressure);
         std::string cmd = "PH  ";
         std::stringstream data("");
         data << "CH" << setfill('0') << setw(3) << m_cur_ch;
