@@ -3,7 +3,7 @@
 
 #include <labdev/exceptions.hh>
 
-#include <labdev/devices/oscilloscope.hh>
+#include <labdev/devices/osci.hh>
 #include <labdev/devices/scpi_device.hh>
 #include <labdev/tcpip_interface.hh>
 #include <labdev/usbtmc_interface.hh>
@@ -15,7 +15,7 @@ namespace labdev {
      *      Rigol DS1000Z series oscilloscope
      */
 
-    class ds1000z : public oscilloscope, public scpi_device {
+    class ds1000z : public osci, public scpi_device {
     public:
         ds1000z();
         ds1000z(ip_address &ip);

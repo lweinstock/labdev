@@ -1,5 +1,5 @@
-#ifndef LD_OSCILLOSCOPE_HH
-#define LD_OSCILLOSCOPE_HH
+#ifndef LD_OSCI_HH
+#define LD_OSCI_HH
 
 #include <cstring>
 #include <string>
@@ -10,13 +10,13 @@
 namespace labdev{
 
     /*
-     *  Abstract base class for all oscilloscopes
+     *  Abstract base class for all oscis
      */
 
-    class oscilloscope : public virtual device {
+    class osci : public virtual device {
     public:
-        oscilloscope(unsigned n_ch) : device(), m_n_ch(n_ch) {};
-        virtual ~oscilloscope() {};
+        osci(unsigned n_ch) : device(), m_n_ch(n_ch) {};
+        virtual ~osci() {};
 
         // Generic trigger type definitions
         enum trigger_type : uint16_t {

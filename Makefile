@@ -52,6 +52,7 @@ OBJ+=$(SRC)/devices/musashi/ml-808gx.o
 
 ###   INSTALL SETUP   ###
 
+# Use PREFIX for local installation
 PREFIX=
 ifeq ($(PREFIX),)
   PREFIX:=/usr/local

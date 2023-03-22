@@ -14,14 +14,14 @@ using namespace std;
 namespace labdev {
 
     ds1000z::ds1000z():
-    oscilloscope(4),
+    osci(4),
     scpi_device() 
     {
         return;
     }
 
     ds1000z::ds1000z(ip_address &ip):
-    oscilloscope(4) 
+    osci(4) 
     {
         connect(ip);
         init();
@@ -29,7 +29,7 @@ namespace labdev {
     }
 
     ds1000z::ds1000z(usb_config &conf):
-    oscilloscope(4) 
+    osci(4) 
     {
         connect(conf);
         init();
@@ -37,7 +37,8 @@ namespace labdev {
     }
 
     ds1000z::ds1000z(visa_identifier &visa_id):
-    oscilloscope(4) {
+    osci(4) 
+    {
         connect(visa_id);
         init();
         return;
@@ -73,12 +74,14 @@ namespace labdev {
         return;
     }
 
-    void ds1000z::connect(visa_identifier &visa_id) {
+    void ds1000z::connect(visa_identifier &visa_id) 
+    {
         m_comm = new visa_interface(visa_id);
         return;
     }
 
-    void ds1000z::enable_channel(unsigned channel, bool enable) {
+    void ds1000z::enable_channel(unsigned channel, bool enable) 
+    {
         this->check_channel(channel);
         stringstream msg("");
         msg << ":CHAN" << channel << ":DISP ";
@@ -88,7 +91,8 @@ namespace labdev {
         return;
     }
 
-    void ds1000z::set_atten(unsigned channel, double att) {
+    void ds1000z::set_atten(unsigned channel, double att) 
+    {
         this->check_channel(channel);
         stringstream msg("");
         msg << ":CHAN" << channel << ":PROB " << att << "\n";
@@ -104,7 +108,8 @@ namespace labdev {
         return stof(resp);
     }
 
-    void ds1000z::set_vert_base(unsigned channel, double volts_per_div) {
+    void ds1000z::set_vert_base(unsigned channel, double volts_per_div) 
+    {
         this->check_channel(channel);
         stringstream msg("");
         msg << ":CHAN" << channel << ":SCAL " << volts_per_div << "\n";
@@ -112,7 +117,8 @@ namespace labdev {
         return;
     }
 
-    double ds1000z::get_vert_base(unsigned channel) {
+    double ds1000z::get_vert_base(unsigned channel) 
+    {
         this->check_channel(channel);
         stringstream msg("");
         msg << ":CHAN" << channel << ":SCAL?\n";
@@ -120,34 +126,40 @@ namespace labdev {
         return stof(resp);
     }
 
-    void ds1000z::set_horz_base(double sec_per_div) {
+    void ds1000z::set_horz_base(double sec_per_div) 
+    {
         stringstream msg("");
         msg << ":TIM:SCAL " << sec_per_div << "\n";
         m_comm->write(msg.str());
         return;
     }
 
-    double ds1000z::get_horz_base() {
+    double ds1000z::get_horz_base() 
+    {
         string msg = m_comm->query(":TIM:SCAL?\n");
         return stof(msg);
     }
 
-    void ds1000z::start_acquisition() {
+    void ds1000z::start_acquisition() 
+    {
         m_comm->write(":RUN\n");
         return;
     }
 
-    void ds1000z::stop_acquisition() {
+    void ds1000z::stop_acquisition() 
+    {
         m_comm->write(":STOP\n");
         return;
     }
 
-    void ds1000z::single_shot() {
+    void ds1000z::single_shot() 
+    {
         m_comm->write(":SING\n");
         return;
     }
 
-    void ds1000z::set_trigger_type(trigger_type trig) {
+    void ds1000z::set_trigger_type(trigger_type trig) 
+    {
         stringstream msg("");
         msg << ":TRIG:MODE EDGE\n";
         m_comm->write(msg.str().c_str());
@@ -173,14 +185,16 @@ namespace labdev {
         return;
     }
 
-    void ds1000z::set_trigger_level(double level) {
+    void ds1000z::set_trigger_level(double level) 
+    {
         stringstream msg("");
         msg << ":TRIG:EDG:LEV " << level << "\n";
         m_comm->write(msg.str().c_str());
         return;
     }
 
-    void ds1000z::set_trigger_source(unsigned channel) {
+    void ds1000z::set_trigger_source(unsigned channel) 
+    {
         this->check_channel(channel);
         stringstream msg("");
         msg << ":TRIG:EDG:SOUR CHAN" << channel << "\n";
@@ -189,14 +203,16 @@ namespace labdev {
     }
 
 
-    bool ds1000z::triggered() {
+    bool ds1000z::triggered() 
+    {
         string status = m_comm->query(":TRIG:STAT?\n");
         if ( status.find("TD") != string::npos )
             return true;
         return false;
     }
 
-    bool ds1000z::stopped() {
+    bool ds1000z::stopped() 
+    {
         string status = m_comm->query(":TRIG:STAT?\n");
         if ( status.find("STOP") != string::npos )
             return true;
@@ -204,7 +220,8 @@ namespace labdev {
     }
     
     void ds1000z::read_sample_data(unsigned channel,
-    vector<double> &horz_data, vector<double> &vert_data) {
+    vector<double> &horz_data, vector<double> &vert_data) 
+    {
         // Switch channel
         this->check_channel(channel);
         m_comm->write(":WAV:SOUR CHAN" + to_string(channel) + "\n");
@@ -263,13 +280,15 @@ namespace labdev {
         return;
     }
 
-    void ds1000z::set_measurement(unsigned channel, unsigned item) {
+    void ds1000z::set_measurement(unsigned channel, unsigned item) 
+    {
         this->set_measurement(channel, channel, item);
         return;
     }
 
     void ds1000z::set_measurement(unsigned channel1, unsigned channel2,
-    unsigned item) {
+    unsigned item) 
+    {
         this->check_channel(channel1);
         this->check_channel(channel2);
         stringstream msg("");
@@ -280,7 +299,8 @@ namespace labdev {
     }
 
     double ds1000z::get_measurement(unsigned channel1, unsigned channel2,
-    unsigned item, unsigned type) {
+    unsigned item, unsigned type) 
+    {
         this->check_channel(channel1);
         stringstream msg("");
         msg << ":MEAS:STAT:ITEM? "
@@ -293,16 +313,19 @@ namespace labdev {
     }
 
     double ds1000z::get_measurement(unsigned channel, unsigned item,
-    unsigned type) {
+    unsigned type) 
+    {
         return this->get_measurement(channel, channel, item, type);
     }
 
-    void ds1000z::clear_measurements() {
+    void ds1000z::clear_measurements() 
+    {
         m_comm->write(":MEAS:CLE ALL\n");
         return;
     }
 
-    void ds1000z::reset_measurements() {
+    void ds1000z::reset_measurements() 
+    {
         m_comm->write(":MEAS:STAT:RES\n");
         return;
     }
@@ -319,7 +342,8 @@ namespace labdev {
     const string ds1000z::s_meas_type_string[] = {"MAX", "MIN", "CURR",
         "AVER", "DEV"};
 
-    void ds1000z::init() {
+    void ds1000z::init() 
+    {
         this->clear_status();
         // Set waveform format
         m_comm->write(":WAV:FORM BYTE\n");
@@ -333,7 +357,8 @@ namespace labdev {
         return;
     }
 
-    void ds1000z::check_channel(unsigned channel) {
+    void ds1000z::check_channel(unsigned channel) 
+    {
         if ( (channel == 0) || (channel > this->get_n_channels()) ) {
             fprintf(stderr, "Invalid channel %i\n", channel);
             abort();
@@ -341,7 +366,8 @@ namespace labdev {
         return;
     }
 
-    vector<uint8_t> ds1000z::read_mem_data(unsigned sta, unsigned sto) {
+    vector<uint8_t> ds1000z::read_mem_data(unsigned sta, unsigned sto) 
+    {
         // Set start and stop address
         m_comm->write(":WAV:STAR " + to_string(sta) + "\n");
         m_comm->write(":WAV:STOP " + to_string(sto) + "\n");
