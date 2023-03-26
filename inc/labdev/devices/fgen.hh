@@ -36,7 +36,8 @@ namespace labdev{
 
         // Turn channel on/off
         virtual void enable_channel(unsigned channel, bool ena = true) = 0;
-        void disable_channel(unsigned channel) { this->enable_channel(ch, false); }
+        void disable_channel(unsigned channel) 
+            { this->enable_channel(channel, false); }
         // Get output state of channel (true = on, false = off)
         virtual bool get_state(unsigned channel) = 0;
 

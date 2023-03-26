@@ -21,7 +21,7 @@
 #define ld_assert(expr, msg, ...) \
     my_assert(expr, #expr, __FILE__, __func__, __LINE__, msg)
 
-void my_assert(bool expr, const char* strexpr, const char* file,
+inline void my_assert(bool expr, const char* strexpr, const char* file,
 const char* function, int line, const char* msg)
 {
     if (!expr) {
