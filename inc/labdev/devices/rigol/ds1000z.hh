@@ -2,7 +2,7 @@
 #define DS1000Z_H
 
 #include <labdev/devices/osci.hh>
-#include <labdev/devices/scpi_device.hh>
+#include <labdev/devices/scpi.hh>
 #include <labdev/tcpip_interface.hh>
 #include <labdev/usbtmc_interface.hh>
 #include <labdev/visa_interface.hh>
@@ -13,13 +13,13 @@ namespace labdev {
      *      Rigol DS1000Z series oscilloscope
      */
 
-    class ds1000z : public osci, public scpi_device {
+    class ds1000z : public osci {
     public:
         ds1000z();
         ds1000z(ip_address &ip);
         ds1000z(usb_config &conf);
         ds1000z(visa_identifier &visa_id);
-        ~ds1000z() {};
+        ~ds1000z();
 
         void connect(ip_address &ip);
         void connect(usb_config &conf);
@@ -117,6 +117,8 @@ namespace labdev {
         void init();
         void check_channel(unsigned channel);
         std::vector<uint8_t> read_mem_data( unsigned sta, unsigned sto);
+
+        scpi* m_scpi;
 
         unsigned m_npts;
         double m_xincr, m_xorg, m_xref, m_yinc;

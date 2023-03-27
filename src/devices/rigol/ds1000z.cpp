@@ -10,33 +10,38 @@ using namespace std;
 namespace labdev {
 
     ds1000z::ds1000z():
-    osci(4),
-    scpi_device() 
+    osci(4, "Rigol,DS1000Z")
     {
         return;
     }
 
     ds1000z::ds1000z(ip_address &ip):
-    osci(4) 
+    osci(4, "Rigol,DS1000Z") 
     {
         connect(ip);
-        init();
         return;
     }
 
     ds1000z::ds1000z(usb_config &conf):
-    osci(4) 
+    osci(4, "Rigol,DS1000Z") 
     {
         connect(conf);
-        init();
         return;
     }
 
     ds1000z::ds1000z(visa_identifier &visa_id):
-    osci(4) 
+    osci(4, "Rigol,DS1000Z") 
     {
         connect(visa_id);
-        init();
+        return;
+    }
+
+    ds1000z::~ds1000z() 
+    {
+        if (m_scpi) {
+            delete m_scpi;
+            m_scpi = nullptr;
+        }
         return;
     }
 
@@ -52,6 +57,7 @@ namespace labdev {
             abort();
         }
         m_comm = new tcpip_interface(ip);
+        init();
         return;
     }
 
@@ -67,12 +73,14 @@ namespace labdev {
         usbtmc->set_endpoint_in(0x02);
         usbtmc->set_endpoint_out(0x03);
         m_comm = usbtmc;
+        init();
         return;
     }
 
     void ds1000z::connect(visa_identifier &visa_id) 
     {
         m_comm = new visa_interface(visa_id);
+        init();
         return;
     }
 
@@ -340,7 +348,11 @@ namespace labdev {
 
     void ds1000z::init() 
     {
-        this->clear_status();
+        // Setup SCPI
+        m_scpi = new scpi(m_comm);
+        m_scpi->clear_status();
+        m_dev_name = m_scpi->get_identifier();
+
         // Set waveform format
         m_comm->write(":WAV:FORM BYTE\n");
         m_comm->write(":WAV:MODE MAX\n");

@@ -13,9 +13,10 @@ namespace labdev{
      *  Abstract base class for all oscis
      */
 
-    class osci {
+    class osci : public device {
     public:
-        osci(unsigned n_ch) : m_n_ch(n_ch) {};
+        osci(unsigned n_ch, std::string name = "?") : 
+            device(name), m_n_ch(n_ch) {};
         virtual ~osci() {};
 
         // Generic trigger type definitions

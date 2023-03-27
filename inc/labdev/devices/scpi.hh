@@ -2,19 +2,18 @@
 #define SCPI_DEVICE_HH
 
 #include <labdev/interface.hh>
-#include <labdev/devices/device.hh>
 
 namespace labdev {
 
     /*
-     *      Base class for devices using Standard Commands for Programmable
-     *      Instruments (SCPI)
+     *      Implementation of Standard Commands for Programmable Instruments 
+     *      (SCPI)
      */
 
-    class scpi_device : public device {
+    class scpi {
     public:
-        scpi_device() : device() {};
-        virtual ~scpi_device();
+        scpi(interface* comm) : m_comm(comm) {};
+        virtual ~scpi();
 
         // Clear read/write buffers and status register
         void clear_status();
@@ -50,14 +49,13 @@ namespace labdev {
         uint8_t get_event_status_register(unsigned timeout_ms = 1000);
 
     protected:
-        // Initializer with name for derived classes
-        scpi_device(std::string name) : device(name) {};
-
         // Holds current error information
         int m_error {0};
         std::string m_strerror {""};
 
     private:
+        interface* m_comm;
+
         // Standard Event Status Register (SESR) definitions
         enum SESR : uint8_t {
             OPC = (1 << 0),     // Operation Complete

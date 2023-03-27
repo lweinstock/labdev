@@ -2,23 +2,35 @@
 
 namespace labdev {
 
-    sdg1000x::sdg1000x():
-    scpi_device("Siglent,SDG1000X"),
-    fgen(2)
-    {
-        return;
-    }
-
     sdg1000x::sdg1000x(ip_address &ip):
-    scpi_device("Siglent,SDG1000X"),
-    fgen(2)
+    fgen(2, "Siglent,SDG1000X")
     {
         this->connect(ip);
         return;
     }
 
-    void sdg1000x::connect(ip_address &ip) {
+    sdg1000x::~sdg1000x() 
+    {
+        if (m_scpi) {
+            delete m_scpi;
+            m_scpi = nullptr;
+        }
+        return;
+    }
+
+    void sdg1000x::connect(ip_address &ip) 
+    {
+        if ( this->connected() ) {
+            fprintf(stderr, "Device is already connected!\n");
+            abort();
+        }
+        if ( ip.port != sdg1000x::PORT )
+        {
+            fprintf(stderr, "SDG1000X only supports port %i\n", sdg1000x::PORT);
+            abort();
+        }
         m_comm = new tcpip_interface(ip);
+        init();
         return;
     }
 
@@ -90,6 +102,15 @@ namespace labdev {
     float sdg1000x::get_offset(unsigned channel)
     {
         return 0.;
+    }
+
+    void sdg1000x::init() 
+    {
+        // Setup SCPI
+        m_scpi = new scpi(m_comm);
+        m_scpi->clear_status();
+        m_dev_name = m_scpi->get_identifier();
+        return;
     }
 
 }

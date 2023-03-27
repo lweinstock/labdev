@@ -12,15 +12,13 @@ using namespace std;
 namespace labdev {
 
     fy6900::fy6900() :
-    device("FeelTech,FY6900"),
-    fgen(2)
+    fgen(2, "FeelTech,FY6900")
     {
         return;
     }
 
     fy6900::fy6900(serial_config &ser) :
-    device("FeelTech,FY6900"),
-    fgen(2)
+    fgen(2, "FeelTech,FY6900")
     {
         this->connect(ser);
         return;

@@ -2,15 +2,15 @@
 #define SDG1000X_HH
 
 #include <labdev/devices/fgen.hh>
-#include <labdev/devices/scpi_device.hh>
 #include <labdev/tcpip_interface.hh>
+#include <labdev/devices/scpi.hh>
 
 namespace labdev {
-    class sdg1000x: public scpi_device, public fgen {
+    class sdg1000x: public fgen {
     public:
-        sdg1000x();
+        sdg1000x() : fgen(2, "Siglent,SDG1000X") {};
         sdg1000x(ip_address &ip);
-        ~sdg1000x() {};
+        ~sdg1000x();
 
         static constexpr unsigned PORT = 5025;
 
@@ -44,6 +44,11 @@ namespace labdev {
         // Signal offset in V
         void set_offset(unsigned channel, float offset_v) override;
         float get_offset(unsigned channel) override;
+
+    private:
+        void init();
+        
+        scpi* m_scpi;
 
     };
 }

@@ -1,4 +1,4 @@
-#include <labdev/devices/scpi_device.hh>
+#include <labdev/devices/scpi.hh>
 #include <labdev/exceptions.hh>
 
 #include <sys/time.h>   // struct timeval
@@ -7,20 +7,22 @@ using namespace std;
 
 namespace labdev {
 
-    scpi_device::~scpi_device() {
+    scpi::~scpi() {
         return;
     }
 
-    void scpi_device::clear_status() {
+    void scpi::clear_status() {
         m_comm->write("*CLS\n");
         return;
     }
 
-    string scpi_device::get_identifier() {
-        return m_comm->query("*IDN?\n");
+    string scpi::get_identifier() {
+        string id = m_comm->query("*IDN?\n");
+        // Remove last character from return value ('\n')
+        return id.substr(0, id.size() - 1);
     }
 
-    bool scpi_device::operation_complete(unsigned timeout_ms) {
+    bool scpi::operation_complete(unsigned timeout_ms) {
         string msg = m_comm->query("*OPC?\n", timeout_ms);
         if (msg.find("1") != string::npos)
             return true;
@@ -28,7 +30,7 @@ namespace labdev {
             return false;
     }
 
-    void scpi_device::wait_to_complete(unsigned timeout_ms) {
+    void scpi::wait_to_complete(unsigned timeout_ms) {
         // timeout setup
         struct timeval tsta, tsto;
         gettimeofday(&tsta, NULL);
@@ -47,23 +49,23 @@ namespace labdev {
         return;
     }
 
-    void scpi_device::reset() {
+    void scpi::reset() {
         m_comm->write("*RST\n");
         return;
     }
 
-    bool scpi_device::test() {
+    bool scpi::test() {
         string msg = m_comm->query("*TST?\n");
         if (msg.find("0") != string::npos) return true;
         else return false;
     }
 
-    void scpi_device::wait_to_continue() {
+    void scpi::wait_to_continue() {
         m_comm->write("*WAI\n");
         return;
     }
 
-    int scpi_device::get_error() {
+    int scpi::get_error() {
         string msg = m_comm->query("SYST:ERR?\n");
         m_error = stoi( msg.substr(0, msg.find(',')) );
         m_strerror = msg.substr(msg.find('"') + 1,
@@ -71,7 +73,7 @@ namespace labdev {
         return m_error;
     }
 
-    uint8_t scpi_device::get_event_status_register(unsigned timeout_ms) {
+    uint8_t scpi::get_event_status_register(unsigned timeout_ms) {
         return (uint8_t)stoi( m_comm->query("*ESR?\n", timeout_ms) );
     }
 

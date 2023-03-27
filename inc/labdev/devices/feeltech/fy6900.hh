@@ -10,7 +10,7 @@ namespace labdev {
     *      FeelTech FY6900 series function generator
     */
 
-    class fy6900 : public device, public fgen {
+    class fy6900 : public fgen {
     public:
         fy6900();
         fy6900(serial_config &ser);

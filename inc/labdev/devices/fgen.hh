@@ -13,9 +13,10 @@ namespace labdev{
      *  Abstract base class for all function generators
      */
 
-    class fgen {
+    class fgen : public device {
     public:
-        fgen(unsigned n_ch) : m_n_ch(n_ch) { printf("fgen(%i)\n", m_n_ch); }
+        fgen(unsigned n_ch, std::string name = "?") : 
+            device(name), m_n_ch(n_ch) {};
         virtual ~fgen() {};
 
         enum waveform : unsigned {
