@@ -11,22 +11,10 @@ namespace labdev {
      *      Instruments (SCPI)
      */
 
-    class scpi_device : public virtual device {
+    class scpi_device : public device {
     public:
         scpi_device() : device() {};
         virtual ~scpi_device();
-
-        // Standard Event Status Register (SESR) definitions
-        enum SESR : uint8_t {
-            OPC = (1 << 0),     // Operation Complete
-            RQC = (1 << 1),     // Request Control
-            QYE = (1 << 2),     // Query Error
-            DDE = (1 << 3),     // Device Dependant Error
-            EXE = (1 << 4),     // Execution Error
-            CME = (1 << 5),     // Command Error
-            URQ = (1 << 6),     // User Request
-            PON = (1 << 7)      // Power On
-        };
 
         // Clear read/write buffers and status register
         void clear_status();
@@ -62,10 +50,25 @@ namespace labdev {
         uint8_t get_event_status_register(unsigned timeout_ms = 1000);
 
     protected:
+        // Initializer with name for derived classes
+        scpi_device(std::string name) : device(name) {};
 
         // Holds current error information
         int m_error {0};
         std::string m_strerror {""};
+
+    private:
+        // Standard Event Status Register (SESR) definitions
+        enum SESR : uint8_t {
+            OPC = (1 << 0),     // Operation Complete
+            RQC = (1 << 1),     // Request Control
+            QYE = (1 << 2),     // Query Error
+            DDE = (1 << 3),     // Device Dependant Error
+            EXE = (1 << 4),     // Execution Error
+            CME = (1 << 5),     // Command Error
+            URQ = (1 << 6),     // User Request
+            PON = (1 << 7)      // Power On
+        };
     };
 }
 

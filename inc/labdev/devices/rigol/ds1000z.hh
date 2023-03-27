@@ -1,8 +1,6 @@
 #ifndef DS1000Z_H
 #define DS1000Z_H
 
-#include <labdev/exceptions.hh>
-
 #include <labdev/devices/osci.hh>
 #include <labdev/devices/scpi_device.hh>
 #include <labdev/tcpip_interface.hh>

@@ -34,11 +34,11 @@ OBJ+=$(SRC)/utils/config.o
 
 # Basic devices
 OBJ+=$(SRC)/devices/device.o
-#OBJ+=$(SRC)/devices/oscilloscope.o
 
 # Vendor specific devices
 OBJ+=$(SRC)/devices/scpi_device.o
 OBJ+=$(SRC)/devices/feeltech/fy6900.o
+OBJ+=$(SRC)/devices/siglent/sdg1000x.o
 #OBJ+=$(SRC)/devices/uni-t/ut61b.o
 OBJ+=$(SRC)/devices/rigol/ds1000z.o
 #OBJ+=$(SRC)/devices/rigol/dg4000.o

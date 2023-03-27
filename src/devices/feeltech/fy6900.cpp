@@ -1,4 +1,5 @@
 #include <labdev/devices/feeltech/fy6900.hh>
+#include <labdev/exceptions.hh>
 #include "ld_debug.hh"
 
 #include <unistd.h>
@@ -11,12 +12,14 @@ using namespace std;
 namespace labdev {
 
     fy6900::fy6900() :
+    device("FeelTech,FY6900"),
     fgen(2)
     {
         return;
     }
 
-    fy6900::fy6900 (serial_config &ser) :
+    fy6900::fy6900(serial_config &ser) :
+    device("FeelTech,FY6900"),
     fgen(2)
     {
         this->connect(ser);
