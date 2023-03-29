@@ -1,7 +1,7 @@
 #ifndef LD_TCPIP_INTERFACE_HH
 #define LD_TCPIP_INTERFACE_HH
 
-#include <labdev/interface.hh>
+#include <labdev/ld_interface.hh>
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -16,7 +16,7 @@ namespace labdev {
         unsigned port;
     };
 
-    class tcpip_interface : public interface {
+    class tcpip_interface : public ld_interface {
     public:
         tcpip_interface();
         tcpip_interface(const std::string& ip_addr, unsigned port);
@@ -54,7 +54,7 @@ namespace labdev {
         bool good() const override { return m_connected; }
 
         // Returns interface type
-        Interface_type type() const override { return tcpip; }
+        interface_type type() const override { return tcpip; }
 
         // Returns human readable info string
         std::string get_info() const override;

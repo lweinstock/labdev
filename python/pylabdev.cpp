@@ -1,6 +1,6 @@
 #include <pybind11/pybind11.h>
 
-#include <labdev/interface.hh>
+#include <labdev/ld_interface.hh>
 #include <labdev/serial_interface.hh>
 #include <labdev/tcpip_interface.hh>
 #include <labdev/usb_interface.hh>

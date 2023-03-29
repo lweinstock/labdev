@@ -1,7 +1,7 @@
 #ifndef LD_USB_INTERFACE_H
 #define LD_USB_INTERFACE_H
 
-#include <labdev/interface.hh>
+#include <labdev/ld_interface.hh>
 #include <libusb.h>
 
 namespace labdev{
@@ -21,7 +21,7 @@ namespace labdev{
         uint8_t port_no;
     };
 
-    class usb_interface : public interface {
+    class usb_interface : public ld_interface {
     public:
         usb_interface();
         usb_interface(uint16_t vendor_id, uint16_t product_id,
@@ -41,7 +41,7 @@ namespace labdev{
         virtual int read_raw(uint8_t* data, size_t max_len, 
             unsigned timeout_ms = s_dflt_timeout_ms) override;
 
-        Interface_type type() const override { return usb; }
+        interface_type type() const override { return usb; }
 
         // Returns true if USB device is ready for IO
         bool good() const override { return m_connected; }

@@ -1,7 +1,7 @@
 #ifndef SCPI_DEVICE_HH
 #define SCPI_DEVICE_HH
 
-#include <labdev/interface.hh>
+#include <labdev/ld_interface.hh>
 
 namespace labdev {
 
@@ -12,7 +12,7 @@ namespace labdev {
 
     class scpi {
     public:
-        scpi(interface* comm) : m_comm(comm) {};
+        scpi(ld_interface* comm) : m_comm(comm) {};
         virtual ~scpi();
 
         // Clear read/write buffers and status register
@@ -54,7 +54,7 @@ namespace labdev {
         std::string m_strerror {""};
 
     private:
-        interface* m_comm;
+        ld_interface* m_comm;
 
         // Standard Event Status Register (SESR) definitions
         enum SESR : uint8_t {

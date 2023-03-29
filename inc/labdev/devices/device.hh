@@ -1,7 +1,7 @@
 #ifndef DEVICE_HH
 #define DEVICE_HH
 
-#include <labdev/interface.hh>
+#include <labdev/ld_interface.hh>
 
 namespace labdev {
 
@@ -34,7 +34,7 @@ namespace labdev {
         device(std::string name) : m_comm(nullptr), m_dev_name(name) {};
 
         // Communication interface
-        interface* m_comm;
+        ld_interface* m_comm;
 
         // Device name
         std::string m_dev_name;

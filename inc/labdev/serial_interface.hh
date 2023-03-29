@@ -1,7 +1,7 @@
 #ifndef LD_RS232_INTERFACE_HH
 #define LD_RS232_INTERFACE_HH
 
-#include <labdev/interface.hh>
+#include <labdev/ld_interface.hh>
 #include <termios.h>
 
 namespace labdev{
@@ -23,7 +23,7 @@ namespace labdev{
     };  
 
 
-    class serial_interface : public interface {
+    class serial_interface : public ld_interface {
     public:
         serial_interface();
         serial_interface(const std::string &path, unsigned baud = 9600,
@@ -86,7 +86,7 @@ namespace labdev{
 
         bool good() const override { return m_connected; }
 
-        Interface_type type() const override { return serial; }
+        interface_type type() const override { return serial; }
 
     private:
         std::string m_path;

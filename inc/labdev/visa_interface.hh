@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include <labdev/interface.hh>
+#include <labdev/ld_interface.hh>
 #include <labdev/exceptions.hh>
 
 namespace labdev
@@ -21,7 +21,7 @@ namespace labdev
 #endif
 
 namespace labdev {
-    class visa_interface : public interface {
+    class visa_interface : public ld_interface {
     public:
         visa_interface();
         visa_interface(visa_identifier &visa_id);
@@ -41,7 +41,7 @@ namespace labdev {
 
         std::string get_info() const override { return m_visa_id; }
 
-        Interface_type type() const override { return visa; }
+        interface_type type() const override { return visa; }
 
         bool good() const override { return m_connected; }
 
@@ -73,7 +73,7 @@ namespace labdev {
  */
 
 namespace labdev {
-    class visa_interface : public interface {
+    class visa_interface : public ld_interface {
     public:
         visa_interface() {
             fprintf(stderr, "labdev compiled without VISA support. To enable recompile using 'make VISA=1'.\n");
@@ -93,7 +93,7 @@ namespace labdev {
 
         std::string get_info() const override { return ""; }
 
-        Interface_type type() const override { return visa; }
+        interface_type type() const override { return visa; }
 
         bool good() const override { return false; }
 

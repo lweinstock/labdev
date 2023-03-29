@@ -20,10 +20,10 @@ namespace labdev {
         return ret;
     }
 
-    vector<uint16_t> modbus_tcp::read_discrete_inputs(uint16_t addr, 
+    vector<uint8_t> modbus_tcp::read_discrete_inputs(uint16_t addr, 
         uint16_t len)
     {
-        vector<uint16_t> ret;
+        vector<uint8_t> ret;
         return ret;
     }
 

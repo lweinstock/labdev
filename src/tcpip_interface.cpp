@@ -13,7 +13,7 @@ using namespace std;
 namespace labdev {
 
     tcpip_interface::tcpip_interface():
-        interface(),
+        ld_interface(),
         m_socket_fd(-1),
         m_instr_addr(),
         m_timeout(),

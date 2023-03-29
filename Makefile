@@ -22,7 +22,7 @@ LIBUSB_CFLAGS=$(shell pkg-config libusb-1.0 --cflags)
 CFLAGS+=$(LIBUSB_CFLAGS)
 
 # Interfaces
-OBJ+=$(SRC)/interface.o
+OBJ+=$(SRC)/ld_interface.o
 OBJ+=$(SRC)/serial_interface.o
 OBJ+=$(SRC)/tcpip_interface.o
 OBJ+=$(SRC)/usb_interface.o

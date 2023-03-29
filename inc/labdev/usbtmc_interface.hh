@@ -43,7 +43,7 @@ namespace labdev{
         void write(const std::string& msg) override;
         std::string read(unsigned timeout_ms = s_dflt_timeout_ms) override;
 
-        Interface_type type() const override { return usbtmc; }
+        interface_type type() const override { return usbtmc; }
 
         // USBTMC device dependant data transfer
         int write_dev_dep_msg(std::string msg,

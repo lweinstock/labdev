@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <string>
+#include <vector>
 
 namespace labdev{
 
@@ -10,16 +11,16 @@ namespace labdev{
      *  Interface types
      */
 
-    enum Interface_type {none, serial, tcpip, usb, usbtmc, visa};
+    enum interface_type {none, serial, tcpip, usb, usbtmc, visa};
 
     /*
      *  Abstract base class for all interfaces
      */
 
-    class interface {
+    class ld_interface {
     public:
-        interface() {};
-        virtual ~interface() {};
+        ld_interface() {};
+        virtual ~ld_interface() {};
 
         /*
          *      Default values
@@ -36,14 +37,19 @@ namespace labdev{
 
         // C-style raw byte write
         virtual int write_raw(const uint8_t* data, size_t len) = 0;
+        // C++-style byte write
+        virtual void write_byte(const std::vector<uint8_t> data);
         // C++-style string write
         virtual void write(const std::string& msg);
 
         // C-style raw byte read
         virtual int read_raw(uint8_t* data, size_t max_len, 
             unsigned timeout_ms = s_dflt_timeout_ms) = 0;
+        // C++-style byte read
+        virtual std::vector<uint8_t> read_byte(unsigned timeout_ms = s_dflt_timeout_ms);
         // C++-style string read
         virtual std::string read(unsigned timeout_ms = s_dflt_timeout_ms);
+
         // Read until specified delimiter is found in the received message
         std::string read_until(const std::string& delim, size_t& pos, 
             unsigned timeout_ms  = s_dflt_timeout_ms);
@@ -62,7 +68,7 @@ namespace labdev{
         virtual std::string get_info() const = 0;
 
         // Returns interface type; can be used to break abstraction
-        virtual Interface_type type() const = 0;
+        virtual interface_type type() const = 0;
         // Returns true if device is ready for communication
         virtual bool good() const = 0;
         // Opens communication 
