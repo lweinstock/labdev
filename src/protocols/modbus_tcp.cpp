@@ -49,6 +49,8 @@ namespace labdev {
         uint16_t len)
     {
         vector<uint8_t> payload{};
+        payload.push_back(static_cast<uint8_t>(0xFF & (addr >> 8)));
+        payload.push_back(static_cast<uint8_t>(0xFF & addr));
         payload.push_back(static_cast<uint8_t>(0xFF & (len >> 8)));
         payload.push_back(static_cast<uint8_t>(0xFF & len));
         tcp_frame frame(m_tid, uid, FC04, payload);
@@ -58,6 +60,11 @@ namespace labdev {
         tcp_frame resp_frame(resp);
         
         vector<uint16_t> ret;
+
+        if (m_tid < 0xFFFF) 
+            m_tid++;
+        else 
+            m_tid = 0;
         return ret;
     }
 
