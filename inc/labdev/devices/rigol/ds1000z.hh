@@ -2,7 +2,7 @@
 #define DS1000Z_H
 
 #include <labdev/devices/osci.hh>
-#include <labdev/devices/scpi.hh>
+#include <labdev/protocols/scpi.hh>
 #include <labdev/tcpip_interface.hh>
 #include <labdev/usbtmc_interface.hh>
 #include <labdev/visa_interface.hh>

@@ -29,7 +29,8 @@ namespace labdev{
             DC          = 6,
             TRIANGLE    = 7,
             POS_RAMP    = 8,
-            NEG_RAMP    = 9
+            NEG_RAMP    = 9,
+            NOISE       = 10
         };
 
         // Returns number of channels of device

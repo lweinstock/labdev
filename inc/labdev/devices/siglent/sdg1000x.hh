@@ -3,7 +3,7 @@
 
 #include <labdev/devices/fgen.hh>
 #include <labdev/tcpip_interface.hh>
-#include <labdev/devices/scpi.hh>
+#include <labdev/protocols/scpi.hh>
 
 namespace labdev {
     class sdg1000x: public fgen {
@@ -47,8 +47,17 @@ namespace labdev {
 
     private:
         void init();
-        
+        // Allowed channels = 1 or 2!
+        void check_channel(unsigned channel);
+
         scpi* m_scpi;
+
+        // Get value from basic wave command (manual p. 27)
+        std::string get_bswv_val(std::string bswv, std::string par);
+
+        // Convert waveform to SCPI string and vice versa
+        std::string wvfm_to_str(fgen::waveform wvfm);
+        fgen::waveform str_to_wvfm(std::string wvfm);
 
     };
 }

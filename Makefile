@@ -9,7 +9,7 @@ CC=g++
 LDFLAGS=
 CFLAGS=-Wall --std=c++11 -fPIC
 # Debugging
-CFLAGS+=-g #-D LD_DEBUG
+CFLAGS+=-g -D LD_DEBUG
 
 # Library name and objects
 LIBNAME=liblabdev
@@ -28,6 +28,10 @@ OBJ+=$(SRC)/tcpip_interface.o
 OBJ+=$(SRC)/usb_interface.o
 OBJ+=$(SRC)/usbtmc_interface.o
 
+# Protocols
+OBJ+=$(SRC)/protocols/scpi.o
+OBJ+=$(SRC)/protocols/modbus_tcp.o
+
 # Utilies
 OBJ+=$(SRC)/utils/utils.o
 OBJ+=$(SRC)/utils/config.o
@@ -36,7 +40,6 @@ OBJ+=$(SRC)/utils/config.o
 OBJ+=$(SRC)/devices/device.o
 
 # Vendor specific devices
-OBJ+=$(SRC)/devices/scpi.o
 OBJ+=$(SRC)/devices/feeltech/fy6900.o
 OBJ+=$(SRC)/devices/siglent/sdg1000x.o
 #OBJ+=$(SRC)/devices/uni-t/ut61b.o

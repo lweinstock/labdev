@@ -1,4 +1,4 @@
-#include <labdev/devices/scpi.hh>
+#include <labdev/protocols/scpi.hh>
 #include <labdev/exceptions.hh>
 
 #include <sys/time.h>   // struct timeval
