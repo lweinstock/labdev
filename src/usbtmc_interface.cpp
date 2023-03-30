@@ -121,10 +121,10 @@ namespace labdev {
         #ifdef LD_DEBUG
         size_t nbytes = ret.size();
         if (ret.size() > 100) {
-            for (int i = 0; i < 50; i++)
+            for (size_t i = 0; i < 50; i++)
                 printf("%c", ret.at(i));
             printf(" [...] ");
-            for (int i = nbytes-50; i < nbytes; i++)
+            for (size_t i = nbytes-50; i < nbytes; i++)
                 printf("%c", ret.at(i));
         } else {
             printf("%s", ret.c_str());

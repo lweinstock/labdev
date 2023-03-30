@@ -54,6 +54,19 @@ namespace labdev {
         static constexpr uint8_t FC06 = 0x06;
         static constexpr uint8_t FC15 = 0x0F;
         static constexpr uint8_t FC16 = 0x10;
+        // Error codes
+        static constexpr uint8_t ERRC = 0x80;
+        static constexpr uint8_t ERR1 = 0x01;
+        static constexpr uint8_t ERR2 = 0x02;
+        static constexpr uint8_t ERR3 = 0x03;
+        static constexpr uint8_t ERR4 = 0x04;
+
+        // Used for reading holding and input registers
+        std::vector<uint16_t> read_16bit_regs(uint8_t uid, uint8_t func,
+            uint16_t addr, uint16_t len);
+
+        void write_16bit_regs(uint8_t uid, uint8_t func, uint16_t addr,
+            std::vector<uint8_t> data);
 
         // Container to hold and format modbus tcp messages
         struct tcp_frame {

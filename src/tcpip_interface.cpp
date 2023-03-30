@@ -92,7 +92,7 @@ namespace labdev {
 
             debug_print("Written %zu bytes: ", nbytes);
             #ifdef LD_DEBUG
-            if (nbytes > 20) {
+            if (nbytes > 30) {
                 for (int i = 0; i < 10; i++)
                     printf("0x%02X ", data[bytes_written + i]);
                 printf("[...] ");

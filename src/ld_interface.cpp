@@ -21,10 +21,10 @@ namespace labdev{
         #ifdef LD_DEBUG
         size_t nbytes = msg.size();
         if (msg.size() > 100) {
-            for (int i = 0; i < 50; i++)
+            for (size_t i = 0; i < 50; i++)
                 printf("%c", msg.at(i));
             printf(" [...] ");
-            for (int i = nbytes-50; i < nbytes; i++)
+            for (size_t i = nbytes-50; i < nbytes; i++)
                 printf("%c", msg.at(i));
         } else {
             printf("%s", msg.c_str());
