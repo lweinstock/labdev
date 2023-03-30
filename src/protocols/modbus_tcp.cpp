@@ -52,19 +52,28 @@ namespace labdev {
         payload.push_back(static_cast<uint8_t>(0xFF & (addr >> 8)));
         payload.push_back(static_cast<uint8_t>(0xFF & addr));
         payload.push_back(static_cast<uint8_t>(0xFF & (len >> 8)));
+        payload.push_back (static_cast<uint8_t>(0xFF & (len >> 8)));
         payload.push_back(static_cast<uint8_t>(0xFF & len));
         tcp_frame frame(m_tid, uid, FC04, payload);
 
         m_comm->write_byte(frame.get_frame());
         vector<uint8_t> resp = m_comm->read_byte();
-        tcp_frame resp_frame(resp);
-        
+        tcp_frame rframe(resp);
+
+        if ( rframe.byte_count != rframe.data.size() )
+            throw bad_protocol("Wrong number of bytes received ");
+
         vector<uint16_t> ret;
 
         if (m_tid < 0xFFFF) 
             m_tid++;
         else 
             m_tid = 0;
+        if (rframe.data.size() % 2) // 0-padding if number of bytes is not even
+            rframe.data.push_back(0x00);
+        for (unsigned i = 0; i < len; i++)
+            ret.push_back((rframe.data.at(2*i) << 8) | rframe.data.at(2*i+1));
+
         return ret;
     }
 
@@ -108,25 +117,20 @@ namespace labdev {
           byte_count(0x00),
           data()
     {
-        transaction_id  = static_cast<uint16_t>( (msg.at(0) << 8) | msg.at(1) );
-        protocol_id = static_cast<uint16_t>( (msg.at(2) << 8) | msg.at(3) );
-        length = static_cast<uint16_t>( (msg.at(4) << 8) | msg.at(5) );
-        unit_id = msg.at(6);
-        function_code = msg.at(7);
-        byte_count = msg.at(8);
+        transaction_id = static_cast<uint16_t>( (msg.at(0) << 8) | msg.at(1) );
+        protocol_id    = static_cast<uint16_t>( (msg.at(2) << 8) | msg.at(3) );
+        length         = static_cast<uint16_t>( (msg.at(4) << 8) | msg.at(5) );
+        unit_id        = msg.at(6);
+        function_code  = msg.at(7);
+        byte_count     = msg.at(8);
         data.insert(data.begin(), msg.begin() + 9, msg.end());
         return;
     }
 
     modbus_tcp::tcp_frame::tcp_frame(uint16_t trans_id, uint8_t uid, 
         uint8_t func, std::vector<uint8_t> payload)
-        : transaction_id(trans_id), 
-          protocol_id(0x0000),
-          length(0x0000),
-          function_code(func),
-          unit_id(uid),
-          byte_count(0x00),
-          data(payload)
+        : transaction_id(trans_id), protocol_id(0x0000), length(0x0000),
+          function_code(func), unit_id(uid), byte_count(0x00), data(payload)
     {
         return;
     }
