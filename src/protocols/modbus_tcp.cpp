@@ -65,10 +65,10 @@ namespace labdev {
 
         vector<uint16_t> ret;
 
-        if (m_tid < 0xFFFF) 
-            m_tid++;
-        else 
-            m_tid = 0;
+        // Increase transaction ID after each transaction
+        if (m_tid < 0xFFFF) m_tid++;
+        else m_tid = 0;
+
         if (rframe.data.size() % 2) // 0-padding if number of bytes is not even
             rframe.data.push_back(0x00);
         for (unsigned i = 0; i < len; i++)
