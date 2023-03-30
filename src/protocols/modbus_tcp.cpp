@@ -94,22 +94,39 @@ namespace labdev {
         tcp_frame sframe(m_tid, uid, FC16, payload);
         m_comm->write_byte(sframe.get_frame());
         vector<uint8_t> resp = m_comm->read_byte();
-        // TODO: check echo + error codes
+
+        tcp_frame rframe(resp);
+        // TODO: check response
+
+        if (rframe.function_code & ERRC) {
+            // The byte_count field carries the exception code
+            switch (rframe.byte_count) {
+            case ERR1:
+                throw bad_protocol("Function code not supported");
+                break;
+            case ERR2:
+                throw bad_protocol("Starting address or last address not"
+                    "supported");
+                break;
+            case ERR3:
+                throw bad_protocol("Quantity of registers not supported" 
+                    " (range 1 - 125)");
+                break;
+            case ERR4:
+                throw bad_protocol("No write access to registers");
+                break;
+            default:
+                throw bad_protocol("Unknown exception code " + 
+                    to_string(rframe.byte_count));
+            }
+        }
+
         return;
     }
 
     /*
      *      P R I V A T E   M E T H O D S
      */
-
-    void write_16bit_regs(uint8_t uid, uint8_t func, uint16_t addr,
-            std::vector<uint8_t> data)
-    {
-        uint16_t len = data.size();
-        data.insert(data.begin(), static_cast<uint8_t>(0xFF & len));
-        data.insert(data.begin(), static_cast<uint8_t>(0xFF & (len >> 8)));
-        return;
-    }
 
     vector<uint16_t> modbus_tcp::read_16bit_regs(uint8_t uid, uint8_t func,
         uint16_t addr, uint16_t len)

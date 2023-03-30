@@ -65,9 +65,6 @@ namespace labdev {
         std::vector<uint16_t> read_16bit_regs(uint8_t uid, uint8_t func,
             uint16_t addr, uint16_t len);
 
-        void write_16bit_regs(uint8_t uid, uint8_t func, uint16_t addr,
-            std::vector<uint8_t> data);
-
         // Container to hold and format modbus tcp messages
         struct tcp_frame {
             tcp_frame(std::vector<uint8_t> msg);
