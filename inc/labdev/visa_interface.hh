@@ -7,9 +7,10 @@
 #include <labdev/ld_interface.hh>
 #include <labdev/exceptions.hh>
 
-namespace labdev
-{
-    typedef std::string visa_identifier;
+namespace labdev {
+
+typedef std::string visa_identifier;
+
 }
 
 #ifdef LDVISA
@@ -21,88 +22,93 @@ namespace labdev
 #endif
 
 namespace labdev {
-    class visa_interface : public ld_interface {
-    public:
-        visa_interface();
-        visa_interface(visa_identifier &visa_id);
-        virtual ~visa_interface();
 
-        // Find all available VISA resource, returns list of VISA IDs
-        std::vector<std::string> find_resources(std::string regex = "?*INSTR");
+class visa_interface : public ld_interface {
+public:
+    visa_interface();
+    visa_interface(visa_identifier &visa_id);
+    virtual ~visa_interface();
 
-        // Open/close device
-        void open(visa_identifier &visa_id);
-        void open() override;
-        void close() override;
+    // Find all available VISA resource, returns list of VISA IDs
+    std::vector<std::string> find_resources(std::string regex = "?*INSTR");
+
+    // Open/close device
+    void open(visa_identifier &visa_id);
+    void open() override;
+    void close() override;
 
 
-        int write_raw(const uint8_t* data, size_t len) override;
-        int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override;
+    int write_raw(const uint8_t* data, size_t len) override;
+    int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override;
 
-        std::string get_info() const override { return m_visa_id; }
+    std::string get_info() const override { return m_visa_id; }
 
-        interface_type type() const override { return visa; }
+    interface_type type() const override { return visa; }
 
-        bool good() const override { return m_connected; }
+    bool good() const override { return m_connected; }
 
-        // Clear I/O buffers
-        void flush_buffer(uint16_t flag = VI_READ_BUF | VI_WRITE_BUF);
-        void clear_device();
+    // Clear I/O buffers
+    void flush_buffer(uint16_t flag = VI_READ_BUF | VI_WRITE_BUF);
+    void clear_device();
 
-    private:
-        static const size_t MAX_BUF_SIZE = 1024*1024;   // 1MB buffer
-        static const unsigned DFLT_TIMEOUT_MS = 2000;   // 2s timeout
+private:
+    static const size_t MAX_BUF_SIZE = 1024*1024;   // 1MB buffer
+    static const unsigned DFLT_TIMEOUT_MS = 2000;   // 2s timeout
 
-        static ViSession s_default_rm;
-        static int s_interface_ctr;
+    static ViSession s_default_rm;
+    static int s_interface_ctr;
 
-        ViSession m_instr;
-        std::string m_visa_id;
-        bool m_connected;
-        unsigned m_timeout;
+    ViSession m_instr;
+    std::string m_visa_id;
+    bool m_connected;
+    unsigned m_timeout;
 
-        void init();
-        void check_and_throw(ViStatus stat, const std::string &msg) const;
-    };
+    void init();
+    void check_and_throw(ViStatus stat, const std::string &msg) const;
+};
+
 }
 
 #else
 
 /*
- *      Empty dummy class if visa support is disabled in makefile
- */
+*      Empty dummy class if visa support is disabled in makefile
+*/
 
 namespace labdev {
-    class visa_interface : public ld_interface {
-    public:
-        visa_interface() {
-            fprintf(stderr, "labdev compiled without VISA support. To enable recompile using 'make VISA=1'.\n");
-            abort();
-        }
 
-        visa_interface(visa_identifier &visa_id) : visa_interface() {}
+class visa_interface : public ld_interface {
+public:
+    visa_interface() {
+        fprintf(stderr, "labdev compiled without VISA support. To enable recompile using 'make VISA=1'.\n");
+        abort();
+    }
 
-        virtual ~visa_interface() {}
+    visa_interface(visa_identifier &visa_id) : visa_interface() {}
 
-        void open() override {};
-        void close() override {};
+    virtual ~visa_interface() {}
 
-        int write_raw(const uint8_t* data, size_t len) override { return -1; }
-        int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override
-            { return -1; }
+    void open() override {};
+    void close() override {};
 
-        std::string get_info() const override { return ""; }
+    int write_raw(const uint8_t* data, size_t len) override { return -1; }
+    int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override
+        { return -1; }
 
-        interface_type type() const override { return visa; }
+    std::string get_info() const override { return ""; }
 
-        bool good() const override { return false; }
+    interface_type type() const override { return visa; }
 
-        // Clear I/O buffers
-        void flush_buffer() {};
-        void clear_device() {};
+    bool good() const override { return false; }
 
-    private:
-    };
+    // Clear I/O buffers
+    void flush_buffer() {};
+    void clear_device() {};
+
+private:
+
+};
+
 }
 
 #endif
