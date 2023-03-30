@@ -6,7 +6,7 @@
 namespace labdev {
 
 /*
- *      Implementation of Standard Commands for Programmable Instruments (SCPI)
+ *  Implementation of Standard Commands for Programmable Instruments (SCPI)
  */
 
 class scpi {
