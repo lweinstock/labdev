@@ -9,7 +9,7 @@ namespace labdev {
     class modbus_tcp {
     public:
         modbus_tcp(tcpip_interface* ip);
-        ~modbus_tcp();
+        ~modbus_tcp() {};
 
         // Function Code 01; read coils -> returns true = on, false = off
         std::vector<bool> read_coils(uint8_t uid, uint16_t addr, uint16_t len);
@@ -64,6 +64,10 @@ namespace labdev {
         // Used for reading holding and input registers
         std::vector<uint16_t> read_16bit_regs(uint8_t uid, uint8_t func,
             uint16_t addr, uint16_t len);
+
+        void increase_tid_counter();
+        
+        void check_error_code(uint8_t error);
 
         // Container to hold and format modbus tcp messages
         struct tcp_frame {

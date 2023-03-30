@@ -17,11 +17,6 @@ namespace labdev {
         return;
     }
 
-    modbus_tcp::~modbus_tcp()
-    {
-        return;
-    }
-
     vector<bool> modbus_tcp::read_coils(uint8_t uid, uint16_t addr, uint16_t len)
     {
         vector<bool> ret;
@@ -66,7 +61,16 @@ namespace labdev {
         tcp_frame sframe(m_tid, uid, FC06, payload);
         m_comm->write_byte(sframe.get_frame());
         vector<uint8_t> resp = m_comm->read_byte();
-        // TODO: check echo + error codes
+
+        tcp_frame rframe(resp);
+        if (rframe.function_code & ERRC)
+            this->check_error_code(rframe.byte_count);
+        
+        // TODO: check returned values
+
+        // Increase transaction ID after each transaction
+        this->increase_tid_counter();
+
         return;
     }
 
@@ -96,30 +100,13 @@ namespace labdev {
         vector<uint8_t> resp = m_comm->read_byte();
 
         tcp_frame rframe(resp);
-        // TODO: check response
+        if (rframe.function_code & ERRC)
+            this->check_error_code(rframe.byte_count);
+        
+        // TODO: check returned values
 
-        if (rframe.function_code & ERRC) {
-            // The byte_count field carries the exception code
-            switch (rframe.byte_count) {
-            case ERR1:
-                throw bad_protocol("Function code not supported");
-                break;
-            case ERR2:
-                throw bad_protocol("Starting address or last address not"
-                    "supported");
-                break;
-            case ERR3:
-                throw bad_protocol("Quantity of registers not supported" 
-                    " (range 1 - 125)");
-                break;
-            case ERR4:
-                throw bad_protocol("No write access to registers");
-                break;
-            default:
-                throw bad_protocol("Unknown exception code " + 
-                    to_string(rframe.byte_count));
-            }
-        }
+        // Increase transaction ID after each transaction
+        this->increase_tid_counter();
 
         return;
     }
@@ -140,45 +127,55 @@ namespace labdev {
 
         m_comm->write_byte(frame.get_frame());
         vector<uint8_t> resp = m_comm->read_byte();
+
         tcp_frame rframe(resp);
-
-        if (rframe.function_code & ERRC) {
-            // The byte_count field carries the exception code
-            switch (rframe.byte_count) {
-            case ERR1:
-                throw bad_protocol("Function code not supported");
-                break;
-            case ERR2:
-                throw bad_protocol("Starting address or last address not"
-                    "supported");
-                break;
-            case ERR3:
-                throw bad_protocol("Quantity of registers not supported" 
-                    " (range 1 - 125)");
-                break;
-            case ERR4:
-                throw bad_protocol("No read access to registers");
-                break;
-            default:
-                throw bad_protocol("Unknown exception code " + 
-                    to_string(rframe.byte_count));
-            }
-        }
-
+        if (rframe.function_code & ERRC)
+            this->check_error_code(rframe.byte_count);
         if (rframe.byte_count != rframe.data.size())
             throw bad_protocol("Wrong number of bytes received");
 
-        vector<uint16_t> ret;
-        // Increase transaction ID after each transaction
-        if (m_tid < 0xFFFF) m_tid++;
-        else m_tid = 0;
+        // TODO: check returned values
 
+        vector<uint16_t> ret;
         if (rframe.data.size() % 2) // 0-padding if number of bytes is not even
             rframe.data.push_back(0x00);
         for (unsigned i = 0; i < len; i++)
             ret.push_back((rframe.data.at(2*i) << 8) | rframe.data.at(2*i+1));
 
+        // Increase transaction ID after each transaction
+        this->increase_tid_counter();
+
         return ret;
+    }
+
+    void modbus_tcp::check_error_code(uint8_t error)
+    {
+        switch (error) {
+        case ERR1:
+            throw bad_protocol("Function code not supported");
+            break;
+        case ERR2:
+            throw bad_protocol("Starting address or last address not supported");
+            break;
+        case ERR3:
+            throw bad_protocol("Quantity of registers not supported (range 1 - 125)");
+            break;
+        case ERR4:
+            throw bad_protocol("No read access to registers");
+            break;
+        default:
+            throw bad_protocol("Unknown exception code " + to_string(error));
+        }
+        return; 
+    }
+
+    void modbus_tcp::increase_tid_counter()
+    {
+        if (m_tid < 0xFFFF) 
+            m_tid++;
+        else 
+            m_tid = 0;
+        return;
     }
 
     modbus_tcp::tcp_frame::tcp_frame(vector<uint8_t> msg)
