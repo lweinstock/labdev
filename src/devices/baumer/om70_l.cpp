@@ -2,6 +2,8 @@
 #include <labdev/tcpip_interface.hh>
 #include <labdev/exceptions.hh>
 
+#include <cmath>
+
 using namespace std;
 
 namespace labdev {
@@ -71,10 +73,19 @@ float om70_l::get_measurement()
     vector<uint16_t> resp{};
     resp = m_modbus->read_input_regs(UNIT_ID, ADDR_ALL_MEAS, 17);
     m_quality = resp.at(1);
-    m_dist  = static_cast<float>( resp.at(3) | (resp.at(4) << 16) );
-    m_sr    = static_cast<float>( resp.at(5) | (resp.at(6) << 16) );
-    m_exp   = static_cast<float>( resp.at(7) | (resp.at(8) << 16) );
-    return 0.;
+    // memcopy is required, casting results in wrong conversion to integer and
+    // attaches a comma (bitwise conversion vs. cast)
+    uint32_t val {0x0000};
+    val = resp.at(3) | (resp.at(4) << 16);
+    memcpy(&m_dist, &val, sizeof(float));
+    val = resp.at(5) | (resp.at(6) << 16);
+    memcpy(&m_sr, &val, sizeof(float));
+    val = resp.at(7) | (resp.at(8) << 16);
+    memcpy(&m_exp, &val, sizeof(float));
+
+    if (isnan(m_dist)) m_dist = -1.;
+
+    return m_dist;
 }
 
 int om70_l::get_quality()
