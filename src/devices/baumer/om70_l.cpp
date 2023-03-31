@@ -6,7 +6,15 @@ using namespace std;
 
 namespace labdev {
 
-om70_l::om70_l(ip_address &ip) : device() 
+om70_l::om70_l() 
+    : device("Baumer,OM70-L"), m_modbus(nullptr), m_quality(0),  m_dist(0),
+      m_sr(0), m_exp(0), m_quality_vec(), m_dist_vec(), m_sr_vec(), m_exp_vec(),
+      m_config_mode(false)
+{
+
+};
+
+om70_l::om70_l(ip_address &ip) : om70_l() 
 {
     this->connect(ip);
     return;
@@ -37,60 +45,71 @@ void om70_l::connect(ip_address &ip)
     return;
 }
 
+void om70_l::enable_laser(bool ena)
+{
+    if (!m_config_mode) {
+        m_modbus->write_single_holding_reg(UNIT_ID, ADDR_CONF_ON, 0x0001);
+        m_config_mode = true;
+    }
+
+    if (ena)
+        m_modbus->write_single_holding_reg(UNIT_ID, ADDR_ENA_LASER, 0x0001);
+    else
+        m_modbus->write_single_holding_reg(UNIT_ID, ADDR_ENA_LASER, 0x0000);
+
+    return;
+}
+
 float om70_l::get_measurement()
 {
+    // Turn off config mode to increase sample rate
+    if (m_config_mode) {
+        m_modbus->write_single_holding_reg(UNIT_ID, ADDR_CONF_OFF, 0x0001);
+        m_config_mode = false;
+    }
+
+    vector<uint16_t> resp{};
+    resp = m_modbus->read_input_regs(UNIT_ID, ADDR_ALL_MEAS, 17);
+    m_quality = resp.at(1);
+    m_dist  = static_cast<float>( resp.at(3) | (resp.at(4) << 16) );
+    m_sr    = static_cast<float>( resp.at(5) | (resp.at(6) << 16) );
+    m_exp   = static_cast<float>( resp.at(7) | (resp.at(8) << 16) );
     return 0.;
 }
 
 int om70_l::get_quality()
 {
-    return 0;
+    return m_quality;
 }
 
 float om70_l::get_sample_rate()
 {
-    return 0.;
+    return m_sr;
 }
 
 float om70_l::get_exposure()
 {
-    return 0.;
+    return m_exp;
 }
-
-float om70_l::get_delay()
-{
-    return 0.;
-}
-
 
 vector<float> om70_l::get_measurement_mem()
 {
-    vector<float> ret;
-    return ret;
+    return m_dist_vec;
 }
 
 vector<int> om70_l::get_quality_mem()
 {
-    vector<int> ret;
-    return ret;
+    return m_quality_vec;
 }
 
 vector<float> om70_l::get_sample_rate_mem()
 {
-    vector<float> ret;
-    return ret;
+    return m_sr_vec;
 }
 
 vector<float> om70_l::get_exposure_mem()
 {
-    vector<float> ret;
-    return ret;
-}
-
-vector<float> om70_l::get_delay_mem()
-{
-    vector<float> ret;
-    return ret;
+    return m_exp_vec;
 }
 
 /*

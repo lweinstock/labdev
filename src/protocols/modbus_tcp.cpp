@@ -19,7 +19,7 @@ modbus_tcp::modbus_tcp(tcpip_interface* tcpip) : m_comm(nullptr), m_tid(0x0000)
 vector<bool> modbus_tcp::read_coils(uint8_t uid, uint16_t addr, uint16_t len)
 {
     vector<bool> ret;
-    // TODO
+    // TODO -> need device that actually uses this..
     return ret;
 }
 
@@ -27,7 +27,7 @@ vector<bool> modbus_tcp::read_discrete_inputs(uint8_t uid, uint16_t addr,
     uint16_t len)
 {
     vector<bool> ret;
-    // TODO
+    // TODO -> need device that actually uses this..
     return ret;
 }
 
@@ -45,7 +45,7 @@ vector<uint16_t> modbus_tcp::read_input_regs(uint8_t uid, uint16_t addr,
 
 void modbus_tcp::write_single_coil(uint8_t uid, uint16_t addr, bool ena)
 {
-    // TODO
+    // TODO -> need device that actually uses this..
     return;
 }
 
@@ -75,7 +75,7 @@ void modbus_tcp::write_single_holding_reg(uint8_t uid, uint16_t addr,
 
 void modbus_tcp::write_multiple_coils(uint8_t uid, uint16_t addr, vector<bool> ena)
 {
-    // TODO
+    // TODO -> need device that actually uses this..
     return;
 }
 
@@ -132,7 +132,7 @@ vector<uint16_t> modbus_tcp::read_16bit_regs(uint8_t uid, uint8_t func,
     if (rframe.byte_count != rframe.data.size())
         throw bad_protocol("Wrong number of bytes received");
 
-    // TODO: check returned values
+    // TODO: check returned values (TID, address, etc. ...)
 
     vector<uint16_t> ret;
     if (rframe.data.size() % 2) // 0-padding if number of bytes is not even
