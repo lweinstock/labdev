@@ -9,7 +9,7 @@ void my_debug_print(FILE* stream, const char* file, int line,
     std::string fname(file);
     size_t pos = fname.find_last_of("/");
     if (pos != std::string::npos)
-        fname = fname.substr(pos + 1, std::string::npos);
+        fname = fname.substr(pos +   1, std::string::npos);
     fprintf(stderr, "%s:%d [%s()] - ", fname.c_str(), line, function);
 
     // Compose message from variable arg list
@@ -23,7 +23,6 @@ void my_debug_print(FILE* stream, const char* file, int line,
 
 void my_print_string_data(FILE* stream, std::string data)
 {
-    // Print string data, reformat special characters
     std::string out {};
     bool ellipses_printed {false};
     for (size_t i = 0; i < data.size(); i++) {
@@ -36,6 +35,7 @@ void my_print_string_data(FILE* stream, std::string data)
             continue;
         }
 
+        // Reformat ASCII special characters
         char c = data.at(i);
         switch (c) {
             case '\n':  out.append("\\n"); break;

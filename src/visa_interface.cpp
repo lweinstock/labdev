@@ -204,8 +204,8 @@ void visa_interface::clear_device()
 }
 
 /*
-    *      P R I V A T E   M E T H O D S
-    */
+ *      P R I V A T E   M E T H O D S
+ */
 
 void visa_interface::init() 
 {

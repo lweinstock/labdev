@@ -1,4 +1,5 @@
 #include <pybind11/pybind11.h>
+#include <tuple>
 
 #include <labdev/ld_interface.hh>
 #include <labdev/serial_interface.hh>
@@ -7,15 +8,15 @@
 #include <labdev/visa_interface.hh>
 
 #include <labdev/devices/device.hh>
-#include <labdev/devices/oscilloscope.hh>
+#include <labdev/devices/osci.hh>
 #include <labdev/devices/jenny-science/xenax_xvi.hh>
 #include <labdev/devices/baumer/om70_l.hh>
 #include <labdev/devices/musashi/ml-808gx.hh>
 
 namespace py = pybind11;
 
-using string;
-using tuple;
+using std::string;
+using std::tuple;
 
 using labdev::serial_config;
 using labdev::ip_address;
@@ -244,9 +245,32 @@ PYBIND11_MODULE(pylabdev, m) {
             [](const om70_l &self) {
                 return self.get_info();
             })
-        .def("get_distance", 
-            static_cast<float (om70_l::*)()>(&om70_l::get_distance), 
-            "Returns distance in mm")
+        .def("get_measurement", 
+            &om70_l::get_measurement, 
+            "Returns distance in mm, updates quality, sample rate, exposure "
+            "reserve, and delay readings")
+        .def("get_quality",
+            &om70_l::get_quality,
+            "Returns 0 (good), 1 (medium), 2 (bad)")
+        .def("get_sample_rate",
+            &om70_l::get_sample_rate,
+            "Returns sample rate in Hz")
+        .def("get_exposure",
+            &om70_l::get_exposure,
+            "Returns arb. unit, higher ist better")
+        .def("get_measurement_mem", 
+            &om70_l::get_measurement_mem, 
+            "Returns distance in mm, updates quality, sample rate, exposure "
+            "reserve, and delay readings")
+        .def("get_quality_mem",
+            &om70_l::get_quality_mem,
+            "Returns 0 (good), 1 (medium), 2 (bad)")
+        .def("get_sample_rate_mem",
+            &om70_l::get_sample_rate_mem,
+            "Returns sample rate in Hz")
+        .def("get_exposure_mem",
+            &om70_l::get_exposure_mem,
+            "Returns arb. unit, higher ist better")
     ;
 
     // Musashi time-pressure dispenser ML-808 GX
