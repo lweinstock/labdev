@@ -1,6 +1,6 @@
 #include <labdev/devices/feeltech/fy6900.hh>
 #include <labdev/exceptions.hh>
-#include "ld_debug.hh"
+#include <labdev/ld_debug.hh>
 
 #include <unistd.h>
 #include <math.h>

@@ -9,7 +9,7 @@ CC=g++
 LDFLAGS=
 CFLAGS=-Wall --std=c++11 -fPIC
 # Debugging
-CFLAGS+=-g -D LD_DEBUG
+CFLAGS+=-g #-D LD_DEBUG
 
 # Library name and objects
 LIBNAME=liblabdev
@@ -20,6 +20,9 @@ OBJ=
 # libusb compiler flags
 LIBUSB_CFLAGS=$(shell pkg-config libusb-1.0 --cflags)
 CFLAGS+=$(LIBUSB_CFLAGS)
+
+# Debugging
+OBJ+=$(SRC)/ld_debug.o
 
 # Interfaces
 OBJ+=$(SRC)/ld_interface.o

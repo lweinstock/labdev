@@ -25,17 +25,17 @@ public:
 
     // Get single measurement; get_measurement() updates quality, sample
     // rate, exposure, and delay
-    float get_measurement();    // returns distance in [mm]
-    int get_quality();          // returns 0, 1, 2 for good, medium, bad quality
-    float get_sample_rate();    // returns sample rate in [Hz]
-    float get_exposure();       // arb unit, high means good, low means bad
+    float get_measurement();                    // returns distance in [mm]
+    int get_quality() { return m_quality; }     // returns 0, 1, 2 for good, medium, bad quality
+    float get_sample_rate() { return m_sr; }    // returns sample rate in [Hz]
+    float get_exposure() { return m_exp; }      // arb unit, high means good, low means bad
 
     // Get 100 measurements from memory; get_measurement_mem() updates 
     // quality, sample rate, exposure, and delay
     std::vector<float> get_measurement_mem();
-    std::vector<int> get_quality_mem();
-    std::vector<float> get_sample_rate_mem();
-    std::vector<float> get_exposure_mem();
+    std::vector<int> get_quality_mem() { return m_quality_vec; }
+    std::vector<float> get_sample_rate_mem() { return  m_sr_vec; }
+    std::vector<float> get_exposure_mem() { return m_exp_vec; }
 
 private:
     static constexpr uint8_t UNIT_ID = 0x01;

@@ -4,7 +4,7 @@
 #include <labdev/devices/musashi/ml-808gx.hh>
 #include <labdev/serial_interface.hh>
 #include <labdev/exceptions.hh>
-#include "ld_debug.hh"
+#include <labdev/ld_debug.hh>
 
 using namespace std;
 

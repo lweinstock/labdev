@@ -1,6 +1,6 @@
 #include <labdev/usb_interface.hh>
 #include <labdev/exceptions.hh>
-#include "ld_debug.hh"
+#include <labdev/ld_debug.hh>
 
 #include <sstream>
 

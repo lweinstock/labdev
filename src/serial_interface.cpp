@@ -3,7 +3,7 @@
 
 #include <labdev/serial_interface.hh>
 #include <labdev/exceptions.hh>
-#include "ld_debug.hh"
+#include <labdev/ld_debug.hh>
 
 #include <fcntl.h>          // file control definitions
 #include <unistd.h>         // open(), close(), read(), write(), ...

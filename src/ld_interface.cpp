@@ -1,6 +1,6 @@
 #include <labdev/ld_interface.hh>
 #include <labdev/exceptions.hh>
-#include "ld_debug.hh"
+#include <labdev/ld_debug.hh>
 
 using namespace std;
 
@@ -17,20 +17,7 @@ void ld_interface::write(const string& msg) {
     copy(msg.begin(), msg.end(), begin(wbuf));
     this->write_raw(wbuf, msg.size());
 
-    debug_print("%s", "Sent message '");
-    #ifdef LD_DEBUG
-    size_t nbytes = msg.size();
-    if (msg.size() > 100) {
-        for (size_t i = 0; i < 50; i++)
-            printf("%c", msg.at(i));
-        printf(" [...] ");
-        for (size_t i = nbytes-50; i < nbytes; i++)
-            printf("%c", msg.at(i));
-    } else {
-        printf("%s", msg.c_str());
-    }
-    printf("'\n");
-    #endif
+    debug_print_string_data(msg, "Sent %zu bytes: ", msg.size());
 
     return;
 }
@@ -48,20 +35,8 @@ string ld_interface::read(unsigned timeout_ms) {
     ssize_t nbytes = this->read_raw(rbuf, s_dflt_buf_size, timeout_ms);
     string ret((char*)rbuf, nbytes);
 
-    debug_print("Read %zi bytes: ", nbytes);
-    #ifdef LD_DEBUG
-    if (ret.size() > 100) {
-        for (int i = 0; i < 50; i++)
-            printf("%c", ret.at(i));
-        printf(" [...] ");
-        for (int i = nbytes-50; i < nbytes; i++)
-            printf("%c", ret.at(i));
-    } else {
-        printf("%s", ret.c_str());
-    }
-    printf("'\n");
-    #endif
-
+    debug_print_string_data(ret, "Read %zu bytes: ", ret.size());
+    
     return ret;
 }
 

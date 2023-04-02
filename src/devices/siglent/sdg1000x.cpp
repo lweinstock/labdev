@@ -1,5 +1,5 @@
 #include <labdev/devices/siglent/sdg1000x.hh>
-#include "ld_debug.hh"
+#include <labdev/ld_debug.hh>
 
 #include <sstream>
 #include <iomanip>

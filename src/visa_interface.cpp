@@ -1,5 +1,5 @@
 #include <labdev/visa_interface.hh>
-#include "ld_debug.hh"
+#include <labdev/ld_debug.hh>
 
 #include <unistd.h>
 

@@ -11,7 +11,7 @@
 #include <labdev/serial_interface.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/utils/utils.hh>
-#include "ld_debug.hh"
+#include <labdev/ld_debug.hh>
 
 using namespace std;
 

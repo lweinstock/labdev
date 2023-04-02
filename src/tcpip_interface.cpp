@@ -1,6 +1,6 @@
 #include <labdev/tcpip_interface.hh>
 #include <labdev/exceptions.hh>
-#include "ld_debug.hh"
+#include <labdev/ld_debug.hh>
 
 #include <errno.h>
 #include <netinet/in.h>
@@ -89,6 +89,9 @@ int tcpip_interface::write_raw(const uint8_t* data, size_t len)
         check_and_throw(nbytes, "Failed to write to device");
         bytes_left -= nbytes;
 
+        debug_print_byte_data(data, nbytes, "Written %zu bytes: ", nbytes);
+
+/*
         debug_print("Written %zu bytes: ", nbytes);
         #ifdef LD_DEBUG
         if (nbytes > 30) {
@@ -103,7 +106,7 @@ int tcpip_interface::write_raw(const uint8_t* data, size_t len)
         }
         printf("(%zi bytes left)\n", bytes_left);
         #endif
-
+*/
         bytes_written += nbytes;
     }
 
@@ -128,6 +131,9 @@ int tcpip_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms
     ssize_t nbytes = recv(m_socket_fd, data, max_len, 0);
     check_and_throw(nbytes, "Failed to read from device");
 
+    debug_print_byte_data(data, nbytes, "Read %zu bytes: ", nbytes);
+
+/*
     debug_print("Read %zi bytes: ", nbytes);
     #ifdef LD_DEBUG
     if (nbytes > 20) {
@@ -142,6 +148,7 @@ int tcpip_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms
     }
     printf("\n");
     #endif
+*/
 
     return nbytes;
 }

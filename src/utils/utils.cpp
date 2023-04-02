@@ -1,5 +1,5 @@
 #include <labdev/utils/utils.hh>
-#include "ld_debug.hh"
+#include <labdev/ld_debug.hh>
 
 using namespace std;
 
