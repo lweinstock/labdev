@@ -1,4 +1,5 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <tuple>
 
 #include <labdev/ld_interface.hh>
@@ -245,6 +246,13 @@ PYBIND11_MODULE(pylabdev, m) {
             [](const om70_l &self) {
                 return self.get_info();
             })
+        .def("enable_laser",
+            &om70_l::enable_laser,
+            "Enables the laser",
+            py::arg("ena") = true)
+        .def("disable_laser",
+            &om70_l::disable_laser,
+            "Disables the laser")
         .def("get_measurement", 
             &om70_l::get_measurement, 
             "Returns distance in mm, updates quality, sample rate, exposure "
