@@ -1,5 +1,6 @@
 #include <labdev/protocols/modbus_tcp.hh>
 #include <labdev/exceptions.hh>
+#include <labdev/ld_debug.hh>
 
 using namespace std;
 
@@ -58,6 +59,10 @@ void modbus_tcp::write_single_holding_reg(uint8_t uid, uint16_t addr,
     payload.push_back(static_cast<uint8_t>(0xFF & (data >> 8)));
     payload.push_back(static_cast<uint8_t>(0xFF & data));
     tcp_frame sframe(m_tid, uid, FC06, payload);
+
+    debug_print("Writing 0x%04X to address 0x%04X (tid=%u, uid=%u)\n",
+        data, addr, m_tid, uid);
+
     m_comm->write_byte(sframe.get_frame());
     vector<uint8_t> resp = m_comm->read_byte();
 
@@ -94,6 +99,10 @@ void modbus_tcp::write_multiple_holding_regs(uint8_t uid, uint16_t addr,
         payload.push_back(static_cast<uint8_t>(0xFF & data.at(i)));
     }
     tcp_frame sframe(m_tid, uid, FC16, payload);
+
+    debug_print("Writing %u registers with starting address 0x%04X "
+        "(tid=%u, uid=%u)\n", len, addr, m_tid, uid);
+
     m_comm->write_byte(sframe.get_frame());
     vector<uint8_t> resp = m_comm->read_byte();
 
@@ -122,6 +131,9 @@ vector<uint16_t> modbus_tcp::read_16bit_regs(uint8_t uid, uint8_t func,
     payload.push_back(static_cast<uint8_t>(0xFF & (len >> 8)));
     payload.push_back(static_cast<uint8_t>(0xFF & len));
     tcp_frame frame(m_tid, uid, func, payload);
+
+    debug_print("Reading %u registers with starting address 0x%04X "
+        "(tid=%u, uid=%u)\n", len, addr, m_tid, uid);
 
     m_comm->write_byte(frame.get_frame());
     vector<uint8_t> resp = m_comm->read_byte();
