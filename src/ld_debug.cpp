@@ -80,7 +80,7 @@ void my_assert(bool expr, const char* strexpr, const char* file,
     if (!expr) {
         fprintf(stderr, "Assert failed:\t%s\n", msg);
         fprintf(stderr, "Expected:\t%s\n", strexpr);
-        fprintf(stderr, "Source:\t %s (%s line %i)", function, file, line);
+        fprintf(stderr, "Source:\t %s (%s line %i)\n", function, file, line);
         abort();
     }
     return; 

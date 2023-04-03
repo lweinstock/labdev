@@ -1,6 +1,7 @@
 #include <labdev/devices/baumer/om70_l.hh>
 #include <labdev/tcpip_interface.hh>
 #include <labdev/exceptions.hh>
+#include <labdev/ld_debug.hh>
 
 #include <cmath>
 
@@ -72,18 +73,7 @@ float om70_l::get_measurement()
 
     vector<uint16_t> resp{};
     resp = m_modbus->read_input_regs(UNIT_ID, ADDR_ALL_MEAS, 17);
-    m_quality = resp.at(1);
-    // memcopy is required, casting results in wrong conversion to integer and
-    // attaches a comma (bitwise conversion vs. cast)
-    uint32_t val {0x0000};
-    val = resp.at(3) | (resp.at(4) << 16);
-    memcpy(&m_dist, &val, sizeof(float));
-    val = resp.at(5) | (resp.at(6) << 16);
-    memcpy(&m_sr, &val, sizeof(float));
-    val = resp.at(7) | (resp.at(8) << 16);
-    memcpy(&m_exp, &val, sizeof(float));
-
-    if (isnan(m_dist)) m_dist = -1.;
+    this->extract_measurements(resp, m_dist, m_quality, m_sr, m_exp);
 
     return m_dist;
 }
@@ -96,5 +86,27 @@ vector<float> om70_l::get_measurement_mem()
 /*
  *      P R I V A T E   M E T H O D S
  */
+
+void om70_l::extract_measurements(std::vector<uint16_t> data, float &dist, 
+    int &quality, float &sample_rate, float &exposure)
+{
+    ld_assert(data.size() == 17, "OM70-L measurements are constructed from 17x"
+        "16-bit registers, but received %zux 16-bit.", data.size());
+
+    quality = data.at(1);
+    // memcopy is required, casting results in wrong conversion to integer and
+    // attaches a comma (bitwise conversion vs. cast)
+    uint32_t val {0x0000};
+    val = data.at(3) | (data.at(4) << 16);
+    memcpy(&dist, &val, sizeof(float));
+    val = data.at(5) | (data.at(6) << 16);
+    memcpy(&sample_rate, &val, sizeof(float));
+    val = data.at(7) | (data.at(8) << 16);
+    memcpy(&exposure, &val, sizeof(float));
+
+    if (isnan(m_dist)) dist = -1.;
+    
+    return;
+}
 
 }

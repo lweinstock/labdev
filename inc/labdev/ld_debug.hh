@@ -42,7 +42,7 @@ void my_print_byte_data(FILE* stream, const uint8_t* data, size_t len);
 #define ld_assert(expr, msg, ...) \
     my_assert(expr, #expr, __FILE__, __func__, __LINE__, msg)
 
-inline void my_assert(bool expr, const char* strexpr, const char* file,
+void my_assert(bool expr, const char* strexpr, const char* file,
     const char* function, int line, const char* msg);
 
 #endif

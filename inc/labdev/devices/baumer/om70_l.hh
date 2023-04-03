@@ -65,6 +65,10 @@ private:
     static constexpr uint16_t ADDR_BLK_MEM13 = 0x0808;
     static constexpr uint16_t ADDR_BLK_MEM14 = 0x0878;
 
+    // Extracts the measurements from the 17x 16-bit registers (see manual p. 60)
+    void extract_measurements(std::vector<uint16_t> data, float &dist, 
+        int &quality, float &sample_rate, float &exposure);
+
     modbus_tcp* m_modbus;
     int m_quality;
     float m_dist, m_sr, m_exp;
