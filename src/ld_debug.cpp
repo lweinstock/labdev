@@ -70,10 +70,4 @@ void ld_print_byte_data(FILE* stream, const uint8_t* data, size_t len)
     return;
 }
 
-void ld_print_byte_data(FILE* stream, uint8_t* data, size_t len, 
-    const char* file, int line, const char* function, const char* msg, ...)
-{
-    return;
-}
-
 }
