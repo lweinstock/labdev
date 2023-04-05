@@ -116,7 +116,7 @@ vector<float> om70_l::get_measurement_mem()
         else
             resp = m_modbus->read_input_regs(UNIT_ID, ADDR_BLK_MEM14, 32);
 
-        // Cut the (usually) 112 measurements into 7 slices of 16 registers
+        // Cut the (usually) 112 registers into 7 slices of 16 registers
         unsigned n_measurements = resp.size()/16;
         for (unsigned j = 0; j < n_measurements; j++) {
             vector<uint16_t> slice(resp.begin() + 16*j, resp.begin() + 16*(j+1));

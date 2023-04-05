@@ -11,7 +11,13 @@ std::vector<std::string> split(std::string list, std::string delim,
     size_t max_size = -1);
 
 // Compare two floating point numbers
-bool compare_doubles(double a, double b, double epsilon = 1e-6);
+bool equal(double a, double b, double epsilon = 1e-6);
+
+// Calculate mean (didnt know that didnt exist before...)
+template<typename T> float get_mean(std::vector<T> vec);
+
+// Calculate standard deviation (didnt know that didnt exist either...)
+template<typename T> float get_stdev(std::vector<T> vec);
 
 }
 

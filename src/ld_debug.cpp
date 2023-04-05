@@ -2,7 +2,9 @@
 
 using namespace std;
 
-void my_debug_print(FILE* stream, const char* file, int line, 
+namespace labdev {
+
+void ld_debug_print(FILE* stream, const char* file, int line, 
     const char* function, const char* msg, ...)
 {
     // Print header with file, line number, and function
@@ -21,7 +23,7 @@ void my_debug_print(FILE* stream, const char* file, int line,
     return;
 }
 
-void my_print_string_data(FILE* stream, std::string data)
+void ld_print_string_data(FILE* stream, std::string data)
 {
     std::string out {};
     bool ellipses_printed {false};
@@ -49,7 +51,7 @@ void my_print_string_data(FILE* stream, std::string data)
     return;
 }
 
-void my_print_byte_data(FILE* stream, const uint8_t* data, size_t len)
+void ld_print_byte_data(FILE* stream, const uint8_t* data, size_t len)
 {
     // Print string data, reformat special characters
     bool ellipses_printed {false};
@@ -68,20 +70,10 @@ void my_print_byte_data(FILE* stream, const uint8_t* data, size_t len)
     return;
 }
 
-void my_print_byte_data(FILE* stream, uint8_t* data, size_t len, 
+void ld_print_byte_data(FILE* stream, uint8_t* data, size_t len, 
     const char* file, int line, const char* function, const char* msg, ...)
 {
     return;
 }
 
-void my_assert(bool expr, const char* strexpr, const char* file,
-    const char* function, int line, const char* msg)
-{
-    if (!expr) {
-        fprintf(stderr, "Assert failed:\n%s\n", msg);
-        fprintf(stderr, "Expected: %s\n", strexpr);
-        fprintf(stderr, "Source: %s() (%s line:%i)\n", function, file, line);
-        abort();
-    }
-    return; 
 }
