@@ -37,7 +37,7 @@ x_axis.move_position(140000)
 while not x_axis.in_position():
     cur_pos = x_axis.get_position()
     force = x_axis.get_motor_current()
-    distance = lds.get_distance()
+    distance = lds.get_measurement()
     print(f'x = {cur_pos}\td = {distance}\ti = {force}')
     sleep(0.1)
 

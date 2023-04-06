@@ -14,10 +14,10 @@ std::vector<std::string> split(std::string list, std::string delim,
 bool equal(double a, double b, double epsilon = 1e-6);
 
 // Calculate mean (didnt know that didnt exist before...)
-template<typename T> float get_mean(std::vector<T> vec);
+template<typename T> double get_mean(std::vector<T> vec);
 
 // Calculate standard deviation (didnt know that didnt exist either...)
-template<typename T> float get_stdev(std::vector<T> vec);
+template<typename T> double get_stdev(std::vector<T> vec);
 
 }
 

@@ -2,6 +2,7 @@
 #include <labdev/ld_debug.hh>
 
 #include <numeric>
+#include <cmath>
 
 using namespace std;
 
@@ -27,24 +28,34 @@ bool equal(double a, double b, double epsilon) {
     return (abs(a-b) < epsilon);
 }
 
-template<typename T> float get_mean(vector<T> val)
+template<typename T> double get_mean(vector<T> val)
 {
-    return static_cast<float>(accumulate(val.begin(), val.end(), 0))/val.size();
+    // Very important: starting value has to be 0. and not 0
+    // otherwise it treats everything as integers!!
+    double ret = accumulate(val.begin(), val.end(), 0.);
+    ret /= val.size();
+    return ret;
 }
 
-template float get_mean<float>(vector<float> val);
-template float get_mean<int>(vector<int> val);
+template double get_mean<double>(vector<double> val);
+template double get_mean<float>(vector<float> val);
+template double get_mean<int>(vector<int> val);
 
-template<typename T> float get_stdev(vector<T> val)
+template<typename T> double get_stdev(vector<T> val)
 {
-    float v_mean = get_mean(val);
+    double v_mean = get_mean(val);
     // Add up the squares using a lambda function
-    float v_mean2 = static_cast<float>(accumulate(val.begin(), val.end(), 0, 
-        [&](T a, T b) { return a + b*b; }))/val.size();
-    return sqrt(v_mean2 - v_mean*v_mean);
+    double v_mean2 = accumulate(val.begin(), val.end(), 0., 
+        [&](T a, T b) { return a + b*b; });
+    v_mean2 /= val.size();
+    double ret = sqrt( abs(v_mean2 - v_mean*v_mean) );
+    if (isnan(ret)) // Floating point precision..
+        return 0.;
+    return ret;
 }
 
-template float get_stdev(vector<float> val);
-template float get_stdev(vector<int> val);
+template double get_stdev(vector<double> val);
+template double get_stdev(vector<float> val);
+template double get_stdev(vector<int> val);
 
 }
