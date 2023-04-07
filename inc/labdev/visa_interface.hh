@@ -26,17 +26,16 @@ namespace labdev {
 class visa_interface : public ld_interface {
 public:
     visa_interface();
-    visa_interface(visa_identifier &visa_id);
+    visa_interface(const visa_identifier visa_id);
     virtual ~visa_interface();
 
     // Find all available VISA resource, returns list of VISA IDs
     std::vector<std::string> find_resources(std::string regex = "?*INSTR");
 
     // Open/close device
-    void open(visa_identifier &visa_id);
+    void open(const visa_identifier visa_id);
     void open() override;
     void close() override;
-
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override;

@@ -2,6 +2,7 @@
 #include <labdev/ld_debug.hh>
 
 #include <unistd.h>
+#include <sstream>
 
 using namespace std;
 
@@ -12,7 +13,7 @@ int visa_interface::s_interface_ctr = 0;
 
 visa_interface::visa_interface():
     m_instr(0),
-    m_visa_id(),
+    m_visa_id("ASRL1::INSTR"),
     m_connected(false),
     m_timeout(DFLT_TIMEOUT_MS) 
 {
@@ -27,7 +28,7 @@ visa_interface::visa_interface():
     return;
 }
 
-visa_interface::visa_interface(string visa_id) : visa_interface()
+visa_interface::visa_interface(const visa_identifier visa_id) : visa_interface()
 {
     this->open(visa_id);
     return;
@@ -48,7 +49,7 @@ visa_interface::~visa_interface()
     return;
 }
 
-void visa_interface::open(const string &visa_id) 
+void visa_interface::open(const visa_identifier visa_id) 
 {
     // Throw exception if a device has already been opened
     if (m_instr)
@@ -116,22 +117,8 @@ int visa_interface::write_raw(const uint8_t* data, size_t len)
         check_and_throw(stat, "Failed to write to device");
         if (nbytes > 0) {
             bytes_left -= nbytes;
-
-            debug_print("Written %zu bytes: ", nbytes);
-            #ifdef LD_DEBUG
-            if (nbytes > 20) {
-                for (int i = 0; i < 10; i++)
-                    printf("0x%02X ", data[bytes_written + i]);
-                printf("[...] ");
-                for (int i = nbytes-10; i < nbytes; i++)
-                    printf("0x%02X ", data[bytes_written + i]);
-            } else {
-                for (int i = 0; i < nbytes; i++)
-                    printf("0x%02X ", data[bytes_written + i]);
-            }
-            printf("(%zi bytes left)\n", bytes_left);
-            #endif
-
+            debug_print_byte_data(data, nbytes, "Written %zu bytes, "
+            "%zu bytes left: ", nbytes, bytes_left);
             bytes_written += nbytes;
         }
     }
@@ -162,20 +149,7 @@ int visa_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
             if (bytes_received + nbytes > s_dflt_buf_size)
                 throw bad_protocol("Read buffer too small", s_dflt_buf_size);
 
-            debug_print("Read %zi bytes: ", nbytes);
-            #ifdef LD_DEBUG
-            if (nbytes > 20) {
-                for (int i = 0; i < 10; i++)
-                    printf("0x%02X ", rbuf[i]);
-                printf("[...] ");
-                for (int i = nbytes-10; i < nbytes; i++)
-                    printf("0x%02X ", rbuf[i]);
-            } else {
-                for (int i = 0; i < nbytes; i++)
-                    printf("0x%02X ", rbuf[i]);
-            }
-            printf("\n");
-            #endif
+            debug_print_byte_data(rbuf, nbytes, "Read %zu bytes: ", nbytes);
 
             // Append read buffer to output data array
             for (ssize_t ibyte = 0; ibyte < nbytes; ibyte++)
@@ -197,9 +171,9 @@ void visa_interface::flush_buffer(uint16_t flag)
 
 void visa_interface::clear_device() 
 {
+    debug_print("%s", "Clearing device.\n");
     ViStatus stat = viClear(m_instr);
     check_and_throw(stat, "viClear failed");
-    debug_print("%s", "Clearing device.\n");
     return;
 }
 
