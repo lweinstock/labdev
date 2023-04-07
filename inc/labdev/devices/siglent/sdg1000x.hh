@@ -22,9 +22,24 @@ public:
     // Get output state of channel (true = on, false = off)
     bool get_state(unsigned channel) override;
 
-    // Signal waveform 
-    void set_waveform(unsigned channel, waveform wvfm) override;
-    waveform get_waveform(unsigned channel) override;
+    // Set/get waveforms
+    void set_sine(unsigned channel,float freq_hz, float ampl_v = 1., 
+        float offset_v = 0., float phase_deg = 0.) override;
+    void set_square(unsigned channel,float freq_hz, float ampl_v = 1., 
+        float offset_v = 0., float phase_deg = 0., float duty_cycle = 0.5) override;
+    void set_ramp(unsigned channel,float freq_hz, float ampl_v = 1., 
+        float offset_v = 0., float phase_deg = 0., float symm = 0.5) override;
+    void set_pulse(unsigned channel,float period_s, float width_s, 
+        float delay_s = 0., float high_v = .1, float low_v = 0., 
+        float rise_s = 1e-6, float fall_s = 1e-6) override;
+    void set_noise(unsigned channel,float mean_v = 0.,
+        float stdev_v = 0.1) override;
+
+    bool is_sine(unsigned channel) override;
+    bool is_square(unsigned channel) override;
+    bool is_ramp(unsigned channel) override;
+    bool is_pulse(unsigned channel) override;
+    bool is_noise(unsigned channel) override;
 
     // Signal frequency 
     void set_freq(unsigned channel, float freq_hz) override;
@@ -55,11 +70,6 @@ private:
 
     // Get value from basic wave command (manual p. 27)
     std::string get_bswv_val(std::string bswv, std::string par);
-
-    // Convert waveform to SCPI string and vice versa
-    std::string wvfm_to_str(fgen::waveform wvfm);
-    fgen::waveform str_to_wvfm(std::string wvfm);
-
 };
 
 }

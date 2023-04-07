@@ -130,25 +130,7 @@ int tcpip_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms
 
     ssize_t nbytes = recv(m_socket_fd, data, max_len, 0);
     check_and_throw(nbytes, "Failed to read from device");
-
     debug_print_byte_data(data, nbytes, "Read %zu bytes: ", nbytes);
-
-/*
-    debug_print("Read %zi bytes: ", nbytes);
-    #ifdef LD_DEBUG
-    if (nbytes > 20) {
-        for (int i = 0; i < 10; i++)
-            printf("0x%02X ", data[i]);
-        printf("[...] ");
-        for (int i = nbytes-10; i < nbytes; i++)
-            printf("0x%02X ", data[i]);
-    } else {
-        for (int i = 0; i < nbytes; i++)
-            printf("0x%02X ", data[i]);
-    }
-    printf("\n");
-    #endif
-*/
 
     return nbytes;
 }

@@ -57,28 +57,79 @@ void fy6900::enable_channel(unsigned channel, bool on_off)
     return;
 }
 
-void fy6900::set_waveform(unsigned channel, fgen::waveform wvfm) 
+bool fy6900::get_state(unsigned channel) 
 {
     string msg;
     if (channel == 1) {
-        msg = "WMW";
+        msg = "RMN";
     } else if (channel == 2) {
-        msg = "WFW";
+        msg = "RFN";
     } else {
         fprintf(stderr, "Invalid channel number %i\n", channel);
         abort();
     }
-    if ( (wvfm < 0) || (wvfm > 99) ) {
-        fprintf(stderr, "Invalid waveform %i\n", wvfm);
-        abort();
-    }
-    msg += to_string( this->wvfm_to_int(wvfm) );
-    string ret = this->query_cmd(msg);
-    // Response should be empty
-    if (ret.size() > 0)
-        throw device_error("Received unexpected non-empty response", -1);
+    string resp = this->query_cmd(msg);
+    if (resp.size() == 0)
+        throw device_error("Received empty response", -1);
+    int stat = stoi(resp);
+    return (stat == 0) ? false : true;
+}
+
+void fy6900::set_sine(unsigned channel, float freq_hz, float ampl_v, 
+    float offset_v, float phase_deg)
+{
 
     return;
+}
+
+
+void fy6900::set_square(unsigned channel, float freq_hz, float ampl_v, 
+    float offset_v, float phase_deg, float duty_cycle)
+{
+    return;
+}
+
+void fy6900::set_ramp(unsigned channel, float freq_hz, float ampl_v, 
+    float offset_v, float phase_deg, float symm)
+{
+    return;
+}
+
+void fy6900::set_pulse(unsigned channel, float period_s, float width_s, 
+    float delay_ms, float high_v, float low_v, float rise_s, float fall_s)
+{
+    return;
+}
+
+void fy6900::set_noise(unsigned channel, float mean_v, float stdev_v)
+{
+    return;
+}
+
+
+bool fy6900::is_sine(unsigned channel)
+{
+    return false;
+}
+
+bool fy6900::is_square(unsigned channel)
+{
+    return false;
+}
+
+bool fy6900::is_ramp(unsigned channel)
+{
+    return false;
+}
+
+bool fy6900::is_pulse(unsigned channel)
+{
+    return false;
+}
+
+bool fy6900::is_noise(unsigned channel)
+{
+    return false;
 }
 
 void fy6900::set_freq(unsigned channel, float freq_hz) 
@@ -207,41 +258,6 @@ void fy6900::set_offset(unsigned channel, float offset_v)
     return;
 }
 
-bool fy6900::get_state(unsigned channel) 
-{
-    string msg;
-    if (channel == 1) {
-        msg = "RMN";
-    } else if (channel == 2) {
-        msg = "RFN";
-    } else {
-        fprintf(stderr, "Invalid channel number %i\n", channel);
-        abort();
-    }
-    string resp = this->query_cmd(msg);
-    if (resp.size() == 0)
-        throw device_error("Received empty response", -1);
-    int stat = stoi(resp);
-    return (stat == 0) ? false : true;
-}
-
-fgen::waveform fy6900::get_waveform(unsigned channel) 
-{
-    string msg;
-    if (channel == 1) {
-        msg = "RMW";
-    } else if (channel == 2) {
-        msg = "RFW";
-    } else {
-        fprintf(stderr, "Invalid channel number %i\n", channel);
-        abort();
-    }
-    string resp = this->query_cmd(msg);
-    if (resp.size() == 0)
-        throw device_error("Received empty response", -1);
-    return this->int_to_wvfm( stoi(resp) );
-}
-
 float fy6900::get_freq(unsigned channel) 
 {
     string msg;
@@ -356,88 +372,6 @@ string fy6900::query_cmd(string cmd)
     ret = ret.substr(0, pos);
     debug_print("Queried '%s' and received %lu bytes: '%s'\n",
         cmd.c_str(), ret.size(), ret.c_str());
-    return ret;
-}
-
-unsigned fy6900::wvfm_to_int(fgen::waveform wvfm)
-{
-    int ret = 0;
-    switch (wvfm) {
-    case fgen::waveform::SINE:
-        ret = 0;
-        break;
-    case fgen::waveform::SQUARE:
-        ret = 1;
-        break;
-    case fgen::waveform::RECTANGLE:
-        ret = 2;
-        break;
-    case fgen::waveform::TRAPEZOID:
-        ret = 3;
-        break;
-    case fgen::waveform::CMOS:
-        ret = 4;
-        break;
-    case fgen::waveform::PULSE:
-        ret = 5;
-        break;
-    case fgen::waveform::DC:
-        ret = 6;
-        break;
-    case fgen::waveform::TRIANGLE:
-        ret = 7;
-        break;
-    case fgen::waveform::POS_RAMP:
-        ret = 8;
-        break;
-    case fgen::waveform::NEG_RAMP :
-        ret = 9;
-        break;
-    default:
-        fprintf(stderr, "Waveform not supported!\n");
-        abort();
-    }
-    return ret;
-}
-
-fgen::waveform fy6900::int_to_wvfm(unsigned iwvfm)
-{
-    fgen::waveform ret;
-    switch (iwvfm) {
-    case 0:
-        ret = fgen::waveform::SINE;
-        break;
-    case 1:
-        ret = fgen::waveform::SQUARE;
-        break;
-    case 2:
-        ret = fgen::waveform::RECTANGLE;
-        break;
-    case 3:
-        ret = fgen::waveform::TRAPEZOID;
-        break;
-    case 4:
-        ret = fgen::waveform::CMOS;
-        break;
-    case 5:
-        ret = fgen::waveform::PULSE;
-        break;
-    case 6:
-        ret = fgen::waveform::DC;
-        break;
-    case 7:
-        ret = fgen::waveform::TRIANGLE;
-        break;
-    case 8:
-        ret = fgen::waveform::POS_RAMP;
-        break;
-    case 9 :
-        ret = fgen::waveform::NEG_RAMP;
-        break;
-    default:
-        fprintf(stderr, "Waveform not supported!\n");
-        abort();
-    }
     return ret;
 }
 

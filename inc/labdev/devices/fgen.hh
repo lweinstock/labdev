@@ -19,20 +19,6 @@ public:
         device(name), m_n_ch(n_ch) {};
     virtual ~fgen() {};
 
-    enum waveform : unsigned {
-        SINE        = 0,
-        SQUARE      = 1,
-        RECTANGLE   = 2,
-        TRAPEZOID   = 3,
-        CMOS        = 4,
-        PULSE       = 5,
-        DC          = 6,
-        TRIANGLE    = 7,
-        POS_RAMP    = 8,
-        NEG_RAMP    = 9,
-        NOISE       = 10
-    };
-
     // Returns number of channels of device
     const unsigned get_n_channels() const { return m_n_ch; }
 
@@ -43,9 +29,24 @@ public:
     // Get output state of channel (true = on, false = off)
     virtual bool get_state(unsigned channel) = 0;
 
-    // Signal waveform 
-    virtual void set_waveform(unsigned channel, waveform wvfm) = 0;
-    virtual waveform get_waveform(unsigned channel) = 0;
+    // Set and get waveforms
+    virtual void set_sine(unsigned channel, float freq_hz, float ampl_v = 1., 
+        float offset_v = 0., float phase_deg = 0.) = 0;
+    virtual void set_square(unsigned channel, float freq_hz, float ampl_v = 1., 
+        float offset_v = 0., float phase_deg = 0., float duty_cycle = 0.5) = 0;
+    virtual void set_ramp(unsigned channel, float freq_hertz, float ampl_v = 1., 
+        float offset_v = 0., float phase_deg = 0., float symm = 0.5) = 0;
+    virtual void set_pulse(unsigned channel, float period_s, float width_s, 
+        float delay_s = 0., float high_v = .1, float low_v = 0., 
+        float rise_s = 1e-6, float fall_s = 1e-6) = 0;
+    virtual void set_noise(unsigned channel, float mean_v = 0., 
+        float stdev_v = 1.) = 0;
+
+    virtual bool is_sine(unsigned channel) = 0;
+    virtual bool is_square(unsigned channel) = 0;
+    virtual bool is_ramp(unsigned channel) = 0;
+    virtual bool is_pulse(unsigned channel) = 0;
+    virtual bool is_noise(unsigned channel) = 0;
 
     // Signal frequency 
     virtual void set_freq(unsigned channel, float freq_hz) = 0;

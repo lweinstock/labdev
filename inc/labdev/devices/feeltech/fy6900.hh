@@ -27,9 +27,24 @@ public:
     // Get output state of channel (true = on, false = off)
     bool get_state(unsigned channel) override;
 
-    // Signal waveform 
-    void set_waveform(unsigned channel, fgen::waveform wvfm) override;
-    fgen::waveform get_waveform(unsigned channel) override;
+    // Set/get waveforms
+    void set_sine(unsigned channel,float freq_hz, float ampl_v = 1., 
+        float offset_v = 0., float phase_deg = 0.) override;
+    void set_square(unsigned channel,float freq_hz, float ampl_v = 1., 
+        float offset_v = 0., float phase_deg = 0., float duty_cycle = 0.5) override;
+    void set_ramp(unsigned channel,float freq_hz, float ampl_v = 1., 
+        float offset_v = 0., float phase_deg = 0., float symm = 0.5) override;
+    void set_pulse(unsigned channel,float period_s, float width_s, 
+        float delay_s = 0., float high_v = .1, float low_v = 0., 
+        float rise_s = 1e-6, float fall_s = 1e-6) override;
+    void set_noise(unsigned channel,float mean_v = 0.,
+        float stdev_v = 0.1) override;
+
+    bool is_sine(unsigned channel) override;
+    bool is_square(unsigned channel) override;
+    bool is_ramp(unsigned channel) override;
+    bool is_pulse(unsigned channel) override;
+    bool is_noise(unsigned channel) override;
 
     // Signal frequency 
     void set_freq(unsigned channel, float freq_hz) override;
@@ -59,10 +74,6 @@ private:
 
     // Send command and read response
     std::string query_cmd(std::string cmd);
-    
-    // Convert number to wave type and vice versa
-    unsigned wvfm_to_int(fgen::waveform wvfm);
-    fgen::waveform int_to_wvfm(unsigned iwvfm);
 };
  
 }

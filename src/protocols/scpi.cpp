@@ -1,5 +1,6 @@
 #include <labdev/protocols/scpi.hh>
 #include <labdev/exceptions.hh>
+#include <labdev/ld_debug.hh>
 
 #include <sys/time.h>   // struct timeval
 
@@ -46,6 +47,7 @@ void scpi::wait_to_complete(unsigned timeout_ms) {
         if (tdiff > timeout_ms)
             throw timeout("*OPC timeout occurred");
     }
+    debug_print("%s\n", "operation complete (OPC)");
     return;
 }
 
