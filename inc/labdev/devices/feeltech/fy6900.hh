@@ -67,13 +67,13 @@ public:
     float get_offset(unsigned channel) override;
 
 private:
-    // End of message character (0x0a)
-    static constexpr const char EOM = '\n';
-    // Timeout between read/write (10ms)
-    static const unsigned SLEEP_US = 100e3;
+    // Set/get waveform according to number (manual p.6ff)
+    void set_waveform(unsigned channel, unsigned wvfm);
+    unsigned get_waveform(unsigned channel);
 
-    // Send command and read response
-    std::string query_cmd(std::string cmd);
+    // Set pulse width (only valid with pulse-waveforms)
+    void set_pulse_width(unsigned channel, float width_s);    
+
 };
  
 }

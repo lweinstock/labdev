@@ -285,12 +285,23 @@ float sdg1000x::get_ampl(unsigned channel)
 
 void sdg1000x::set_offset(unsigned channel, float offset_v)
 {
+    this->check_channel(channel);
+    stringstream msg;
+    msg << "C" << channel << ":BSWV OFST,";
+    msg << setprecision(3) << fixed << offset_v << "\n";
+    m_comm->write(msg.str());
     return;
 }
 
 float sdg1000x::get_offset(unsigned channel)
 {
-    return 0.;
+    this->check_channel(channel);
+    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
+    string offset = this->get_bswv_val(bswv, "OFST");
+    if (offset.empty())  // Parameter not found
+        return 0.;
+    debug_print("Received amplitude %s\n", offset.c_str());
+    return stof(offset);
 }
 
 /*
