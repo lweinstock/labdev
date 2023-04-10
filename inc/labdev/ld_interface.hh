@@ -52,9 +52,9 @@ public:
 
     // Read until specified delimiter is found in the received message
     std::string read_until(const std::string& delim, size_t& pos, 
-        unsigned timeout_ms  = s_dflt_timeout_ms);
+        unsigned timeout_ms = s_dflt_timeout_ms);
     std::string read_until(const std::string& delim, 
-        unsigned timeout_ms  = s_dflt_timeout_ms);
+        unsigned timeout_ms = s_dflt_timeout_ms);
 
     // C++-style string write followed by a read
     virtual std::string query(const std::string& msg, 
