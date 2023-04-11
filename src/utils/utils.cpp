@@ -2,6 +2,7 @@
 #include <labdev/ld_debug.hh>
 
 #include <numeric>
+#include <algorithm>
 #include <cmath>
 
 using namespace std;
