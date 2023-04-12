@@ -348,9 +348,90 @@ string xenax_xvi::query_command(string cmd, unsigned timeout_ms)
     if (par_list.size() == 2) {
         if ( par_list.at(1).find("?") != string::npos)
             throw bad_protocol("Invalid command '" + cmd + "'\n");
-        if ( par_list.at(1).find("#") != string::npos)
-            throw device_error("Cannot execute command, device busy ("
+        if ( par_list.at(1).find("#") != string::npos) {
+            // Handle hash error message (refer manual p.34)
+            string hash_str = par_list.at(1).substr(1);
+            int hash_no = stoi(hash_str);
+            switch (hash_no) {
+                case 01:
+                throw device_error("Cannot execute command, error in error "
+                "queue (" + par_list.at(1) + ")\n");
+                break;
+
+                case 03:
+                throw device_error("Cannot execute command, currently moving"
+                " (" + par_list.at(1) + ")\n");
+                break;
+
+                case 05:
+                throw device_error("Cannot execute command, program is active"
+                " (" + par_list.at(1) + ")\n");
+                break;
+
+                case 13:
+                throw device_error("Cannot execute command, emergency exit "
+                "EE1 is pending (" + par_list.at(1) + ")\n");
+
+                case 14:
+                throw device_error("Cannot execute command, emergency exit "
+                "EE is pending (" + par_list.at(1) + ")\n");
+
+                case 15:
+                throw device_error("Cannot execute command, force calibration "
+                "is active (" + par_list.at(1) + ")\n");
+                break;
+
+                case 27:
+                throw device_error("Cannot execute command, I Force Drift "
+                "Compensation is active (" + par_list.at(1) + ")\n");
+                break;
+
+                case 34:
+                throw device_error("Cannot execute command, rotation reference "
+                "is active (" + par_list.at(1) + ")\n");
+                break;
+
+                case 36:
+                throw device_error("Cannot execute command, gantry reference "
+                "is active (" + par_list.at(1) + ")\n");
+                break;
+
+                case 38:
+                throw device_error("Cannot execute command, reference is "
+                "active (" + par_list.at(1) + ")\n");
+                break;
+
+                case 40:
+                throw device_error("Cannot execute command, command not "
+                "permitted (" + par_list.at(1) + ")\n");
+                break;
+
+                case 47:
+                throw device_error("Cannot execute command, fault reaction "
+                "active (" + par_list.at(1) + ")\n");
+                break;
+
+                case 49:
+                throw device_error("Cannot execute command, no JSC motor "
+                "connected (" + par_list.at(1) + ")\n");
+                break;
+
+                case 65:
+                throw device_error("Cannot execute command, value range of "
+                "parameter is not valid (" + par_list.at(1) + ")\n");
+                break;
+
+                case 66:
+                throw device_error("Cannot execute command, 5s timeout occured "
+                "(" + par_list.at(1) + ")\n");
+                break;
+
+                default:
+                throw device_error("Cannot execute command, unknown hash (" 
                 + par_list.at(1) + ")\n");
+                break;
+            }
+        }
 
         return par_list.at(1);
     }
