@@ -417,8 +417,8 @@ string xenax_xvi::query_command(string cmd, unsigned timeout_ms)
                 break;
 
                 case 65:
-                throw device_error("Cannot execute command, value range of "
-                "parameter is not valid (" + par_list.at(1) + ")\n");
+                throw device_error("Cannot execute command, parameter out of "
+                "value range (" + par_list.at(1) + ")\n");
                 break;
 
                 case 66:
