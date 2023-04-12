@@ -83,11 +83,24 @@ void xenax_xvi::power_continue()
 
 void xenax_xvi::reference_axis() 
 {
+    debug_print("%s\n", "Referencing axis...");
     this->query_command("REF");
     // Wait until referencing is complete (max. 10s)
     this->wait_status_set(IN_MOTION);
     this->wait_status_set(IN_POSITION | REF);
     this->wait_status_clr(IN_MOTION);
+    return;
+}
+
+void xenax_xvi::reference_axis(bool pos_dir) 
+{
+    debug_print("Changing reference direction to %s\n", 
+        pos_dir ? "positive" : "negative");
+    if (pos_dir)
+        this->query_command("DRHR0");
+    else 
+        this->query_command("DRHR1");
+    this->reference_axis();
     return;
 }
 

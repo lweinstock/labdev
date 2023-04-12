@@ -72,8 +72,9 @@ public:
     void power_off() { power_on(false); }
     void power_continue();
 
-    // Referencing for absolute position measurements
+    // Referencing for absolute position measurements (see manual p.48)
     void reference_axis();
+    void reference_axis(bool pos_dir);
     bool is_referenced();
 
     // Go to absolute position in micro meter (non blocking & blocking)
