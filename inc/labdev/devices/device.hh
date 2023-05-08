@@ -1,6 +1,7 @@
 #ifndef DEVICE_HH
 #define DEVICE_HH
 
+#include <memory>
 #include <labdev/ld_interface.hh>
 
 namespace labdev {
@@ -12,8 +13,11 @@ namespace labdev {
 class device {
 public:
     device() : m_comm(nullptr), m_dev_name("?") {};
-    device(const device&) = delete;
     virtual ~device() { this->disconnect(); }
+
+    // No copy constructor or assignment (use references instead)
+    device(const device&) = delete;
+    device& operator=(const device&) = delete;
 
     // Returns true if the communication interface is ready and working
     bool connected() const;
@@ -34,7 +38,7 @@ protected:
     device(std::string name) : m_comm(nullptr), m_dev_name(name) {};
 
     // Communication interface
-    ld_interface* m_comm;
+    std::unique_ptr<ld_interface> m_comm;
 
     // Device name
     std::string m_dev_name;

@@ -22,7 +22,11 @@ public:
     tcpip_interface(const std::string& ip_addr, unsigned port);
     tcpip_interface(ip_address &ip_addr) : 
         tcpip_interface(ip_addr.ip, ip_addr.port) {};
-    virtual ~tcpip_interface();
+    virtual ~tcpip_interface() { this->close(); }
+
+    // No copy constructor or assignment (use references instead)
+    tcpip_interface(const tcpip_interface&) = delete;
+    tcpip_interface& operator=(const tcpip_interface&) = delete;
 
     // Open TCP/IP socket with given IP and port
     void open(const std::string& ip_addr, unsigned port);
@@ -54,7 +58,7 @@ public:
     bool good() const override { return m_connected; }
 
     // Returns interface type
-    interface_type type() const override { return tcpip; }
+    Interface_type type() const override { return tcpip; }
 
     // Returns human readable info string
     std::string get_info() const override;

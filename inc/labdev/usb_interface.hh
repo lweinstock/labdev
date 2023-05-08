@@ -28,7 +28,11 @@ public:
         std::string serial_number = "");
     usb_interface(uint8_t bus_address, uint8_t device_address);
     usb_interface(usb_config &conf);
-    virtual ~usb_interface();
+    virtual ~usb_interface() { this->close(); }
+
+    // No copy constructor or assignment (use references instead)
+    usb_interface(const usb_interface&) = delete;
+    usb_interface& operator=(const usb_interface&) = delete;
 
     void open(uint16_t vendor_id, uint16_t product_id,
         std::string serial_number = "");
@@ -41,7 +45,7 @@ public:
     virtual int read_raw(uint8_t* data, size_t max_len, 
         unsigned timeout_ms = s_dflt_timeout_ms) override;
 
-    interface_type type() const override { return usb; }
+    Interface_type type() const override { return usb; }
 
     // Returns true if USB device is ready for IO
     bool good() const override { return m_connected; }

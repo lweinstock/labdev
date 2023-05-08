@@ -43,12 +43,6 @@ usb_interface::usb_interface(usb_config &conf) : usb_interface()
     return;
 }
 
-usb_interface::~usb_interface() 
-{
-    this->close();
-    return;
-}
-
 void usb_interface::open(uint16_t vendor_id, uint16_t product_id,
     string serial_number) 
 {

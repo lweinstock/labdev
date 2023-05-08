@@ -41,12 +41,6 @@ serial_interface()
     return;
 }
 
-serial_interface::~serial_interface() 
-{
-    this->close();
-    return;
-}
-
 void serial_interface::open(const string &path, unsigned baud, 
 unsigned nbits, bool par_en, bool par_even, unsigned stop_bits) 
 {

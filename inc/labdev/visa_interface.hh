@@ -29,6 +29,10 @@ public:
     visa_interface(const visa_identifier visa_id);
     virtual ~visa_interface();
 
+    // No copy constructor or assignment (use references instead)
+    visa_interface(const visa_interface&) = delete;
+    visa_interface& operator=(const visa_interface&) = delete;
+
     // Find all available VISA resource, returns list of VISA IDs
     std::vector<std::string> find_resources(std::string regex = "?*INSTR");
 
@@ -42,7 +46,7 @@ public:
 
     std::string get_info() const override { return m_visa_id; }
 
-    interface_type type() const override { return visa; }
+    Interface_type type() const override { return visa; }
 
     bool good() const override { return m_connected; }
 
@@ -71,8 +75,8 @@ private:
 #else
 
 /*
-*      Empty dummy class if visa support is disabled in makefile
-*/
+ *      Empty dummy class if visa support is disabled in makefile
+ */
 
 namespace labdev {
 
@@ -84,8 +88,10 @@ public:
     }
 
     visa_interface(visa_identifier &visa_id) : visa_interface() {}
-
     virtual ~visa_interface() {}
+
+    visa_interface(const visa_interface&) = delete;
+    visa_interface& operator=(const visa_interface&) = delete;
 
     void open() override {};
     void close() override {};
@@ -96,7 +102,7 @@ public:
 
     std::string get_info() const override { return ""; }
 
-    interface_type type() const override { return visa; }
+    Interface_type type() const override { return visa; }
 
     bool good() const override { return false; }
 

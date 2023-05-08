@@ -8,19 +8,23 @@
 namespace labdev{
 
 /*
-    *  Interface types
-    */
+ *  Interface types
+ */
 
-enum interface_type {none, serial, tcpip, usb, usbtmc, visa};
+enum Interface_type {none, serial, tcpip, usb, usbtmc, visa};
 
 /*
-    *  Abstract base class for all interfaces
-    */
+ *  Abstract base class for all interfaces
+ */
 
 class ld_interface {
 public:
     ld_interface() {};
     virtual ~ld_interface() {};
+
+    // No copy constructor or assignment (use references instead)
+    ld_interface(const ld_interface&) = delete;
+    ld_interface& operator=(const ld_interface&) = delete;
 
     /*
      *      Default values
@@ -68,7 +72,7 @@ public:
     virtual std::string get_info() const = 0;
 
     // Returns interface type; can be used to break abstraction
-    virtual interface_type type() const = 0;
+    virtual Interface_type type() const = 0;
     // Returns true if device is ready for communication
     virtual bool good() const = 0;
     // Opens communication 

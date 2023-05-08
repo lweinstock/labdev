@@ -31,11 +31,6 @@ usbtmc_interface::usbtmc_interface(usb_config &conf)
     return;
 }
 
-usbtmc_interface::~usbtmc_interface() 
-{
-    return;
-}
-
 void usbtmc_interface::write(const string& msg) 
 {
     this->write_dev_dep_msg(msg);

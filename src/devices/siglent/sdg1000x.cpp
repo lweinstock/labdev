@@ -35,7 +35,7 @@ void sdg1000x::connect(ip_address &ip)
         fprintf(stderr, "SDG1000X only supports port %i\n", sdg1000x::PORT);
         abort();
     }
-    m_comm = new tcpip_interface(ip);
+    m_comm = std::make_unique<tcpip_interface>(ip);
     init();
     return;
 }

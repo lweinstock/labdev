@@ -34,7 +34,7 @@ void fy6900::connect(serial_config &ser)
         fprintf(stderr, "FY6900 only supports %i baud 8N1\n", fy6900::BAUD);
         abort();
     }
-    m_comm = new serial_interface(ser);
+    m_comm = std::make_unique<serial_interface>(ser);
     return;
 }
 

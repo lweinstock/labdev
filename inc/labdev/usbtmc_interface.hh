@@ -12,7 +12,11 @@ public:
         std::string serial_number = "");
     usbtmc_interface(uint8_t bus_address, uint8_t device_address);
     usbtmc_interface(usb_config &conf);
-    virtual ~usbtmc_interface();
+    virtual ~usbtmc_interface() {};
+
+    // No copy constructor or assignment (use references instead)
+    usbtmc_interface(const usbtmc_interface&) = delete;
+    usbtmc_interface& operator=(const usbtmc_interface&) = delete;
 
     // USBTMC protocol definitions
     enum bRequest : uint16_t {
@@ -44,7 +48,7 @@ public:
     void write(const std::string& msg) override;
     std::string read(unsigned timeout_ms = s_dflt_timeout_ms) override;
 
-    interface_type type() const override { return usbtmc; }
+    Interface_type type() const override { return usbtmc; }
 
     // USBTMC device dependant data transfer
     int write_dev_dep_msg(std::string msg,

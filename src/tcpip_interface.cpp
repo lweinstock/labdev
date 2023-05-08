@@ -26,12 +26,6 @@ tcpip_interface::tcpip_interface(const string& ip_addr, unsigned port)
     return;
 }
 
-tcpip_interface::~tcpip_interface() 
-{
-    close();
-    return;
-}
-
 void tcpip_interface::open(const string& ip_addr, unsigned port) 
 {
     // Create TCP/IP socket

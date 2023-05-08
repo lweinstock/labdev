@@ -32,7 +32,11 @@ public:
     serial_interface(serial_config &conf) : 
         serial_interface(conf.dev_file, conf.baud, conf.nbits, conf.par_ena,
         conf.par_even, conf.stop_bits) {};
-    ~serial_interface();
+    ~serial_interface() { this->close(); }
+
+    // No copy constructor or assignment (use references instead)
+    serial_interface(const serial_interface&) = delete;
+    serial_interface& operator=(const serial_interface&) = delete;
 
     // Open or close device (default 9600 baud 8N1)
     void open(const std::string &path, unsigned baud = 9600,
@@ -86,7 +90,7 @@ public:
 
     bool good() const override { return m_connected; }
 
-    interface_type type() const override { return serial; }
+    Interface_type type() const override { return serial; }
 
 private:
     std::string m_path;

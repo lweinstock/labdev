@@ -11,22 +11,16 @@ bool device::connected() const {
 
 void device::disconnect() 
 {
-    // Disconnect and clear communication interface
-    if(m_comm) 
-    {
-        m_comm->close();
-        delete m_comm;
-        m_comm = nullptr;   // delete does not set pointer to nullptr!
-    }
+    // Reset pointer to avoit leaks
+    m_comm.reset();
     return;
 }
 
 void device::reconnect(unsigned wait_ms)
 {
-    if (m_comm)
-        m_comm->close();
-    if (wait_ms)
-        usleep(wait_ms*1e3);
+    if (!m_comm) return;
+    m_comm->close();
+    if (wait_ms) usleep(wait_ms*1e3);
     m_comm->open();
     return;
 }
