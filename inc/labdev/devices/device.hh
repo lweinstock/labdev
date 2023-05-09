@@ -38,7 +38,7 @@ protected:
     device(std::string name) : m_comm(nullptr), m_dev_name(name) {};
 
     // Communication interface
-    std::unique_ptr<ld_interface> m_comm;
+    std::shared_ptr<ld_interface> m_comm;
 
     // Device name
     std::string m_dev_name;

@@ -12,8 +12,11 @@ class om70_l : public device {
 public:
     om70_l();
     om70_l(ip_address &ip);
-    om70_l(const om70_l&) = delete;
     ~om70_l();
+
+    // No copy constructor or assignment (use references instead)
+    om70_l(const om70_l&) = delete;
+    om70_l& operator=(const om70_l&) = delete;
 
     // OM70 default port 502
     static constexpr unsigned PORT = 502;
@@ -71,6 +74,7 @@ private:
     void extract_mem_meas(std::vector<uint16_t> data, float &dist, 
         int &quality, float &sample_rate, float &exposure);
 
+    std::shared_ptr<tcpip_interface> m_tcpip;
     modbus_tcp* m_modbus;
     int m_quality;
     float m_dist, m_sr, m_exp;

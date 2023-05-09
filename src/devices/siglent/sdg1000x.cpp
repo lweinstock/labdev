@@ -35,7 +35,7 @@ void sdg1000x::connect(ip_address &ip)
         fprintf(stderr, "SDG1000X only supports port %i\n", sdg1000x::PORT);
         abort();
     }
-    m_comm = std::make_unique<tcpip_interface>(ip);
+    m_comm = std::make_shared<tcpip_interface>(ip);
     init();
     return;
 }
@@ -311,7 +311,7 @@ float sdg1000x::get_offset(unsigned channel)
 void sdg1000x::init() 
 {
     // Setup SCPI
-    m_scpi = new scpi(m_comm);
+    m_scpi = new scpi(m_comm.get());
     m_scpi->clear_status();
     m_dev_name = m_scpi->get_identifier();
     return;

@@ -53,7 +53,7 @@ void ds1000z::connect(ip_address &ip)
         fprintf(stderr, "Rigol DS1000z only supports port %u.\n", ds1000z::PORT);
         abort();
     }
-    m_comm = new tcpip_interface(ip);
+    m_comm = std::make_shared<tcpip_interface>(ip);
     init();
     return;
 }
@@ -64,19 +64,19 @@ void ds1000z::connect(usb_config &conf)
         fprintf(stderr, "Device is already connected!\n");
         abort();
     }
-    usbtmc_interface* usbtmc = new usbtmc_interface(conf);
+    auto usbtmc = std::make_unique<usbtmc_interface>(conf);
     // USB initialization
     usbtmc->claim_interface(0);
     usbtmc->set_endpoint_in(0x02);
     usbtmc->set_endpoint_out(0x03);
-    m_comm = usbtmc;
+    m_comm = std::move(usbtmc);
     init();
     return;
 }
 
 void ds1000z::connect(visa_identifier &visa_id) 
 {
-    m_comm = new visa_interface(visa_id);
+    m_comm = std::make_shared<visa_interface>(visa_id);
     init();
     return;
 }
@@ -345,7 +345,7 @@ const string ds1000z::s_meas_type_string[] = {"MAX", "MIN", "CURR",
 void ds1000z::init() 
 {
     // Setup SCPI
-    m_scpi = new scpi(m_comm);
+    m_scpi = new scpi(m_comm.get());
     m_scpi->clear_status();
     m_dev_name = m_scpi->get_identifier();
 

@@ -51,8 +51,7 @@ void dg4000::connect(ip_address &ip)
         fprintf(stderr, "DG4000 only supports port %i\n", dg4000::PORT);
         abort();
     }
-    m_comm = new tcpip_interface(ip);
-    m_scpi = new scpi(m_comm);
+    m_comm = std::make_shared<tcpip_interface>(ip);
     this->init();
     return;
 }
@@ -62,8 +61,7 @@ void dg4000::connect(visa_identifier &visa_id)
         fprintf(stderr, "Device is already connected!\n");
         abort();
     }
-    m_comm = new visa_interface(visa_id);
-    m_scpi = new scpi(m_comm);
+    m_comm = std::make_shared<visa_interface>(visa_id);
     this->init();
     return;
 }
@@ -73,13 +71,12 @@ void dg4000::connect(usb_config &usb)
         fprintf(stderr, "Device is already connected!\n");
         abort();
     }
-    usbtmc_interface* usbtmc = new usbtmc_interface(usb);
+    auto usbtmc = new std::make_unique<usbtmc_interface>(usb);
     // USB initialization
     usbtmc->claim_interface(0);
     usbtmc->set_endpoint_in(0x08);
     usbtmc->set_endpoint_out(0x02);
-    m_comm = usbtmc;
-    m_scpi = new scpi(m_comm);
+    m_comm = std::move(usbtmc);
     this->init();
     return;
 }
@@ -286,6 +283,7 @@ float dg4000::get_offset(unsigned channel)
 
 void dg4000::init() 
 {
+    m_scpi = new scpi(m_comm.get());
     m_scpi->clear_status();
     m_scpi->wait_to_complete();
     return;

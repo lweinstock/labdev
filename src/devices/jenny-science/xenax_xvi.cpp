@@ -49,7 +49,7 @@ void xenax_xvi::connect(serial_config &ser)
     ser.nbits = 8;
     ser.par_ena = false;
     ser.stop_bits = 1;
-    m_comm = new serial_interface(ser);
+    m_comm = std::make_shared<serial_interface>(ser);
     return;
 }
 
@@ -65,7 +65,7 @@ void xenax_xvi::connect(ip_address &ip)
             xenax_xvi::PORT);
         abort();
     }
-    m_comm = new tcpip_interface(ip);
+    m_comm = std::make_shared<tcpip_interface>(ip);
     return;
 }
 

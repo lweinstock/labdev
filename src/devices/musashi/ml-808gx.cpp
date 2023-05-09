@@ -30,7 +30,7 @@ void ml_808gx::connect(serial_config &ser)
     ser.nbits = 8;
     ser.par_ena = false;
     ser.stop_bits = 1;
-    m_comm = new serial_interface(ser);
+    m_comm = std::make_shared<serial_interface>(ser);
     return;
 }
 
@@ -42,7 +42,7 @@ void ml_808gx::dispense()
     return;
 }
 
-void ml_808gx::select_channel(unsigned ch) 
+void ml_808gx::select_channel(unsigned ch)
 {
     if (ch > 399) {
         printf("Invalid channel %i (allowed 0 - 399)\n", ch);

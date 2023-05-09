@@ -43,8 +43,8 @@ void om70_l::connect(ip_address &ip)
         fprintf(stderr, "OM70-L only supports port %u.\n", om70_l::PORT);
         abort();
     }
-    m_comm = new tcpip_interface(ip);
-    m_modbus = new modbus_tcp(static_cast<tcpip_interface*>(m_comm));
+    m_tcpip = std::make_shared<tcpip_interface>(ip);
+    m_modbus = new modbus_tcp(m_tcpip.get());
     return;
 }
 
