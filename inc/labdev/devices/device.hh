@@ -15,9 +15,10 @@ public:
     device() : m_comm(nullptr), m_dev_name("?") {};
     virtual ~device() { this->disconnect(); }
 
-    // No copy constructor or assignment (use references instead)
+    // No copy constructor or assignment, default move constructor
     device(const device&) = delete;
     device& operator=(const device&) = delete;
+    device(device&&) = default;
 
     // Returns true if the communication interface is ready and working
     bool connected() const;

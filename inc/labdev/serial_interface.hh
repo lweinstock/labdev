@@ -34,10 +34,6 @@ public:
         conf.par_even, conf.stop_bits) {};
     ~serial_interface() { this->close(); }
 
-    // No copy constructor or assignment (use references instead)
-    serial_interface(const serial_interface&) = delete;
-    serial_interface& operator=(const serial_interface&) = delete;
-
     // Open or close device (default 9600 baud 8N1)
     void open(const std::string &path, unsigned baud = 9600,
         unsigned nbits = 8, bool par_en = false, bool par_even = false,

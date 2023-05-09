@@ -14,10 +14,6 @@ public:
     om70_l(ip_address &ip);
     ~om70_l();
 
-    // No copy constructor or assignment (use references instead)
-    om70_l(const om70_l&) = delete;
-    om70_l& operator=(const om70_l&) = delete;
-
     // OM70 default port 502
     static constexpr unsigned PORT = 502;
 

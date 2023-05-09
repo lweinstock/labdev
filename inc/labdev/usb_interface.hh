@@ -30,10 +30,6 @@ public:
     usb_interface(usb_config &conf);
     virtual ~usb_interface() { this->close(); }
 
-    // No copy constructor or assignment (use references instead)
-    usb_interface(const usb_interface&) = delete;
-    usb_interface& operator=(const usb_interface&) = delete;
-
     void open(uint16_t vendor_id, uint16_t product_id,
         std::string serial_number = "");
     void open(uint8_t bus_no, uint8_t port_no);

@@ -24,10 +24,6 @@ public:
         tcpip_interface(ip_addr.ip, ip_addr.port) {};
     virtual ~tcpip_interface() { this->close(); }
 
-    // No copy constructor or assignment (use references instead)
-    tcpip_interface(const tcpip_interface&) = delete;
-    tcpip_interface& operator=(const tcpip_interface&) = delete;
-
     // Open TCP/IP socket with given IP and port
     void open(const std::string& ip_addr, unsigned port);
     // Open TCP/IP socket with stored information

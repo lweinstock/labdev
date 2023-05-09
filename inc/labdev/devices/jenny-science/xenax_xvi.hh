@@ -12,7 +12,6 @@ public:
     xenax_xvi();
     xenax_xvi(serial_config &ser);
     xenax_xvi(ip_address &ip);
-    xenax_xvi(const xenax_xvi&) = delete;
 
     void connect(serial_config &ser);
     void connect(ip_address &ip);

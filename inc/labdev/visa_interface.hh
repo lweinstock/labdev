@@ -29,10 +29,6 @@ public:
     visa_interface(const visa_identifier visa_id);
     virtual ~visa_interface();
 
-    // No copy constructor or assignment (use references instead)
-    visa_interface(const visa_interface&) = delete;
-    visa_interface& operator=(const visa_interface&) = delete;
-
     // Find all available VISA resource, returns list of VISA IDs
     std::vector<std::string> find_resources(std::string regex = "?*INSTR");
 
@@ -92,6 +88,8 @@ public:
 
     visa_interface(const visa_interface&) = delete;
     visa_interface& operator=(const visa_interface&) = delete;
+    visa_interface(visa_interface&&) = default;
+
 
     void open() override {};
     void close() override {};

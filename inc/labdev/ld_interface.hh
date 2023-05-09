@@ -22,9 +22,10 @@ public:
     ld_interface() {};
     virtual ~ld_interface() {};
 
-    // No copy constructor or assignment (use references instead)
+    // No copy constructor or assignment, default move constructor
     ld_interface(const ld_interface&) = delete;
     ld_interface& operator=(const ld_interface&) = delete;
+    ld_interface(ld_interface&&) = default;
 
     /*
      *      Default values

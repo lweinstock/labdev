@@ -14,10 +14,6 @@ public:
     usbtmc_interface(usb_config &conf);
     virtual ~usbtmc_interface() {};
 
-    // No copy constructor or assignment (use references instead)
-    usbtmc_interface(const usbtmc_interface&) = delete;
-    usbtmc_interface& operator=(const usbtmc_interface&) = delete;
-
     // USBTMC protocol definitions
     enum bRequest : uint16_t {
         INITIATE_ABORT_BULK_OUT     = 0x01,
