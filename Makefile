@@ -80,7 +80,7 @@ ifeq ($(VISA),1)
 endif
 
 # Generate pkg-config file
-PC_CFLAGS=--std=c++11 -I$${includedir}
+PC_CFLAGS=--std=c++14 -I$${includedir}
 PC_LDFLAGS=-L$${libdir} -llabdev
 
 ifeq ($(VISA),1)  # Add VISA dependencies
