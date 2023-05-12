@@ -19,53 +19,6 @@ public:
     // XENAX default port 10001
     static constexpr unsigned PORT = 10001;
 
-    // Process Status Register definition (manual p. 56)
-    enum PSR : uint32_t {
-        ERROR                     = (1 << 0),
-        REF                       = (1 << 1),
-        IN_MOTION                 = (1 << 2),
-        IN_POSITION               = (1 << 3),
-        END_OF_PROGRAM            = (1 << 4),
-        IN_FORCE                  = (1 << 5),
-        IN_SECTO                  = (1 << 6),
-        FORCE_IN_SECTOR           = (1 << 7),
-        INVERTER_VOLTAGE          = (1 << 8),
-        END_OF_GANTRY_IN          = (1 << 9),
-        NEGATIVE_LIMIT_SWITC      = (1 << 10),
-        POSITIVE_LIMIT_SWITC      = (1 << 11),
-        REMAIN_POWER_ON           = (1 << 12),
-        POWER_OFF                 = (1 << 13),
-        FORCE_CALIBRATION_ACTIVE  = (1 << 14),
-        I_FORCE_LIMIT_REACHED     = (1 << 15),
-        STO_PRIMED_HIT            = (1 << 16),
-        SS1_PRIMED_HIT            = (1 << 17),
-        SS2_PRIMED                = (1 << 18),
-        SS2_HIT                   = (1 << 19),
-        SLS_PRIMED                = (1 << 20),
-        SLS_SPEED_HIT             = (1 << 21),
-        SLS_POSITION_HIT          = (1 << 22),
-        WARNING                   = (1 << 23),
-        INFO                      = (1 << 24),
-        PHASING_DONE              = (1 << 25),
-        I_FORCE_DRIFT_COMP_ACTIVE = (1 << 26)
-    };
-
-    enum output_type : uint8_t {
-        SINK = 0b00,
-        SOURCE = 0b01,
-        SINK_SOURCE = 0b10
-    };
-
-    enum output_activity : uint8_t {
-        ACTIVE_LOW = 0b0,
-        ACTIVE_HIGH = 0b1
-    };
-
-    enum io_state : uint8_t {
-        LOW = 0b0,
-        HIGH = 0b1
-    };
-
     // En-/disable power of Xenax motor controller
     void power_on(bool enable = true);
     void power_off() { power_on(false); }
@@ -107,20 +60,27 @@ public:
     float get_force_limit();        // [N]
     bool force_limit_reached();
 
-    // Set soft limits
+    // Set and get soft limits (left = min, right = max)
     void set_limits(unsigned left, unsigned right);
     unsigned get_limit_left();
     unsigned get_limit_right();
 
+    enum output_type : uint8_t {
+        SINK = 0b00,
+        SOURCE = 0b01,
+        SINK_SOURCE = 0b10
+    };
+
     // Programmable Logic Controller (PLC) GPIO settings (manual p. 51ff)
     void set_output_type(unsigned output_no, output_type type);
-    void set_output_activity(unsigned output_no, output_activity act);
-    void set_output(unsigned output_no, io_state state);
-    io_state get_input(unsigned input_no);
+    void set_output_activity(unsigned output_no, bool active_hi);
+    void set_output(unsigned output_no, bool high);
+    // Returns true when high, false when low
+    bool get_input(unsigned input_no);
 
-    // Read the Process Status Register (PSR) & update status
-    uint32_t get_status_register();
 
+    // Motor type reset (in response to error 59)
+    void reset_motor_type() { this->query_command("RESM", 10000); }
     // Disable motion blocked by unconfigured Safety Motion Unit (SMU)
     void disable_smu() { this->query_command("DMBUS"); }
 
@@ -130,10 +90,39 @@ public:
     unsigned get_error() { return std::stoi(this->query_command("TE")); }
     std::string get_strerror() { return this->query_command("TES"); }
 
-    // Motor type reset (in response to error 59)
-    void reset_motor_type() { this->query_command("RESM", 10000); }
+    // Read the Process Status Register (PSR) & update status
+    uint32_t get_status_register();
 
-    std::string query_command(std::string cmd, unsigned timeout_ms = 1000);
+    // Process Status Register definition (manual p. 56)
+    enum PSR : uint32_t {
+        ERROR                     = (1 << 0),
+        REF                       = (1 << 1),
+        IN_MOTION                 = (1 << 2),
+        IN_POSITION               = (1 << 3),
+        END_OF_PROGRAM            = (1 << 4),
+        IN_FORCE                  = (1 << 5),
+        IN_SECTO                  = (1 << 6),
+        FORCE_IN_SECTOR           = (1 << 7),
+        INVERTER_VOLTAGE          = (1 << 8),
+        END_OF_GANTRY_IN          = (1 << 9),
+        NEGATIVE_LIMIT_SWITC      = (1 << 10),
+        POSITIVE_LIMIT_SWITC      = (1 << 11),
+        REMAIN_POWER_ON           = (1 << 12),
+        POWER_OFF                 = (1 << 13),
+        FORCE_CALIBRATION_ACTIVE  = (1 << 14),
+        I_FORCE_LIMIT_REACHED     = (1 << 15),
+        STO_PRIMED_HIT            = (1 << 16),
+        SS1_PRIMED_HIT            = (1 << 17),
+        SS2_PRIMED                = (1 << 18),
+        SS2_HIT                   = (1 << 19),
+        SLS_PRIMED                = (1 << 20),
+        SLS_SPEED_HIT             = (1 << 21),
+        SLS_POSITION_HIT          = (1 << 22),
+        WARNING                   = (1 << 23),
+        INFO                      = (1 << 24),
+        PHASING_DONE              = (1 << 25),
+        I_FORCE_DRIFT_COMP_ACTIVE = (1 << 26)
+    };
 
 private:
     std::string m_input_buffer, m_strerror;
@@ -176,6 +165,9 @@ private:
 
     void init();
     void flush_buffer();
+
+    // General command query
+    std::string query_command(std::string cmd, unsigned timeout_ms = 1000);
 
     // Wait until status bits are set
     void wait_status_set(uint32_t status, unsigned interval_ms = 500,

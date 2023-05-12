@@ -120,8 +120,7 @@ void xenax_xvi::move_position(int pos)
     return;
 }
 
-void xenax_xvi::goto_position(int pos, unsigned interval_ms,
-unsigned timeout_ms) 
+void xenax_xvi::goto_position(int pos, unsigned interval_ms, unsigned timeout_ms) 
 {
     this->move_position(pos);
 
@@ -149,12 +148,28 @@ int xenax_xvi::get_position()
 
 bool xenax_xvi::in_motion() 
 {
-    return (this->get_status_register() & IN_MOTION);
+    bool ret;
+    try {
+        ret = this->get_status_register() & IN_MOTION;
+    } catch (const device_error& ex) {
+        if (ex.error_number() == 03)    // In motion (refer manual p. 34)
+            return true;
+        throw;
+    }
+    return ret;
 }
 
 bool xenax_xvi::in_position() 
 {
-    return (this->get_status_register() & IN_POSITION);
+    bool ret;
+    try {
+        ret = this->get_status_register() & IN_POSITION;
+    } catch (const device_error& ex) {
+        if (ex.error_number() == 03)    // In motion (refer manual p. 34)
+            return false;
+        throw;
+    }
+    return ret;
 }
 
 void xenax_xvi::jog_pos() 
@@ -288,7 +303,7 @@ unsigned xenax_xvi::get_limit_right()
     return stoi(this->query_command("LR?"));
 }
 
-void xenax_xvi::set_output_activity(unsigned output_no, output_activity act) 
+void xenax_xvi::set_output_activity(unsigned output_no, bool active_hi) 
 {
     if ( (output_no > 8) || (output_no < 1) ){
         fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
@@ -297,34 +312,33 @@ void xenax_xvi::set_output_activity(unsigned output_no, output_activity act)
     // Clear bits
     m_output_activity &= ~(0b1 << (output_no-1));
     // Set bits
-    m_output_activity |= (act << (output_no-1));
+    if (active_hi)
+        m_output_activity |= (0b1 << (output_no-1));
     this->set_output_state_reg(m_output_activity);
     return;
 }
 
-void xenax_xvi::set_output(unsigned output_no, io_state state)
+void xenax_xvi::set_output(unsigned output_no, bool high)
 {
     if ( (output_no > 8) || (output_no < 1) ){
         fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
         abort();
     }
-    if (state == HIGH)
+    if (high)
         this->query_command("SO" + to_string(output_no));
     else 
         this->query_command("CO" + to_string(output_no));
     return;
 }
 
-xenax_xvi::io_state xenax_xvi::get_input(unsigned input_no)
+bool xenax_xvi::get_input(unsigned input_no)
 {
     if ( (input_no > 16) || (input_no < 1) ){
         fprintf(stderr, "GPIO input number has to be between 1 and 16.\n");
         abort();
     }
     uint16_t input_reg = this->get_input_state_reg();
-    if ( (1 << (input_no-1)) & input_reg )
-        return HIGH;
-    return LOW;
+    return ( (1 << (input_no-1)) & input_reg );
 }
 
 uint32_t xenax_xvi::get_status_register() 
@@ -385,80 +399,80 @@ string xenax_xvi::query_command(string cmd, unsigned timeout_ms)
             switch (hash_no) {
                 case 01:
                 throw device_error("Cannot execute command, error in error "
-                "queue (" + par_list.at(1) + ")\n");
+                "queue (" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 case 03:
                 throw device_error("Cannot execute command, currently moving"
-                " (" + par_list.at(1) + ")\n");
+                " (" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 case 05:
                 throw device_error("Cannot execute command, program is active"
-                " (" + par_list.at(1) + ")\n");
+                " (" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 case 13:
                 throw device_error("Cannot execute command, emergency exit "
-                "EE1 is pending (" + par_list.at(1) + ")\n");
+                "EE1 is pending (" + par_list.at(1) + ")\n", hash_no);
 
                 case 14:
                 throw device_error("Cannot execute command, emergency exit "
-                "EE is pending (" + par_list.at(1) + ")\n");
+                "EE is pending (" + par_list.at(1) + ")\n", hash_no);
 
                 case 15:
                 throw device_error("Cannot execute command, force calibration "
-                "is active (" + par_list.at(1) + ")\n");
+                "is active (" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 case 27:
                 throw device_error("Cannot execute command, I Force Drift "
-                "Compensation is active (" + par_list.at(1) + ")\n");
+                "Compensation is active (" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 case 34:
                 throw device_error("Cannot execute command, rotation reference "
-                "is active (" + par_list.at(1) + ")\n");
+                "is active (" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 case 36:
                 throw device_error("Cannot execute command, gantry reference "
-                "is active (" + par_list.at(1) + ")\n");
+                "is active (" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 case 38:
                 throw device_error("Cannot execute command, reference is "
-                "active (" + par_list.at(1) + ")\n");
+                "active (" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 case 40:
                 throw device_error("Cannot execute command, command not "
-                "permitted (" + par_list.at(1) + ")\n");
+                "permitted (" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 case 47:
                 throw device_error("Cannot execute command, fault reaction "
-                "active (" + par_list.at(1) + ")\n");
+                "active (" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 case 49:
                 throw device_error("Cannot execute command, no JSC motor "
-                "connected (" + par_list.at(1) + ")\n");
+                "connected (" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 case 65:
                 throw device_error("Cannot execute command, parameter out of "
-                "value range (" + par_list.at(1) + ")\n");
+                "value range (" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 case 66:
                 throw device_error("Cannot execute command, 5s timeout occured "
-                "(" + par_list.at(1) + ")\n");
+                "(" + par_list.at(1) + ")\n", hash_no);
                 break;
 
                 default:
                 throw device_error("Cannot execute command, unknown hash (" 
-                + par_list.at(1) + ")\n");
+                + par_list.at(1) + ")\n", hash_no);
                 break;
             }
         }
