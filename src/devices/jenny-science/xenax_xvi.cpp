@@ -271,6 +271,23 @@ void xenax_xvi::set_output_type(unsigned output_no, output_type type)
     return;
 }
 
+void xenax_xvi::set_limits(unsigned left, unsigned right)
+{
+    this->query_command("LL" + to_string(left));
+    this->query_command("LR" + to_string(right));
+    return;
+}
+
+unsigned xenax_xvi::get_limit_left()
+{
+    return stoi(this->query_command("LL?"));
+}
+
+unsigned xenax_xvi::get_limit_right()
+{
+    return stoi(this->query_command("LR?"));
+}
+
 void xenax_xvi::set_output_activity(unsigned output_no, output_activity act) 
 {
     if ( (output_no > 8) || (output_no < 1) ){

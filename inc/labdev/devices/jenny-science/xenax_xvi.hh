@@ -107,6 +107,11 @@ public:
     float get_force_limit();        // [N]
     bool force_limit_reached();
 
+    // Set soft limits
+    void set_limits(unsigned left, unsigned right);
+    unsigned get_limit_left();
+    unsigned get_limit_right();
+
     // Programmable Logic Controller (PLC) GPIO settings (manual p. 51ff)
     void set_output_type(unsigned output_no, output_type type);
     void set_output_activity(unsigned output_no, output_activity act);
