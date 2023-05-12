@@ -114,8 +114,12 @@ PYBIND11_MODULE(pylabdev, m) {
             &xenax_xvi::power_off, 
             "Turn off motor power")
         .def("reference_axis", 
-            &xenax_xvi::reference_axis, 
+            static_cast<void (xenax_xvi::*)()>(&xenax_xvi::reference_axis), 
             "Start referencing axis position")
+        .def("reference_axis", 
+            static_cast<void (xenax_xvi::*)(bool pos_dir)>(&xenax_xvi::reference_axis), 
+            "Start referencing axis position in specified direction "
+            "(true = positive, false = negative)")
         .def("is_referenced", 
             &xenax_xvi::is_referenced, 
             "Returns true if axis is referenced")
@@ -219,18 +223,6 @@ PYBIND11_MODULE(pylabdev, m) {
         .value("sink", xenax_xvi::output_type::SINK)
         .value("source", xenax_xvi::output_type::SOURCE)
         .value("sink_source", xenax_xvi::output_type::SINK_SOURCE)
-    ;
-
-    // Output activity enums for Xenax Xvi 75v8
-    py::enum_<xenax_xvi::output_activity>(xenax_xvi, "output_activity")
-        .value("active_low", xenax_xvi::output_activity::ACTIVE_LOW)
-        .value("active_high", xenax_xvi::output_activity::ACTIVE_HIGH)
-    ;
-
-    // I/O state enums for Xenax Xvi 75v8
-    py::enum_<xenax_xvi::io_state>(xenax_xvi, "io_state")
-        .value("low", xenax_xvi::io_state::LOW)
-        .value("high", xenax_xvi::io_state::HIGH)
     ;
 
     // Baumer laser distance sensor OM70
