@@ -12,21 +12,8 @@ usbtmc_interface::usbtmc_interface()
     return;
 }
 
-usbtmc_interface::usbtmc_interface(uint16_t vendor_id, uint16_t product_id,
-string serial_number) : usb_interface(vendor_id, product_id, serial_number),
-    m_cur_tag(0x01), m_eom_cap(true)
-{
-    return;
-}
-
-usbtmc_interface::usbtmc_interface(uint8_t bus_address, uint8_t device_address)
-    : usb_interface(bus_address, device_address), m_cur_tag(0x01), m_eom_cap(true) 
-{
-    return;
-}
-
-usbtmc_interface::usbtmc_interface(usb_config &conf)
-    : usb_interface(conf), m_cur_tag(0x01), m_eom_cap(true) 
+usbtmc_interface::usbtmc_interface(const usb_config conf) 
+    : usb_interface(conf), m_cur_tag(0x01), m_eom_cap(true)
 {
     return;
 }
@@ -43,7 +30,7 @@ string usbtmc_interface::read(unsigned timeout_ms)
 }
 
 int usbtmc_interface::write_dev_dep_msg(string msg,
-uint8_t transfer_attr) 
+    uint8_t transfer_attr) 
 {
     // add space for header + total length must be multiple of 4
     size_t tot_len = s_header_len + msg.size() + 4 - msg.size()%4;
@@ -67,7 +54,7 @@ uint8_t transfer_attr)
 }
 
 string usbtmc_interface::read_dev_dep_msg(int timeout_ms,
-uint8_t transfer_attr, uint8_t term_char) 
+    uint8_t transfer_attr, uint8_t term_char) 
 {
     uint8_t read_request[s_header_len];
     uint8_t rbuf[s_dflt_buf_size] = { 0x00 };

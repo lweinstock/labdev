@@ -11,11 +11,8 @@ namespace labdev {
 ViSession visa_interface::s_default_rm;
 int visa_interface::s_interface_ctr = 0;
 
-visa_interface::visa_interface():
-    m_instr(0),
-    m_visa_id("ASRL1::INSTR"),
-    m_connected(false),
-    m_timeout(DFLT_TIMEOUT_MS) 
+visa_interface::visa_interface()
+    : m_instr(0), m_visa_id("ASRL1::INSTR"), m_timeout(DFLT_TIMEOUT_MS) 
 {
     ViStatus stat;
     if (s_interface_ctr == 0) {
@@ -60,7 +57,7 @@ void visa_interface::open(const visa_identifier visa_id)
     check_and_throw(stat, "Could not open instrument '" + visa_id + "'");
 
     m_visa_id = visa_id;
-    m_connected = true;
+    m_good = true;
     return;
 }
 
@@ -80,7 +77,7 @@ void visa_interface::close()
     stat = viClose(m_instr);
     check_and_throw(stat, "Failed to close instrument '" + m_visa_id + "'");
 
-    m_connected = false;
+    m_good = false;
     return;
 }
 

@@ -12,22 +12,24 @@ using namespace std;
 
 namespace labdev {
 
-tcpip_interface::tcpip_interface(): ld_interface(), m_socket_fd(-1),
-    m_instr_addr(), m_timeout(), m_connected(false), m_ip_addr("-1"),
-    m_port(0)
+tcpip_interface::tcpip_interface() 
+    : ld_interface(), m_socket_fd(-1), m_instr_addr(), m_timeout(), 
+      m_ip_addr("127.0.0.1"), m_port(0)
 {
     return;
 }
 
-tcpip_interface::tcpip_interface(const string& ip_addr, unsigned port)
-    : tcpip_interface() 
+tcpip_interface::tcpip_interface(const ip_address addr) : tcpip_interface() 
 {
-    open(ip_addr, port);
+    this->open(addr);
     return;
 }
 
-void tcpip_interface::open(const string& ip_addr, unsigned port) 
+void tcpip_interface::open(const ip_address addr) 
 {
+    if ( this->good() )
+        throw bad_connection("TCP/IP interface is already open");
+
     // Create TCP/IP socket
     m_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     check_and_throw(m_socket_fd, "Could not open socket.");
@@ -37,43 +39,49 @@ void tcpip_interface::open(const string& ip_addr, unsigned port)
 
     // Set up instrument ip address
     m_instr_addr.sin_family = AF_INET;
-    m_instr_addr.sin_port = htons(port);
-    int stat = inet_aton(ip_addr.c_str(), &m_instr_addr.sin_addr);
+    m_instr_addr.sin_port = htons(addr.port);
+    int stat = inet_aton(addr.ip.c_str(), &m_instr_addr.sin_addr);
     stringstream err_msg("");
-    err_msg << "Address " << ip_addr << ":" << port << " is not supported.";
+    err_msg << "Address " << addr.ip << ":" << addr.port << " is not supported.";
     check_and_throw(stat, err_msg.str());
 
     // Connect to instrument...
     stat = connect(m_socket_fd, (struct sockaddr *)&m_instr_addr,
         sizeof(m_instr_addr));
     err_msg.str("");
-    err_msg << "Failed to connect to " << ip_addr << ":" << port << ".";
+    err_msg << "Failed to connect to " << addr.ip << ":" << addr.port << ".";
     check_and_throw(stat, err_msg.str());
     debug_print("connected to IP address = %s:%i\n",
         inet_ntoa(m_instr_addr.sin_addr), m_instr_addr.sin_port);
 
-    m_connected = true;
-    m_ip_addr = ip_addr;
-    m_port = port;
+    m_good = true;
+    m_ip_addr = addr.ip;
+    m_port = addr.port;
 
     return;
 }
 
 void tcpip_interface::open() 
 {
-    this->open(m_ip_addr, m_port);
+    this->open(ip_address(m_ip_addr, m_port));
     return;
 }
 
 void tcpip_interface::close() 
 {
+    if ( !this->good() )
+        throw bad_connection("TCP/IP interface is not connected");
+
     shutdown(m_socket_fd, SHUT_RDWR);
-    m_connected = false;
+    m_good = false;
     return;
 }
 
 int tcpip_interface::write_raw(const uint8_t* data, size_t len) 
 {
+    if ( !this->good() )
+        throw bad_connection("TCP/IP interface is not connected");
+
     size_t bytes_left = len;
     size_t bytes_written = 0;
     ssize_t nbytes = 0;
@@ -85,22 +93,6 @@ int tcpip_interface::write_raw(const uint8_t* data, size_t len)
 
         debug_print_byte_data(data, nbytes, "Written %zu bytes: ", nbytes);
 
-/*
-        debug_print("Written %zu bytes: ", nbytes);
-        #ifdef LD_DEBUG
-        if (nbytes > 30) {
-            for (int i = 0; i < 10; i++)
-                printf("0x%02X ", data[bytes_written + i]);
-            printf("[...] ");
-            for (int i = nbytes-10; i < nbytes; i++)
-                printf("0x%02X ", data[bytes_written + i]);
-        } else {
-            for (int i = 0; i < nbytes; i++)
-                printf("0x%02X ", data[bytes_written + i]);
-        }
-        printf("(%zi bytes left)\n", bytes_left);
-        #endif
-*/
         bytes_written += nbytes;
     }
 
@@ -109,6 +101,9 @@ int tcpip_interface::write_raw(const uint8_t* data, size_t len)
 
 int tcpip_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
 {
+    if ( !this->good() )
+        throw bad_connection("TCP/IP interface is not connected");
+
     // Wait for I/O
     fd_set rfd_set;
     FD_ZERO(&rfd_set);

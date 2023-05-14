@@ -44,8 +44,6 @@ public:
 
     Interface_type type() const override { return visa; }
 
-    bool good() const override { return m_connected; }
-
     // Clear I/O buffers
     void flush_buffer(uint16_t flag = VI_READ_BUF | VI_WRITE_BUF);
     void clear_device();
@@ -59,7 +57,6 @@ private:
 
     ViSession m_instr;
     std::string m_visa_id;
-    bool m_connected;
     unsigned m_timeout;
 
     void init();

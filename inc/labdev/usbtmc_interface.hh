@@ -8,10 +8,7 @@ namespace labdev{
 class usbtmc_interface : public usb_interface {
 public:
     usbtmc_interface();
-    usbtmc_interface(uint16_t vendor_id, uint16_t product_id,
-        std::string serial_number = "");
-    usbtmc_interface(uint8_t bus_address, uint8_t device_address);
-    usbtmc_interface(usb_config &conf);
+    usbtmc_interface(const usb_config conf);
     virtual ~usbtmc_interface() {};
 
     // USBTMC protocol definitions

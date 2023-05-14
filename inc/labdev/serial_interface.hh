@@ -8,13 +8,13 @@ namespace labdev{
 
 // brief struct for serial configuration
 struct serial_config {
-    serial_config() : dev_file("/dev/tty0"), baud(9600), nbits(8), 
+    serial_config() : path("/dev/tty0"), baud(9600), nbits(8), 
         par_ena(false), par_even(false), stop_bits(1) {};
     serial_config(std::string dev, unsigned baud = 9600, unsigned bits = 8,
         bool par = false, bool even = false, unsigned sbits = 1) :
-        dev_file(dev), baud(baud), nbits(bits), par_ena(par), 
+        path(dev), baud(baud), nbits(bits), par_ena(par), 
         par_even(even),stop_bits(sbits) {};
-    std::string dev_file;
+    std::string path;
     unsigned baud;
     unsigned nbits;
     bool par_ena;
@@ -26,18 +26,11 @@ struct serial_config {
 class serial_interface : public ld_interface {
 public:
     serial_interface();
-    serial_interface(const std::string &path, unsigned baud = 9600,
-        unsigned nbits = 8, bool par_en = false, bool par_even = false,
-        unsigned stop_bits = 1);
-    serial_interface(serial_config &conf) : 
-        serial_interface(conf.dev_file, conf.baud, conf.nbits, conf.par_ena,
-        conf.par_even, conf.stop_bits) {};
+    serial_interface(const serial_config conf);
     ~serial_interface() { this->close(); }
 
     // Open or close device (default 9600 baud 8N1)
-    void open(const std::string &path, unsigned baud = 9600,
-        unsigned nbits = 8, bool par_en = false, bool par_even = false,
-        unsigned stop_bits = 1);
+    void open(const serial_config conf);
     void open() override;
     void close() override;
 
@@ -84,8 +77,6 @@ public:
     void set_rts();
     void clear_rts();
 
-    bool good() const override { return m_connected; }
-
     Interface_type type() const override { return serial; }
 
 private:
@@ -96,7 +87,7 @@ private:
     unsigned m_stop_bits;
     uint32_t m_nbits;
     speed_t m_baud;
-    bool m_connected, m_par_en, m_par_even, m_update_settings;
+    bool m_par_en, m_par_even, m_update_settings;
 
     void check_and_throw(int status, const std::string &msg) const;
     static speed_t check_baud(unsigned baud);

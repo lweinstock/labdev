@@ -17,40 +17,32 @@ using namespace std;
 
 namespace labdev {
 
-serial_interface::serial_interface():
-    m_path(""),
-    m_fd(-1),
-    m_term_settings(),
-    m_timeout(),
-    m_stop_bits(0),
-    m_nbits(0x00),
-    m_baud(0),
-    m_connected(false),
-    m_par_en(false),
-    m_par_even(false),
-    m_update_settings(true) 
+serial_interface::serial_interface()
+    : m_path(""), m_fd(-1), m_term_settings(), m_timeout(), m_stop_bits(0),
+      m_nbits(0x00), m_baud(0), m_par_en(false), m_par_even(false), 
+      m_update_settings(true) 
 {
     return;
 }
 
-serial_interface::serial_interface(const string &path, unsigned baud, 
-unsigned nbits, bool par_en,bool par_even, unsigned stop_bits):
-serial_interface() 
+serial_interface::serial_interface(const serial_config conf): serial_interface() 
 {
-    this->open(path, baud, nbits, par_en, par_even, stop_bits);
+    this->open(conf);
     return;
 }
 
-void serial_interface::open(const string &path, unsigned baud, 
-unsigned nbits, bool par_en, bool par_even, unsigned stop_bits) 
+void serial_interface::open(const serial_config conf) 
 {
-    debug_print("Opening device '%s'\n", path.c_str());
-    m_fd = ::open(path.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
-    check_and_throw(m_fd, "Failed to open device " + path);
-    m_path = path;
+    if ( this->good() )
+        throw bad_connection("Serial interface is already open");
+
+    debug_print("Opening device '%s'\n", conf.path.c_str());
+    m_fd = ::open(conf.path.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+    check_and_throw(m_fd, "Failed to open device " + conf.path);
+    m_path = conf.path;
 
     int stat = tcgetattr(m_fd, &m_term_settings);
-    check_and_throw(stat, "Failed to get termios attributes from " + path);
+    check_and_throw(stat, "Failed to get termios attributes from " + conf.path);
 
     // Ignore modem control lines, enable receiver
     m_term_settings.c_cflag |= (CLOCAL | CREAD);
@@ -69,32 +61,38 @@ unsigned nbits, bool par_en, bool par_even, unsigned stop_bits)
     m_term_settings.c_cc[VTIME] = 0;
 
     this->disable_hw_flow_ctrl();
-    this->set_baud(baud);
-    this->set_nbits(nbits);
-    this->set_parity(par_en, par_even);
-    this->set_stop_bits(stop_bits);
+    this->set_baud(conf.baud);
+    this->set_nbits(conf.nbits);
+    this->set_parity(conf.par_ena, conf.par_even);
+    this->set_stop_bits(conf.stop_bits);
     this->apply_settings();
 
-    m_connected = true;
+    m_good = true;
     return;
 }
 
 void serial_interface::open() 
 {
-    this->open(m_path, m_baud, m_nbits, m_par_en, m_par_even, m_stop_bits);
+    this->open(serial_config(m_path, m_baud, m_nbits, m_par_en, m_par_even, m_stop_bits));
     return;
 }
 
 void serial_interface::close() 
 {
+    if ( !this->good() )
+        throw bad_connection("Serial interface is not connected");
+    
     debug_print("Closing device '%s'\n", m_path.c_str());
     ::close(m_fd);
-    m_connected = false;
+    m_good = false;
     return;
 }
 
 int serial_interface::write_raw(const uint8_t* data, size_t len) 
 {
+    if ( !this->good() )
+        throw bad_connection("Serial interface is not connected");
+
     if (m_update_settings) this->apply_settings();
 
     size_t bytes_left = len;
@@ -106,20 +104,7 @@ int serial_interface::write_raw(const uint8_t* data, size_t len)
         check_and_throw(nbytes, "Failed to write to device");
         bytes_left -= nbytes;
 
-        debug_print("Written %zu bytes: ", nbytes);
-        #ifdef LD_DEBUG
-        if (nbytes > 20) {
-            for (int i = 0; i < 10; i++)
-                printf("0x%02X ", data[bytes_written + i]);
-            printf("[...] ");
-            for (int i = nbytes-10; i < nbytes; i++)
-                printf("0x%02X ", data[bytes_written + i]);
-        } else {
-            for (int i = 0; i < nbytes; i++)
-                printf("0x%02X ", data[bytes_written + i]);
-        }
-        printf("(%zi bytes left)\n", bytes_left);
-        #endif
+        debug_print_byte_data(data, nbytes, "Written %zu bytes: ", nbytes);
 
         bytes_written += nbytes;
     }
@@ -129,6 +114,9 @@ int serial_interface::write_raw(const uint8_t* data, size_t len)
 
 int serial_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
 {
+    if ( !this->good() )
+        throw bad_connection("Serial interface is not connected");
+
     if (m_update_settings) this->apply_settings();
 
     // Wait for I/O
@@ -150,20 +138,7 @@ int serial_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_m
     nbytes = ::read(m_fd, data, max_len);
     check_and_throw(nbytes, "Failed to read from device");
     
-    debug_print("Read %zi bytes: ", nbytes);
-    #ifdef LD_DEBUG
-    if (nbytes > 20) {
-        for (int i = 0; i < 10; i++)
-            printf("0x%02X ", data[i]);
-        printf("[...] ");
-        for (int i = nbytes-10; i < nbytes; i++)
-            printf("0x%02X ", data[i]);
-    } else {
-        for (int i = 0; i < nbytes; i++)
-            printf("0x%02X ", data[i]);
-    }
-    printf("\n");
-    #endif
+    debug_print_byte_data(data, nbytes, "Read %zu bytes: ", nbytes);
 
     return nbytes;
 }
@@ -293,8 +268,8 @@ void serial_interface::clear_rts()
 }
 
 /*
-    *      P R I V A T E   M E T H O D S
-    */
+ *      P R I V A T E   M E T H O D S
+ */
 
 void serial_interface::check_and_throw(int status, const string &msg) const 
 {

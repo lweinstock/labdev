@@ -19,13 +19,11 @@ struct ip_address {
 class tcpip_interface : public ld_interface {
 public:
     tcpip_interface();
-    tcpip_interface(const std::string& ip_addr, unsigned port);
-    tcpip_interface(ip_address &ip_addr) : 
-        tcpip_interface(ip_addr.ip, ip_addr.port) {};
+    tcpip_interface(const ip_address ip_addr);
     virtual ~tcpip_interface() { this->close(); }
 
     // Open TCP/IP socket with given IP and port
-    void open(const std::string& ip_addr, unsigned port);
+    void open(const ip_address ip_addr);
     // Open TCP/IP socket with stored information
     void open() override;
 
@@ -50,9 +48,6 @@ public:
     // Set read/write timeout in milliseconds
     void set_timeout(unsigned timeout_ms);
 
-    // Returns true if socket is ready for IO
-    bool good() const override { return m_connected; }
-
     // Returns interface type
     Interface_type type() const override { return tcpip; }
 
@@ -63,7 +58,6 @@ private:
     int m_socket_fd;
     struct sockaddr_in m_instr_addr;
     struct timeval m_timeout;
-    bool m_connected;
     std::string m_ip_addr;
     unsigned m_port;
 

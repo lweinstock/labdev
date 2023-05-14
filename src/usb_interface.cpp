@@ -13,39 +13,25 @@ int usb_interface::s_dev_count = 0;
 
 usb_interface::usb_interface(): m_usb_dev(NULL), m_usb_handle(NULL),
     m_cur_cfg(0), m_cur_alt_setting(0), m_cur_interface_no(-1),
-    m_cur_ep_in_addr(0), m_cur_ep_out_addr(0), m_connected(false),
+    m_cur_ep_in_addr(0), m_cur_ep_out_addr(0),
+    m_vid(0x0000), m_pid(0x0000), m_serial_no(""), m_bus(0xFF), m_port(0xFF),
     m_dev_class(0), m_dev_subclass(0), m_dev_protocol(0),
     m_interface_class(0), m_interface_subclass(0), m_interface_protocol(0) 
 {
     return;
 }
 
-usb_interface::usb_interface(uint16_t vendor_id, uint16_t product_id, 
-    string serial_number) : usb_interface() 
+usb_interface::usb_interface(const usb_config conf) : usb_interface() 
 {
-    this->open(vendor_id, product_id, serial_number);
+    this->open(conf);
     return;
 }
 
-usb_interface::usb_interface(uint8_t bus_no, uint8_t port_no) : usb_interface() 
+void usb_interface::open(const usb_config conf) 
 {
-    this->open(bus_no, port_no);
-    return;
-}
+    if ( this->good() )
+        throw bad_connection("USB interface is already open");
 
-usb_interface::usb_interface(usb_config &conf) : usb_interface()
-{
-    if (conf.vid != 0x0000 && conf.pid != 0x0000) {
-            this->open(conf.vid, conf.pid, conf.serial);
-            return;
-    }
-    this->open(conf.bus_no, conf.port_no);
-    return;
-}
-
-void usb_interface::open(uint16_t vendor_id, uint16_t product_id,
-    string serial_number) 
-{
     int stat;
     // If first device, start new libusb session
     if (s_dev_count == 0) {
@@ -64,24 +50,32 @@ void usb_interface::open(uint16_t vendor_id, uint16_t product_id,
         libusb_device_descriptor desc;
         stat = libusb_get_device_descriptor(tmp_dev, &desc);
         check_and_throw(ndev, "Failed to get device descriptor");
-        debug_print("dev %i - ID 0x%04X:0x%04X\n", idev, desc.idVendor,
-            desc.idProduct);
+        uint8_t tmp_bus = libusb_get_bus_number(tmp_dev);
+        uint8_t tmp_port = libusb_get_port_number(tmp_dev);
+        debug_print("dev %i - ID 0x%04X:0x%04X - bus 0x%02X port 0x%02X\n", 
+            idev, desc.idVendor, desc.idProduct, tmp_bus, tmp_port);
+
+        // Check for bus and port number
+        if ( (tmp_port == conf.port_no) && (tmp_bus == conf.bus_no) ) {
+            m_usb_dev = tmp_dev;
+            break;
+        }
 
         // Check for VID and PID
-        if ( (desc.idVendor == vendor_id) && (desc.idProduct == product_id) ) {
+        if ( (desc.idVendor == conf.vid) && (desc.idProduct == conf.pid) ) {
             // Also check for serial number, if specified
-            if ( !serial_number.empty() ) {
+            if (conf.serial != "") {
                 libusb_device_handle* tmp_handle;
                 stat = libusb_open(tmp_dev, &tmp_handle);
                 check_and_throw(stat, "Failed to get usb handle");
 
-                uint8_t serial_str[100];
+                char tmp_serial_cstr[256];
                 stat = libusb_get_string_descriptor_ascii(tmp_handle,
-                    desc.iSerialNumber, serial_str, 100);
+                    desc.iSerialNumber, (uint8_t*)tmp_serial_cstr, 256);
                 check_and_throw(stat, "Failed to get string descriptor");
-                debug_print("SerialNumber %s\n", serial_str);
-
-                if (strcmp(serial_number.c_str(), (const char*)serial_str) == 0) {
+                string tmp_serial(tmp_serial_cstr, stat);
+                debug_print("SerialNumber %s\n", tmp_serial.c_str());
+                if (conf.serial == tmp_serial) {
                     m_usb_dev = tmp_dev;
                     break;
                 }
@@ -98,18 +92,29 @@ void usb_interface::open(uint16_t vendor_id, uint16_t product_id,
         check_and_throw(stat, "Failed to get usb handle");
         this->gather_device_information();
     } else {
-        fprintf(stderr, "Device ID 0x%04X:0x%04X not found\n", vendor_id, product_id);
+        fprintf(stderr, "Device ID 0x%04X:0x%04X BUS%02X:PORT%02X not found\n", 
+            conf.vid, conf.pid, conf.bus_no, conf.port_no);
         abort();
     }
     s_dev_count++;
     debug_print("Opened device, new device count = %i\n", s_dev_count);
 
     libusb_free_device_list(dev_list, 1);
-    m_connected = true;
+    m_good = true;
 
     return;
 }
 
+void usb_interface::open()
+{
+    usb_config tmp(m_vid, m_pid, m_serial_no);
+    tmp.bus_no = m_bus;
+    tmp.port_no = m_port;
+    this->open(tmp);
+    return;
+}
+
+/*  Old version of open; for reference, to be deleted after testing!!
 void usb_interface::open(uint8_t bus_no, uint8_t port_no) 
 {
     int stat;
@@ -150,23 +155,17 @@ void usb_interface::open(uint8_t bus_no, uint8_t port_no)
     debug_print("Opened device, new device count = %i\n", s_dev_count);
 
     libusb_free_device_list(dev_list, 1);
-    m_connected = true;
+    m_good = true;
 
     return;
 }
-
-void usb_interface::open() 
-{
-    if (m_vid != 0x0000 && m_pid != 0x0000) {
-        this->open(m_vid, m_pid, m_serial_no);
-        return;
-    }
-    this->open(m_bus, m_port);
-    return;
-}
+*/
 
 void usb_interface::close() 
 {
+    if ( !this->good() )
+        throw bad_connection("USB interface is not connected");
+
     // Release claimed interfaces and device
     if (m_cur_interface_no != s_no_interface)
         libusb_release_interface(m_usb_handle, m_cur_interface_no);
@@ -175,7 +174,7 @@ void usb_interface::close()
     m_cur_interface_no = s_no_interface;
     // Close context if last device released
     s_dev_count--;
-    m_connected = false;
+    m_good = false;
     debug_print("Closed device, new device count = %i\n", s_dev_count);
     if (s_dev_count == 0) {
         debug_print("%s\n", "Last device closed, exiting libusb\n");
@@ -186,6 +185,9 @@ void usb_interface::close()
 
 int usb_interface::write_raw(const uint8_t* data, size_t len) 
 {
+    if ( !this->good() )
+        throw bad_connection("USB interface is not connected");
+
     this->check_interface();
     size_t bytes_left = len;
     size_t bytes_written = 0;
@@ -218,6 +220,9 @@ int usb_interface::write_raw(const uint8_t* data, size_t len)
 
 int usb_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
 {
+    if ( !this->good() )
+        throw bad_connection("USB interface is not connected");
+
     this->check_interface();
     ssize_t nbytes = 0;
     uint8_t rbuf[s_dflt_buf_size] = {'\0'};
@@ -253,8 +258,10 @@ string usb_interface::get_info() const
 int usb_interface::write_control(uint8_t request_type, uint8_t request,
 uint16_t value, uint16_t index, const uint8_t* data, int len) 
 {
-    this->check_interface();
+    if ( !this->good() )
+        throw bad_connection("USB interface is not connected");
 
+    this->check_interface();
     int nbytes = libusb_control_transfer(
         m_usb_handle,
         LIBUSB_ENDPOINT_OUT | request_type,
@@ -280,8 +287,10 @@ uint16_t value, uint16_t index, const uint8_t* data, int len)
 int usb_interface::read_control(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index,
 const uint8_t* data, int len) 
 {
+    if ( !this->good() )
+        throw bad_connection("USB interface is not connected");
+    
     this->check_interface();
-
     int nbytes = libusb_control_transfer(
         m_usb_handle,
         LIBUSB_ENDPOINT_IN | request_type,
@@ -307,8 +316,10 @@ const uint8_t* data, int len)
 
 int usb_interface::write_bulk(const uint8_t* data, int len) 
 {
-    this->check_interface();
+    if ( !this->good() )
+        throw bad_connection("USB interface is not connected");
 
+    this->check_interface();
     int nbytes = -1, stat;
     stat = libusb_bulk_transfer(
         m_usb_handle,
@@ -340,8 +351,10 @@ int usb_interface::write_bulk(const uint8_t* data, int len)
 
 int usb_interface::read_bulk(uint8_t* data, int max_len, int timeout_ms) 
 {
-    this->check_interface();
+    if ( !this->good() )
+        throw bad_connection("USB interface is not connected");
 
+    this->check_interface();
     int nbytes = 0, stat;
     stat = libusb_bulk_transfer(
         m_usb_handle,
@@ -435,8 +448,8 @@ void usb_interface::set_endpoint_out(uint8_t ep_addr)
 }
 
 /*
-    *      P R I V A T E   M E T H O D S
-    */
+ *      P R I V A T E   M E T H O D S
+ */
 
 void usb_interface::gather_device_information() 
 {
