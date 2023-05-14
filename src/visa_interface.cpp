@@ -61,12 +61,6 @@ void visa_interface::open(const visa_identifier visa_id)
     return;
 }
 
-void visa_interface::open() 
-{
-    this->open(m_visa_id);
-    return;
-}
-
 void visa_interface::close() 
 {
     // Do nothing if no device is opened

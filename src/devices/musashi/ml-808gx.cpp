@@ -10,26 +10,14 @@ using namespace std;
 
 namespace labdev {
 
-ml_808gx::ml_808gx(serial_config &ser) : device("ML-808GX")
+ml_808gx::ml_808gx(const serial_config ser) : ml_808gx()
 {
-    this->connect(ser);
-    return;
-}
-
-void ml_808gx::connect(serial_config &ser) 
-{
-    if ( this->connected() ) {
-        fprintf(stderr, "Device is already connected!\n");
-        abort();
-    }
     // 8N1, supported baud = 9600/19200/38400 (see manual p. 24)
     if ( ser.baud != 9600  && ser.baud != 19200 && ser.baud != 38400) {
         fprintf(stderr, "Baud %i is not supported by ML-808GX\n", ser.baud);
         abort();
     }
-    ser.nbits = 8;
-    ser.par_ena = false;
-    ser.stop_bits = 1;
+    // TODO: check the rest...
     m_comm = std::make_shared<serial_interface>(ser);
     return;
 }

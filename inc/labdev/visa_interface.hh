@@ -25,17 +25,12 @@ namespace labdev {
 
 class visa_interface : public ld_interface {
 public:
-    visa_interface();
     visa_interface(const visa_identifier visa_id);
     virtual ~visa_interface();
 
     // Find all available VISA resource, returns list of VISA IDs
     std::vector<std::string> find_resources(std::string regex = "?*INSTR");
 
-    // Open/close device
-    void open(const visa_identifier visa_id);
-    void open() override;
-    void close() override;
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override;
@@ -48,16 +43,22 @@ public:
     void flush_buffer(uint16_t flag = VI_READ_BUF | VI_WRITE_BUF);
     void clear_device();
 
-private:
+private:   
     static const size_t MAX_BUF_SIZE = 1024*1024;   // 1MB buffer
     static const unsigned DFLT_TIMEOUT_MS = 2000;   // 2s timeout
-
     static ViSession s_default_rm;
     static int s_interface_ctr;
 
     ViSession m_instr;
     std::string m_visa_id;
     unsigned m_timeout;
+
+    // Private default ctor
+    visa_interface();
+
+    // Open/close device
+    void open(const visa_identifier visa_id);
+    void close();
 
     void init();
     void check_and_throw(ViStatus stat, const std::string &msg) const;
@@ -75,21 +76,9 @@ namespace labdev {
 
 class visa_interface : public ld_interface {
 public:
-    visa_interface() {
-        fprintf(stderr, "labdev compiled without VISA support. To enable recompile using 'make VISA=1'.\n");
-        abort();
-    }
 
-    visa_interface(visa_identifier &visa_id) : visa_interface() {}
-    virtual ~visa_interface() {}
-
-    visa_interface(const visa_interface&) = delete;
-    visa_interface& operator=(const visa_interface&) = delete;
-    visa_interface(visa_interface&&) = default;
-
-
-    void open() override {};
-    void close() override {};
+    visa_interface(const visa_identifier visa_id) : visa_interface() {};
+    virtual ~visa_interface() {};
 
     int write_raw(const uint8_t* data, size_t len) override { return -1; }
     int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override
@@ -106,7 +95,12 @@ public:
     void clear_device() {};
 
 private:
+    visa_interface() {
+        fprintf(stderr, "labdev compiled without VISA support. To enable recompile using 'make VISA=1'.\n");
+        abort();
+    }
 
+    void close() {};
 };
 
 }

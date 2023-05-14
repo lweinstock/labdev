@@ -11,25 +11,8 @@ using namespace std;
 
 namespace labdev {
 
-fy6900::fy6900() :
-fgen(2, "FeelTech,FY6900")
+fy6900::fy6900(const serial_config ser) : fy6900()
 {
-    return;
-}
-
-fy6900::fy6900(serial_config &ser) :
-fgen(2, "FeelTech,FY6900")
-{
-    this->connect(ser);
-    return;
-}
-
-void fy6900::connect(serial_config &ser)
-{
-    if ( this->connected() ) {
-        fprintf(stderr, "Device is already connected!\n");
-        abort();
-    }
     if ( ser.baud != fy6900::BAUD ) {
         fprintf(stderr, "FY6900 only supports %i baud 8N1\n", fy6900::BAUD);
         abort();

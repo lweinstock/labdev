@@ -9,75 +9,34 @@ using namespace std;
 
 namespace labdev {
 
-ds1000z::ds1000z() : osci(4, "Rigol,DS1000Z")
+ds1000z::ds1000z(const ip_address ip) : ds1000z()
 {
-    return;
-}
-
-ds1000z::ds1000z(ip_address &ip) : osci(4, "Rigol,DS1000Z") 
-{
-    connect(ip);
-    return;
-}
-
-ds1000z::ds1000z(usb_config &conf) : osci(4, "Rigol,DS1000Z") 
-{
-    connect(conf);
-    return;
-}
-
-ds1000z::ds1000z(visa_identifier &visa_id):
-osci(4, "Rigol,DS1000Z") 
-{
-    connect(visa_id);
-    return;
-}
-
-ds1000z::~ds1000z() 
-{
-    if (m_scpi) {
-        delete m_scpi;
-        m_scpi = nullptr;
-    }
-    return;
-}
-
-void ds1000z::connect(ip_address &ip) 
-{
-    if ( this->connected() ) {
-        fprintf(stderr, "Device is already connected!\n");
-        abort();
-    }
     // Default port 5555
     if (ip.port != ds1000z::PORT) {
         fprintf(stderr, "Rigol DS1000z only supports port %u.\n", ds1000z::PORT);
         abort();
     }
     m_comm = std::make_shared<tcpip_interface>(ip);
-    init();
+    this->init();
     return;
 }
 
-void ds1000z::connect(usb_config &conf) 
+ds1000z::ds1000z(const usb_config conf) : ds1000z()
 {
-    if ( this->connected() ) {
-        fprintf(stderr, "Device is already connected!\n");
-        abort();
-    }
     auto usbtmc = std::make_unique<usbtmc_interface>(conf);
     // USB initialization
     usbtmc->claim_interface(0);
     usbtmc->set_endpoint_in(0x02);
     usbtmc->set_endpoint_out(0x03);
     m_comm = std::move(usbtmc);
-    init();
+    this->init();
     return;
 }
 
-void ds1000z::connect(visa_identifier &visa_id) 
+ds1000z::ds1000z(const visa_identifier visa_id) : ds1000z()
 {
     m_comm = std::make_shared<visa_interface>(visa_id);
-    init();
+    this->init();
     return;
 }
 
@@ -331,8 +290,15 @@ void ds1000z::reset_measurements()
 }
 
 /*
-    *      P R I V A T E   M E T H O D S
-    */
+ *      P R I V A T E   M E T H O D S
+ */
+
+ds1000z::ds1000z()
+    : osci(4, "Rigol,DS1000Z"), m_scpi(nullptr), m_npts(0), m_xincr(0), 
+      m_xorg(0), m_xref(0), m_yinc(0), m_yorg(0), m_yref(0)
+{
+    return;
+}
 
 const string ds1000z::s_meas_item_string[] = {"VMAX", "VMIN", "VPP",
     "VTOP", "VBAS", "VAMP", "VAVG", "VRMS", "OVER", "PRES", "MAR", "MPAR",
@@ -345,7 +311,7 @@ const string ds1000z::s_meas_type_string[] = {"MAX", "MIN", "CURR",
 void ds1000z::init() 
 {
     // Setup SCPI
-    m_scpi = new scpi(m_comm.get());
+    m_scpi = std::make_unique<scpi>(m_comm.get());
     m_scpi->clear_status();
     m_dev_name = m_scpi->get_identifier();
 

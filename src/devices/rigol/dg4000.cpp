@@ -9,44 +9,8 @@ using namespace std;
 
 namespace labdev {
 
-dg4000::dg4000(): fgen(2, "Rigol,DG4000"), m_scpi(nullptr)
+dg4000::dg4000(const ip_address ip): dg4000()
 {
-    return;
-}
-
-dg4000::dg4000(ip_address &ip): dg4000()
-{
-    this->connect(ip);
-    return;
-}
-
-dg4000::dg4000(visa_identifier &visa): dg4000()
-{
-    this->connect(visa);
-    return;
-}
-
-dg4000::dg4000(usb_config &usb): dg4000()
-{
-    this->connect(usb);
-    return;
-}
-
-dg4000::~dg4000() 
-{
-    if (m_scpi) {
-        delete m_scpi;
-        m_scpi = nullptr;
-    }
-    return;
-}
-
-void dg4000::connect(ip_address &ip)
-{
-    if ( this->connected() ) {
-        fprintf(stderr, "Device is already connected!\n");
-        abort();
-    }
     if ( ip.port != dg4000::PORT ) {
         fprintf(stderr, "DG4000 only supports port %i\n", dg4000::PORT);
         abort();
@@ -55,23 +19,17 @@ void dg4000::connect(ip_address &ip)
     this->init();
     return;
 }
-void dg4000::connect(visa_identifier &visa_id)
+
+dg4000::dg4000(const visa_identifier visa_id): dg4000()
 {
-    if ( this->connected() ) {
-        fprintf(stderr, "Device is already connected!\n");
-        abort();
-    }
     m_comm = std::make_shared<visa_interface>(visa_id);
     this->init();
     return;
 }
-void dg4000::connect(usb_config &usb)
+
+dg4000::dg4000(const usb_config usb): dg4000()
 {
-    if ( this->connected() ) {
-        fprintf(stderr, "Device is already connected!\n");
-        abort();
-    }
-    auto usbtmc = new std::make_unique<usbtmc_interface>(usb);
+    auto usbtmc = std::make_unique<usbtmc_interface>(usb);
     // USB initialization
     usbtmc->claim_interface(0);
     usbtmc->set_endpoint_in(0x08);
@@ -283,7 +241,7 @@ float dg4000::get_offset(unsigned channel)
 
 void dg4000::init() 
 {
-    m_scpi = new scpi(m_comm.get());
+    m_scpi = std::make_unique<scpi>(m_comm.get());
     m_scpi->clear_status();
     m_scpi->wait_to_complete();
     return;

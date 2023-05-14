@@ -19,14 +19,11 @@ enum Interface_type {none, serial, tcpip, usb, usbtmc, visa};
 
 class ld_interface {
 public:
-    ld_interface() : m_good(false) {};
     virtual ~ld_interface() {};
 
-    // No copy ctor or assignment, default move and move assign ctor
+    // No copy ctor or assignment
     ld_interface(const ld_interface&) = delete;
     ld_interface& operator=(const ld_interface&) = delete;
-    ld_interface(ld_interface&&) = default;
-    ld_interface& operator=(ld_interface&&) = default;
 
     /*
      *      Default values
@@ -77,14 +74,12 @@ public:
     virtual Interface_type type() const = 0;
     // Returns true if device is ready for communication
     virtual bool good() const { return m_good; }
-    // Opens communication 
-    virtual void open() = 0;
-    // Closes communication
-    virtual void close() = 0;
 
 protected:
     bool m_good;
 
+    // Protected default ctor
+    ld_interface() : m_good(false) {};
 };
 
 }

@@ -9,13 +9,10 @@ namespace labdev {
 
 class sdg1000x: public fgen {
 public:
-    sdg1000x() : fgen(2, "Siglent,SDG1000X") {};
-    sdg1000x(ip_address &ip);
-    ~sdg1000x();
+    sdg1000x(const ip_address ip);
+    ~sdg1000x() {};
 
     static constexpr unsigned PORT = 5025;
-
-    void connect(ip_address &ip);
 
     // Turn channel on/off
     void enable_channel(unsigned channel, bool ena = true) override;
@@ -62,11 +59,14 @@ public:
     float get_offset(unsigned channel) override;
 
 private:
+    // Private default ctor
+    sdg1000x() : fgen(2, "Siglent,SDG1000X") {};
+
     void init();
     // Allowed channels = 1 or 2!
     void check_channel(unsigned channel);
 
-    scpi* m_scpi;
+    std::unique_ptr<scpi> m_scpi;
 
     // Get value from basic wave command (manual p. 27)
     std::string get_bswv_val(std::string bswv, std::string par);

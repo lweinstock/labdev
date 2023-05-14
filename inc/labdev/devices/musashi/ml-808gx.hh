@@ -10,13 +10,8 @@ namespace labdev {
 
 class ml_808gx : public device {
 public:
-    ml_808gx() : device("ML-808GX") {};
-    ml_808gx(serial_config &ser);
-    ml_808gx(const ml_808gx&) = delete;
+    ml_808gx(const serial_config ser);
     ~ml_808gx() {};
-
-    // Open serial interface
-    void connect(serial_config &ser);
 
     // Dispense glue using parameters from current channel
     void dispense();
@@ -63,8 +58,11 @@ public:
     void upload_command(std::string cmd, std::string& payload);
 
 private:
+    // Private default ctor
+    ml_808gx() : device("ML-808GX"), m_cur_ch(0) {};
+
     void init();
-    unsigned m_cur_ch {0};
+    unsigned m_cur_ch;
 
     // Protocol definitions (see manual p. 57)
     const static std::string STX;   // Start of text (ASCII)

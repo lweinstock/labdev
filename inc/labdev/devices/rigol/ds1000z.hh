@@ -15,15 +15,10 @@ namespace labdev {
 
 class ds1000z : public osci {
 public:
-    ds1000z();
-    ds1000z(ip_address &ip);
-    ds1000z(usb_config &conf);
-    ds1000z(visa_identifier &visa_id);
-    ~ds1000z();
-
-    void connect(ip_address &ip);
-    void connect(usb_config &conf);
-    void connect(visa_identifier &visa_id);
+    ds1000z(const ip_address ip);
+    ds1000z(const usb_config conf);
+    ds1000z(const visa_identifier visa_id);
+    ~ds1000z() {};
 
     static constexpr uint16_t DS1104_VID = 0x1AB1;
     static constexpr uint16_t DS1104_PID = 0x04CE;
@@ -114,11 +109,14 @@ public:
     void reset_measurements();
 
 private:
+    // Private default ctor
+    ds1000z();
+
     void init();
     void check_channel(unsigned channel);
     std::vector<uint8_t> read_mem_data( unsigned sta, unsigned sto);
 
-    scpi* m_scpi;
+    std::unique_ptr<scpi> m_scpi;
 
     unsigned m_npts;
     double m_xincr, m_xorg, m_xref, m_yinc;
@@ -126,7 +124,6 @@ private:
 
     static const std::string s_meas_item_string[];
     static const std::string s_meas_type_string[];
-
 };
 
 }

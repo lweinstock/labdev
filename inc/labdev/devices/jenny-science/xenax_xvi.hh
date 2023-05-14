@@ -9,12 +9,8 @@ namespace labdev {
 
 class xenax_xvi : public device {
 public:
-    xenax_xvi();
-    xenax_xvi(serial_config &ser);
-    xenax_xvi(ip_address &ip);
-
-    void connect(serial_config &ser);
-    void connect(ip_address &ip);
+    xenax_xvi(const serial_config ser);
+    xenax_xvi(const ip_address ip);
 
     // XENAX default port 10001
     static constexpr unsigned PORT = 10001;
@@ -125,6 +121,9 @@ public:
     };
 
 private:
+    // Private default ctor
+    xenax_xvi();
+
     std::string m_input_buffer, m_strerror;
     float m_force_const;   // I->F conversion factor [N/mA]
     int m_error;

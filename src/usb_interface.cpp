@@ -105,15 +105,6 @@ void usb_interface::open(const usb_config conf)
     return;
 }
 
-void usb_interface::open()
-{
-    usb_config tmp(m_vid, m_pid, m_serial_no);
-    tmp.bus_no = m_bus;
-    tmp.port_no = m_port;
-    this->open(tmp);
-    return;
-}
-
 /*  Old version of open; for reference, to be deleted after testing!!
 void usb_interface::open(uint8_t bus_no, uint8_t port_no) 
 {

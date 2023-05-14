@@ -9,17 +9,15 @@ using namespace std;
 
 namespace labdev {
 
-om70_l::om70_l() 
-    : device("Baumer,OM70-L"), m_modbus(nullptr), m_quality(0),  m_dist(0),
-      m_sr(0), m_exp(0), m_quality_vec(), m_dist_vec(), m_sr_vec(), m_exp_vec(),
-      m_config_mode(false)
+om70_l::om70_l(const ip_address ip) : om70_l() 
 {
-
-};
-
-om70_l::om70_l(ip_address &ip) : om70_l() 
-{
-    this->connect(ip);
+    // Default port 502
+    if (ip.port != om70_l::PORT) {
+        fprintf(stderr, "OM70-L only supports port %u.\n", om70_l::PORT);
+        abort();
+    }
+    m_tcpip = std::make_shared<tcpip_interface>(ip);
+    m_modbus = new modbus_tcp(m_tcpip.get());
     return;
 }
 
@@ -29,22 +27,6 @@ om70_l::~om70_l()
         delete m_modbus;
         m_modbus = nullptr;
     }
-    return;
-}
-
-void om70_l::connect(ip_address &ip) 
-{
-    if ( this->connected() ) {
-        fprintf(stderr, "Device is already connected!\n");
-        abort();
-    }
-    // Default port 502
-    if (ip.port != om70_l::PORT) {
-        fprintf(stderr, "OM70-L only supports port %u.\n", om70_l::PORT);
-        abort();
-    }
-    m_tcpip = std::make_shared<tcpip_interface>(ip);
-    m_modbus = new modbus_tcp(m_tcpip.get());
     return;
 }
 
@@ -134,6 +116,15 @@ vector<float> om70_l::get_measurement_mem()
 /*
  *      P R I V A T E   M E T H O D S
  */
+ 
+om70_l::om70_l() 
+    : device("Baumer,OM70-L"), m_modbus(nullptr), m_quality(0),  m_dist(0),
+      m_sr(0), m_exp(0), m_quality_vec(), m_dist_vec(), m_sr_vec(), m_exp_vec(),
+      m_config_mode(false)
+{
+    return;
+}
+
 
 void om70_l::extract_mem_meas(std::vector<uint16_t> data, float &dist, 
     int &quality, float &sample_rate, float &exposure)

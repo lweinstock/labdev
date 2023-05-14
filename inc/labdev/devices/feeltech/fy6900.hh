@@ -12,11 +12,8 @@ namespace labdev {
 
 class fy6900 : public fgen {
 public:
-    fy6900();
-    fy6900(serial_config &ser);
+    fy6900(const serial_config ser);
     ~fy6900() {};
-
-    void connect(serial_config &ser);
 
     static constexpr unsigned BAUD = 115200;
 
@@ -67,6 +64,9 @@ public:
     float get_offset(unsigned channel) override;
 
 private:
+    // Private default ctor
+    fy6900() : fgen(2, "FeelTech,FY6900") {};
+
     // Set/get waveform according to number (manual p.6ff)
     void set_waveform(unsigned channel, unsigned wvfm);
     unsigned get_waveform(unsigned channel);

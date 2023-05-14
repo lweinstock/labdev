@@ -17,48 +17,16 @@ using namespace std;
 
 namespace labdev {
 
-xenax_xvi::xenax_xvi()
-    : device("XENAX Xvi 75v8"), m_strerror(""), m_force_const(0), m_error(0),
-      m_output_type(0x5555), m_output_activity(0xFF)
+xenax_xvi::xenax_xvi(const serial_config ser): xenax_xvi() 
 {
-    return;
-}
-
-xenax_xvi::xenax_xvi(serial_config &ser): xenax_xvi() 
-{
-    this->connect(ser);
-    this->init();
-    return;
-}
-
-xenax_xvi::xenax_xvi(ip_address &ip): xenax_xvi() 
-{
-    this->connect(ip);
-    this->init();
-    return;
-}
-
-void xenax_xvi::connect(serial_config &ser) 
-{
-    if ( this->connected() ) {
-        fprintf(stderr, "Device is already connected!\n");
-        abort();
-    }
-    // Serial setup: 115200 8N1 (manual p. 28)
-    ser.baud = 115200;
-    ser.nbits = 8;
-    ser.par_ena = false;
-    ser.stop_bits = 1;
+    // TODO: check serial setup: 115200 8N1 (manual p. 28)
     m_comm = std::make_shared<serial_interface>(ser);
+    this->init();
     return;
 }
 
-void xenax_xvi::connect(ip_address &ip) 
+xenax_xvi::xenax_xvi(const ip_address ip): xenax_xvi() 
 {
-    if ( this->connected() ) {
-        fprintf(stderr, "Device is already connected!\n");
-        abort();
-    }
     // Default port 10001
     if (ip.port != xenax_xvi::PORT) {
         fprintf(stderr, "XENAX Xvi 75v8 only supports port %u.\n",
@@ -66,6 +34,7 @@ void xenax_xvi::connect(ip_address &ip)
         abort();
     }
     m_comm = std::make_shared<tcpip_interface>(ip);
+    this->init();
     return;
 }
 
@@ -484,8 +453,15 @@ string xenax_xvi::query_command(string cmd, unsigned timeout_ms)
 }
 
 /*
-    *      P R I V A T E   M E T H O D S
-    */
+ *      P R I V A T E   M E T H O D S
+ */
+
+xenax_xvi::xenax_xvi()
+    : device("XENAX Xvi 75v8"), m_strerror(""), m_force_const(0), m_error(0),
+      m_output_type(0x5555), m_output_activity(0xFF)
+{
+    return;
+}
 
 void xenax_xvi::init() 
 {

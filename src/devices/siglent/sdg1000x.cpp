@@ -8,35 +8,15 @@ using namespace std;
 
 namespace labdev {
 
-sdg1000x::sdg1000x(ip_address &ip):
-fgen(2, "Siglent,SDG1000X")
+sdg1000x::sdg1000x(const ip_address ip) : sdg1000x()
 {
-    this->connect(ip);
-    return;
-}
-
-sdg1000x::~sdg1000x() 
-{
-    if (m_scpi) {
-        delete m_scpi;
-        m_scpi = nullptr;
-    }
-    return;
-}
-
-void sdg1000x::connect(ip_address &ip) 
-{
-    if ( this->connected() ) {
-        fprintf(stderr, "Device is already connected!\n");
-        abort();
-    }
     if ( ip.port != sdg1000x::PORT )
     {
         fprintf(stderr, "SDG1000X only supports port %i\n", sdg1000x::PORT);
         abort();
     }
     m_comm = std::make_shared<tcpip_interface>(ip);
-    init();
+    this->init();
     return;
 }
 
@@ -311,7 +291,7 @@ float sdg1000x::get_offset(unsigned channel)
 void sdg1000x::init() 
 {
     // Setup SCPI
-    m_scpi = new scpi(m_comm.get());
+    m_scpi = std::make_unique<scpi>(m_comm.get());
     m_scpi->clear_status();
     m_dev_name = m_scpi->get_identifier();
     return;

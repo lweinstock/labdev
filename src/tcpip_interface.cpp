@@ -61,12 +61,6 @@ void tcpip_interface::open(const ip_address addr)
     return;
 }
 
-void tcpip_interface::open() 
-{
-    this->open(ip_address(m_ip_addr, m_port));
-    return;
-}
-
 void tcpip_interface::close() 
 {
     if ( !this->good() )

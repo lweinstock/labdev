@@ -7,7 +7,6 @@ namespace labdev{
 
 class usbtmc_interface : public usb_interface {
 public:
-    usbtmc_interface();
     usbtmc_interface(const usb_config conf);
     virtual ~usbtmc_interface() {};
 
@@ -60,6 +59,9 @@ public:
     void claim_interface(int int_no, int alt_setting = 0);
 
 private:
+    // Private default ctor
+    usbtmc_interface();
+
     static constexpr unsigned s_header_len = 12;
     static constexpr uint8_t LIBUSB_SUBCLASS_TMC = 0x03;
 

@@ -71,12 +71,6 @@ void serial_interface::open(const serial_config conf)
     return;
 }
 
-void serial_interface::open() 
-{
-    this->open(serial_config(m_path, m_baud, m_nbits, m_par_en, m_par_even, m_stop_bits));
-    return;
-}
-
 void serial_interface::close() 
 {
     if ( !this->good() )

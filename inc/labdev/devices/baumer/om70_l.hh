@@ -10,14 +10,11 @@ namespace labdev {
 
 class om70_l : public device {
 public:
-    om70_l();
-    om70_l(ip_address &ip);
+    om70_l(const ip_address ip);
     ~om70_l();
 
     // OM70 default port 502
     static constexpr unsigned PORT = 502;
-
-    void connect(ip_address &ip);
 
     void enable_laser(bool ena = true);
     void disable_laser() { this->enable_laser(false); }
@@ -37,6 +34,9 @@ public:
     std::vector<float> get_exposure_mem() { return m_exp_vec; }
 
 private:
+    // Private default ctor
+    om70_l();
+
     static constexpr uint8_t UNIT_ID = 0x01;
 
     // Address space holding registers (FC03/06/16)

@@ -25,14 +25,9 @@ struct serial_config {
 
 class serial_interface : public ld_interface {
 public:
-    serial_interface();
     serial_interface(const serial_config conf);
     ~serial_interface() { this->close(); }
 
-    // Open or close device (default 9600 baud 8N1)
-    void open(const serial_config conf);
-    void open() override;
-    void close() override;
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, 
@@ -88,6 +83,13 @@ private:
     uint32_t m_nbits;
     speed_t m_baud;
     bool m_par_en, m_par_even, m_update_settings;
+
+    // Private default ctor
+    serial_interface();
+
+    // Open or close device (default 9600 baud 8N1)
+    void open(const serial_config conf);
+    void close();
 
     void check_and_throw(int status, const std::string &msg) const;
     static speed_t check_baud(unsigned baud);

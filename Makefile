@@ -39,15 +39,12 @@ OBJ+=$(SRC)/protocols/modbus_tcp.o
 OBJ+=$(SRC)/utils/utils.o
 OBJ+=$(SRC)/utils/config.o
 
-# Basic devices
-OBJ+=$(SRC)/devices/device.o
-
 # Vendor specific devices
 OBJ+=$(SRC)/devices/feeltech/fy6900.o
 OBJ+=$(SRC)/devices/siglent/sdg1000x.o
 #OBJ+=$(SRC)/devices/uni-t/ut61b.o
 OBJ+=$(SRC)/devices/rigol/ds1000z.o
-#OBJ+=$(SRC)/devices/rigol/dg4000.o
+OBJ+=$(SRC)/devices/rigol/dg4000.o
 #OBJ+=$(SRC)/devices/hantek/dso5000p.o
 #OBJ+=$(SRC)/devices/rohde-schwarz/hmp4000.o
 #OBJ+=$(SRC)/devices/rohde-schwarz/rta4000.o

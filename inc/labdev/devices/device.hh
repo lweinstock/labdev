@@ -12,37 +12,25 @@ namespace labdev {
 
 class device {
 public:
-    device() : m_comm(nullptr), m_dev_name("?") {};
-    virtual ~device() { this->disconnect(); }
+    virtual ~device() {};
 
     // No copy constructor or assignment, default move constructor
     device(const device&) = delete;
     device& operator=(const device&) = delete;
-    device(device&&) = default;
-
-    // Returns true if the communication interface is ready and working
-    bool connected() const;
-
-    // Closes and deletes the communication interface;
-    // every device needs to implement an connect(...) method to create and
-    // open a communication interface
-    void disconnect();
-
-    // Dis- and reconnects the communication interface
-    void reconnect(unsigned wait_ms = 0);
 
     // Returns human readable information string to identify the device
-    std::string get_info() const;
-
+    std::string get_info() const { return m_dev_name + ";" + m_comm->get_info(); }
+ 
 protected:
-    // Initializer with name for derived classes
-    device(std::string name) : m_comm(nullptr), m_dev_name(name) {};
-
     // Communication interface
     std::shared_ptr<ld_interface> m_comm;
 
     // Device name
     std::string m_dev_name;
+
+    // Initializer with name for derived classes
+    device() : m_comm(nullptr), m_dev_name("?") {};
+    device(std::string name) : m_comm(nullptr), m_dev_name(name) {};
 };
 
 }

@@ -18,17 +18,8 @@ struct ip_address {
 
 class tcpip_interface : public ld_interface {
 public:
-    tcpip_interface();
     tcpip_interface(const ip_address ip_addr);
     virtual ~tcpip_interface() { this->close(); }
-
-    // Open TCP/IP socket with given IP and port
-    void open(const ip_address ip_addr);
-    // Open TCP/IP socket with stored information
-    void open() override;
-
-    // Close TCP/IP socket
-    void close() override;
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, 
@@ -60,6 +51,15 @@ private:
     struct timeval m_timeout;
     std::string m_ip_addr;
     unsigned m_port;
+
+    // Private default ctor
+    tcpip_interface();
+
+    // Open TCP/IP socket with given IP and port
+    void open(const ip_address ip_addr);
+
+    // Close TCP/IP socket
+    void close();
 
     void check_and_throw(int stat, const std::string& msg) const;
 };
