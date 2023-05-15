@@ -12,13 +12,10 @@ namespace labdev {
 
 class ut61b : public device {
 public:
-    ut61b();
     ut61b(serial_config &ser);
-    ~ut61b();
+    ~ut61b() {};
 
     static constexpr unsigned BAUD = 2400;
-
-    void connect(serial_config &ser);
 
     // Get current value from screen
     double get_value();
@@ -27,8 +24,11 @@ public:
     std::string get_unit() { return m_unit; }
 
 private:
+    // Private ctor
+    ut61b() : device("Uni-T,UT61B"), m_unit("?"), m_serial(nullptr) {};
+
     std::string m_unit;
-    serial_interface* m_serial;
+    std::unique_ptr<serial_interface> m_serial;
 
     // UT61b end of message character
     static constexpr const char* EOM = "\r\n";

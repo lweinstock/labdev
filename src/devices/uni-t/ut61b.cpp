@@ -10,37 +10,14 @@ using namespace std;
 
 namespace labdev {
 
-ut61b::ut61b(): device("Uni-T,UT61B"), m_unit("?"), m_serial(nullptr)
-{
-    return;
-}
-
 ut61b::ut61b(serial_config &ser): ut61b() 
 {
-    this->connect(ser);
-    return;
-}
-
-ut61b::~ut61b() {
-    if (m_serial) {
-        delete m_serial;
-        m_serial = nullptr;
-    }
-    return;
-};
-
-void ut61b::connect(serial_config &ser) 
-{
-    if ( this->connected() ) {
-        fprintf(stderr, "Device is already connected!\n");
-        abort();
-    }
     if ( ser.baud != ut61b::BAUD || ser.nbits != 8 || ser.par_ena
       || ser.stop_bits != 1) {
         fprintf(stderr, "UT61B only supports %i baud 8N1\n", ut61b::BAUD);
         abort();
     }
-    m_serial = new serial_interface(ser);
+    m_serial = std::make_unique<serial_interface>(ser);
     return;
 }
 
