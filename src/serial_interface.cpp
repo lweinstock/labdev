@@ -27,15 +27,6 @@ serial_interface::serial_interface()
 
 serial_interface::serial_interface(const serial_config conf): serial_interface() 
 {
-    this->open(conf);
-    return;
-}
-
-void serial_interface::open(const serial_config conf) 
-{
-    if ( this->good() )
-        throw bad_connection("Serial interface is already open");
-
     debug_print("Opening device '%s'\n", conf.path.c_str());
     m_fd = ::open(conf.path.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
     check_and_throw(m_fd, "Failed to open device " + conf.path);
@@ -66,27 +57,18 @@ void serial_interface::open(const serial_config conf)
     this->set_parity(conf.par_ena, conf.par_even);
     this->set_stop_bits(conf.stop_bits);
     this->apply_settings();
-
-    m_good = true;
     return;
 }
 
-void serial_interface::close() 
+serial_interface::~serial_interface() 
 {
-    if ( !this->good() )
-        throw bad_connection("Serial interface is not connected");
-    
     debug_print("Closing device '%s'\n", m_path.c_str());
     ::close(m_fd);
-    m_good = false;
     return;
 }
 
 int serial_interface::write_raw(const uint8_t* data, size_t len) 
 {
-    if ( !this->good() )
-        throw bad_connection("Serial interface is not connected");
-
     if (m_update_settings) this->apply_settings();
 
     size_t bytes_left = len;
@@ -108,9 +90,6 @@ int serial_interface::write_raw(const uint8_t* data, size_t len)
 
 int serial_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
 {
-    if ( !this->good() )
-        throw bad_connection("Serial interface is not connected");
-
     if (m_update_settings) this->apply_settings();
 
     // Wait for I/O

@@ -19,7 +19,7 @@ struct ip_address {
 class tcpip_interface : public ld_interface {
 public:
     tcpip_interface(const ip_address ip_addr);
-    virtual ~tcpip_interface() { this->close(); }
+    virtual ~tcpip_interface();
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, 

@@ -11,23 +11,15 @@ namespace labdev {
 ViSession visa_interface::s_default_rm;
 int visa_interface::s_interface_ctr = 0;
 
-visa_interface::visa_interface()
-    : m_instr(0), m_visa_id("ASRL1::INSTR"), m_timeout(DFLT_TIMEOUT_MS) 
-{
-    ViStatus stat;
-    if (s_interface_ctr == 0) {
-        stat = viOpenDefaultRM(&s_default_rm);
-        check_and_throw(stat, "Could not open default resource manager");
-        debug_print("%s", "Created default resource manager.\n");
-    }
-    s_interface_ctr++;
-    debug_print("interface constructed, %i objects remain.\n", s_interface_ctr);
-    return;
-}
-
 visa_interface::visa_interface(const visa_identifier visa_id) : visa_interface()
 {
-    this->open(visa_id);
+    ViStatus stat;
+    debug_print("Opening instrument '%s'\n", visa_id.c_str());
+    stat = viOpen(s_default_rm, visa_id.c_str(), VI_NULL, VI_NULL, &m_instr);
+    check_and_throw(stat, "Could not open instrument '" + visa_id + "'");
+
+    m_visa_id = visa_id;
+    m_good = true;
     return;
 }
 
@@ -43,35 +35,6 @@ visa_interface::~visa_interface()
         check_and_throw(stat, "Could not close default resource manager");
         debug_print("%s\n", "Destroyed default resource manager");
     }
-    return;
-}
-
-void visa_interface::open(const visa_identifier visa_id) 
-{
-    // Throw exception if a device has already been opened
-    if (m_instr)
-        throw bad_io("Interface is already opened");
-    ViStatus stat;
-    debug_print("Opening instrument '%s'\n", visa_id.c_str());
-    stat = viOpen(s_default_rm, visa_id.c_str(), VI_NULL, VI_NULL, &m_instr);
-    check_and_throw(stat, "Could not open instrument '" + visa_id + "'");
-
-    m_visa_id = visa_id;
-    m_good = true;
-    return;
-}
-
-void visa_interface::close() 
-{
-    // Do nothing if no device is opened
-    if (!m_instr)
-        return;
-    ViStatus stat;
-    debug_print("Closing instrument '%s'\n", m_visa_id.c_str());
-    stat = viClose(m_instr);
-    check_and_throw(stat, "Failed to close instrument '" + m_visa_id + "'");
-
-    m_good = false;
     return;
 }
 
@@ -171,6 +134,20 @@ void visa_interface::clear_device()
 /*
  *      P R I V A T E   M E T H O D S
  */
+
+visa_interface::visa_interface()
+    : m_instr(0), m_visa_id("ASRL1::INSTR"), m_timeout(DFLT_TIMEOUT_MS) 
+{
+    ViStatus stat;
+    if (s_interface_ctr == 0) {
+        stat = viOpenDefaultRM(&s_default_rm);
+        check_and_throw(stat, "Could not open default resource manager");
+        debug_print("%s", "Created default resource manager.\n");
+    }
+    s_interface_ctr++;
+    debug_print("interface constructed, %i objects remain.\n", s_interface_ctr);
+    return;
+}
 
 void visa_interface::init() 
 {

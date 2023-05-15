@@ -6,55 +6,48 @@ using namespace std;
 
 namespace labdev {
 
-usbtmc_interface::usbtmc_interface() 
-    : usb_interface(), m_cur_tag(0x01), m_eom_cap(true) 
-{
-    return;
-}
-
 usbtmc_interface::usbtmc_interface(const usb_config conf) 
     : usb_interface(conf), m_cur_tag(0x01), m_eom_cap(true)
 {
     return;
 }
 
-void usbtmc_interface::write(const string& msg) 
+int usbtmc_interface::write_raw(const uint8_t* data, size_t len) 
 {
-    this->write_dev_dep_msg(msg);
-    return;
+    return this->write_dev_dep_msg(data, len);
 }
 
-string usbtmc_interface::read(unsigned timeout_ms) 
+int usbtmc_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
 {
-    return this->read_dev_dep_msg(timeout_ms);
+    return this->read_dev_dep_msg(data, max_len, timeout_ms);
 }
 
-int usbtmc_interface::write_dev_dep_msg(string msg,
+int usbtmc_interface::write_dev_dep_msg(const uint8_t* msg, size_t len,
     uint8_t transfer_attr) 
 {
     // add space for header + total length must be multiple of 4
-    size_t tot_len = s_header_len + msg.size() + 4 - msg.size()%4;
+    size_t tot_len = s_header_len + len + 4 - len%4;
     uint8_t* usbtmc_message = new uint8_t[tot_len];
     this->create_usbtmc_header(usbtmc_message, DEV_DEP_MSG_OUT,
-        transfer_attr, msg.size());
+        transfer_attr, len);
 
     // Append data
     for (size_t i = s_header_len; i < tot_len; i++) {
-        usbtmc_message[i] = msg.c_str()[i-s_header_len];
-        if (i > msg.size()+s_header_len)
+        usbtmc_message[i] = msg[i-s_header_len];
+        if (i > len+s_header_len)
             usbtmc_message[i] = 0x00;   // zero padding
     }
-
-    debug_print("Writing message '%s'\n", msg.c_str());
     int nbytes = this->write_bulk((const uint8_t*)usbtmc_message, tot_len);
+    debug_print_byte_data(usbtmc_message, nbytes, "Written %zu bytes: ", nbytes);
+
     // cleanup
     delete[] usbtmc_message;
 
     return nbytes;
 }
 
-string usbtmc_interface::read_dev_dep_msg(int timeout_ms,
-    uint8_t transfer_attr, uint8_t term_char) 
+int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
+    int timeout_ms, uint8_t transfer_attr, uint8_t term_char) 
 {
     uint8_t read_request[s_header_len];
     uint8_t rbuf[s_dflt_buf_size] = { 0x00 };
@@ -71,10 +64,22 @@ string usbtmc_interface::read_dev_dep_msg(int timeout_ms,
 
     // If an empty message was received, return immediatly
     if (len == 0)
-        return "";
+        return len;
 
     // Check header
     int transfer_size = check_usbtmc_header(rbuf, DEV_DEP_MSG_IN);
+
+    // Copy data into output array
+    std::copy(rbuf + s_header_len, rbuf + len, data);
+    int bytes_received = len - s_header_len;
+    while (bytes_received < transfer_size) {
+        int nbytes = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
+        std::copy(rbuf, rbuf + nbytes, data + bytes_received);
+        bytes_received += nbytes;
+    }
+    debug_print_byte_data(data, bytes_received, "Read %zu bytes: ", 
+        bytes_received);
+/*
     // Remove header from return value
     len -= s_header_len;
     string ret((const char*)rbuf + s_header_len, len);
@@ -86,26 +91,11 @@ string usbtmc_interface::read_dev_dep_msg(int timeout_ms,
         ret.append((char*)rbuf, min(bytes_left, nbytes));
         bytes_left -= nbytes;
     }
-
+*/
     // Increase bTag for next communication
     m_cur_tag++;
-
-    debug_print("Read %zi bytes: ", ret.size());
-    #ifdef LD_DEBUG
-    size_t nbytes = ret.size();
-    if (ret.size() > 100) {
-        for (size_t i = 0; i < 50; i++)
-            printf("%c", ret.at(i));
-        printf(" [...] ");
-        for (size_t i = nbytes-50; i < nbytes; i++)
-            printf("%c", ret.at(i));
-    } else {
-        printf("%s", ret.c_str());
-    }
-    printf("'\n");
-    #endif
     
-    return ret;
+    return 0;
 }
 
 int usbtmc_interface::write_vendor_specific(string msg) 
@@ -192,12 +182,17 @@ void usbtmc_interface::claim_interface(int int_no, int alt_setting)
 }
 
 /*
-    *      P R I V A T E   M E T H O D S
-    */
+ *      P R I V A T E   M E T H O D S
+ */
 
-void usbtmc_interface::create_usbtmc_header(uint8_t* header,
-uint8_t message_id, uint8_t transfer_attr, uint32_t transfer_size,
-uint8_t term_char) 
+usbtmc_interface::usbtmc_interface() 
+    : usb_interface(), m_cur_tag(0x01), m_eom_cap(true) 
+{
+    return;
+}
+
+void usbtmc_interface::create_usbtmc_header(uint8_t* header, uint8_t message_id, 
+    uint8_t transfer_attr, uint32_t transfer_size, uint8_t term_char) 
 {
     // Create USBTMC header
     header[0] = message_id;
@@ -238,7 +233,7 @@ uint8_t term_char)
 }
 
 int usbtmc_interface::check_usbtmc_header(uint8_t* message,
-uint8_t message_id) 
+    uint8_t message_id) 
 {
     // Check MsgID field
     if ( message_id != message[0] ) {

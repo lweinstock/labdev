@@ -12,24 +12,8 @@ using namespace std;
 
 namespace labdev {
 
-tcpip_interface::tcpip_interface() 
-    : ld_interface(), m_socket_fd(-1), m_instr_addr(), m_timeout(), 
-      m_ip_addr("127.0.0.1"), m_port(0)
-{
-    return;
-}
-
 tcpip_interface::tcpip_interface(const ip_address addr) : tcpip_interface() 
 {
-    this->open(addr);
-    return;
-}
-
-void tcpip_interface::open(const ip_address addr) 
-{
-    if ( this->good() )
-        throw bad_connection("TCP/IP interface is already open");
-
     // Create TCP/IP socket
     m_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     check_and_throw(m_socket_fd, "Could not open socket.");
@@ -53,29 +37,20 @@ void tcpip_interface::open(const ip_address addr)
     check_and_throw(stat, err_msg.str());
     debug_print("connected to IP address = %s:%i\n",
         inet_ntoa(m_instr_addr.sin_addr), m_instr_addr.sin_port);
-
-    m_good = true;
     m_ip_addr = addr.ip;
     m_port = addr.port;
-
     return;
 }
 
-void tcpip_interface::close() 
+tcpip_interface::~tcpip_interface()
 {
-    if ( !this->good() )
-        throw bad_connection("TCP/IP interface is not connected");
-
+    debug_print("Closing connection to %s:%i\n", m_ip_addr.c_str(), m_port);
     shutdown(m_socket_fd, SHUT_RDWR);
-    m_good = false;
     return;
 }
 
 int tcpip_interface::write_raw(const uint8_t* data, size_t len) 
 {
-    if ( !this->good() )
-        throw bad_connection("TCP/IP interface is not connected");
-
     size_t bytes_left = len;
     size_t bytes_written = 0;
     ssize_t nbytes = 0;
@@ -95,9 +70,6 @@ int tcpip_interface::write_raw(const uint8_t* data, size_t len)
 
 int tcpip_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
 {
-    if ( !this->good() )
-        throw bad_connection("TCP/IP interface is not connected");
-
     // Wait for I/O
     fd_set rfd_set;
     FD_ZERO(&rfd_set);
@@ -166,9 +138,15 @@ string tcpip_interface::get_info() const
 }
 
 /*
-    *      P R I V A T E   M E T H O D S
-    */
+ *      P R I V A T E   M E T H O D S
+ */
 
+tcpip_interface::tcpip_interface() 
+    : ld_interface(), m_socket_fd(-1), m_instr_addr(), m_timeout(), 
+      m_ip_addr("127.0.0.1"), m_port(0)
+{
+    return;
+}
 
 void tcpip_interface::check_and_throw(int status, const string &msg) const 
 {

@@ -26,8 +26,7 @@ struct serial_config {
 class serial_interface : public ld_interface {
 public:
     serial_interface(const serial_config conf);
-    ~serial_interface() { this->close(); }
-
+    ~serial_interface();
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, 

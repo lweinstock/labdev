@@ -41,17 +41,17 @@ public:
     // C-style raw byte write
     virtual int write_raw(const uint8_t* data, size_t len) = 0;
     // C++-style byte write
-    virtual void write_byte(const std::vector<uint8_t> data);
+    void write_byte(const std::vector<uint8_t> data);
     // C++-style string write
-    virtual void write(const std::string& msg);
+    void write(const std::string& msg);
 
     // C-style raw byte read
     virtual int read_raw(uint8_t* data, size_t max_len, 
         unsigned timeout_ms = s_dflt_timeout_ms) = 0;
     // C++-style byte read
-    virtual std::vector<uint8_t> read_byte(unsigned timeout_ms = s_dflt_timeout_ms);
+    std::vector<uint8_t> read_byte(unsigned timeout_ms = s_dflt_timeout_ms);
     // C++-style string read
-    virtual std::string read(unsigned timeout_ms = s_dflt_timeout_ms);
+    std::string read(unsigned timeout_ms = s_dflt_timeout_ms);
 
     // Read until specified delimiter is found in the received message
     std::string read_until(const std::string& delim, size_t& pos, 
@@ -60,7 +60,7 @@ public:
         unsigned timeout_ms = s_dflt_timeout_ms);
 
     // C++-style string write followed by a read
-    virtual std::string query(const std::string& msg, 
+    std::string query(const std::string& msg, 
         unsigned timeout_ms = s_dflt_timeout_ms);
 
     /*
@@ -72,14 +72,10 @@ public:
 
     // Returns interface type; can be used to break abstraction
     virtual Interface_type type() const = 0;
-    // Returns true if device is ready for communication
-    virtual bool good() const { return m_good; }
 
 protected:
-    bool m_good;
-
     // Protected default ctor
-    ld_interface() : m_good(false) {};
+    ld_interface() {};
 };
 
 }

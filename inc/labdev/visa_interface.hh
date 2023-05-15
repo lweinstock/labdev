@@ -56,10 +56,6 @@ private:
     // Private default ctor
     visa_interface();
 
-    // Open/close device
-    void open(const visa_identifier visa_id);
-    void close();
-
     void init();
     void check_and_throw(ViStatus stat, const std::string &msg) const;
 };
@@ -88,8 +84,6 @@ public:
 
     Interface_type type() const override { return visa; }
 
-    bool good() const override { return false; }
-
     // Clear I/O buffers
     void flush_buffer() {};
     void clear_device() {};
@@ -99,8 +93,6 @@ private:
         fprintf(stderr, "labdev compiled without VISA support. To enable recompile using 'make VISA=1'.\n");
         abort();
     }
-
-    void close() {};
 };
 
 }

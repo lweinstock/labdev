@@ -36,17 +36,18 @@ public:
         TERM_CHAR = 0x02
     };
 
-    // Basic USBTMC I/O
-    void write(const std::string& msg) override;
-    std::string read(unsigned timeout_ms = s_dflt_timeout_ms) override;
+    int write_raw(const uint8_t* data, size_t len) override;
+    int read_raw(uint8_t* data, size_t max_len, 
+        unsigned timeout_ms = s_dflt_timeout_ms) override;
 
     Interface_type type() const override { return usbtmc; }
 
     // USBTMC device dependant data transfer
-    int write_dev_dep_msg(std::string msg,
+    int write_dev_dep_msg(const uint8_t* msg, size_t len,
         uint8_t transfer_attr = EOM);
-    std::string read_dev_dep_msg(int timeout_ms = s_dflt_timeout_ms,
-        uint8_t transfer_attr = TERM_CHAR, uint8_t term_char = '\n');
+    int read_dev_dep_msg(uint8_t* data, size_t max_len,
+        int timeout_ms = s_dflt_timeout_ms, uint8_t transfer_attr = TERM_CHAR, 
+        uint8_t term_char = '\n');
 
     // USBTMC vendor specific data transfer
     int write_vendor_specific(std::string msg);

@@ -6,17 +6,6 @@ using namespace std;
 
 namespace labdev {
 
-modbus_tcp::modbus_tcp(tcpip_interface* tcpip) : m_comm(nullptr), m_tid(0x0000)
-{
-    if ( !tcpip->good() ) {
-        fprintf(stderr, "Interface '%s' is not ready for communication\n",
-            tcpip->get_info().c_str());
-        abort();
-    }
-    m_comm = tcpip;
-    return;
-}
-
 vector<bool> modbus_tcp::read_coils(uint8_t uid, uint16_t addr, uint16_t len)
 {
     vector<bool> ret;

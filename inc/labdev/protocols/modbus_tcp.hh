@@ -8,7 +8,7 @@ namespace labdev {
 
 class modbus_tcp {
 public:
-    modbus_tcp(tcpip_interface* ip);
+    modbus_tcp(tcpip_interface* tcpip) : m_comm(tcpip), m_tid(0x0000) {};
     ~modbus_tcp() {};
 
     // Function Code 01; read coils -> returns true = on, false = off

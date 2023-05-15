@@ -24,7 +24,7 @@ struct usb_config{
 class usb_interface : public ld_interface {
 public:
     usb_interface(const usb_config conf);
-    virtual ~usb_interface() { this->close(); }
+    virtual ~usb_interface();
 
 
     // Data transfer to and from bulk endpoint using current ep address
@@ -71,7 +71,7 @@ public:
     uint8_t get_interface_protocol() const { return m_interface_protocol; }
 
 protected:
-    // Private default ctor
+    // Protected default ctor -> used by usbtmc_interface
     usb_interface();
 
 private:
@@ -91,9 +91,6 @@ private:
     uint8_t m_bus, m_port;
     uint8_t m_dev_class, m_dev_subclass, m_dev_protocol;
     uint8_t m_interface_class, m_interface_subclass, m_interface_protocol;
-
-    void open(const usb_config conf);
-    void close();
 
     // Reads information from device descriptors
     void gather_device_information();
