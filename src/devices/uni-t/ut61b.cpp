@@ -18,6 +18,7 @@ ut61b::ut61b(serial_config &ser): ut61b()
         abort();
     }
     m_serial = std::make_unique<serial_interface>(ser);
+    //m_serial->read();
     return;
 }
 
@@ -25,29 +26,22 @@ double ut61b::get_value() {
     // with dtr+ and rts- the multimeter starts sending values
     m_serial->set_dtr();
     m_serial->clear_rts();
-/*
-    string msg(""), buf("");    
-    // read until EOM found
-    while (msg.find(ut61b::EOM) == string::npos) {
-        buf = m_serial->read();
-        if (buf.size() > 0)
-            msg.append(buf);
-        // DMM is slow, so dont stress it out!
-        usleep(100e3);
-    }
-*/
-    string msg = m_serial->read_until(EOM, 100);
+
+    string msg = m_serial->read_until(EOM, 1000);
 
     // stop sending values
     m_serial->set_dtr();
     m_serial->clear_rts();
 
-    // Packet should have 14 bytes!
+    // Extract single packet
+    size_t pos1 = msg.find_first_of("+-");
+    size_t pos2 = msg.find(EOM) + strlen(EOM);
+    msg = msg.substr(pos1, pos2 - pos1);
     if (msg.size() != 14)
-        throw bad_protocol("Packet has wrong size", msg.size());
+        throw bad_protocol("Packet has wrong size " + to_string(msg.size()), msg.size());
 
-    // replace all '?' (whitespace on multimeter) with '0'
-    replace(msg.begin(), msg.end(), '?', '0');
+    // replace all '0x00' (whitespace on multimeter) with '0'
+    replace(msg.begin(), msg.end(), '\0', '0');
     if (msg.find(':') != string::npos)     // value out of range "0.L"
         return -1.;
 

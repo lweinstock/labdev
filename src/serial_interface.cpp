@@ -96,7 +96,7 @@ int serial_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_m
     fd_set rfd_set;
     FD_ZERO(&rfd_set);
     FD_SET(m_fd, &rfd_set);
-    m_timeout.tv_sec = timeout_ms / 1000;
+    m_timeout.tv_sec = timeout_ms / 1000.;
     m_timeout.tv_usec = timeout_ms % 1000;
 
     // Block until data is available or timeout exceeded
@@ -107,7 +107,6 @@ int serial_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_m
 
     // Data is available!
     ssize_t nbytes;
-    debug_print("%s", "Reading from device\n");
     nbytes = ::read(m_fd, data, max_len);
     check_and_throw(nbytes, "Failed to read from device");
     

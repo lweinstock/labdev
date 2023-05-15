@@ -53,7 +53,7 @@ unsigned timeout_ms) {
 
 string ld_interface::read_until(const string& delim, 
 unsigned timeout_ms) {
-    size_t temp= 0;
+    size_t temp = 0;
     return this->read_until(delim, temp, timeout_ms);    
 }
 
