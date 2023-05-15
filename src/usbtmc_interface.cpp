@@ -53,13 +53,12 @@ int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
     uint8_t rbuf[s_dflt_buf_size] = { 0x00 };
 
     // Send read request
-    debug_print("%s\n", "Sending read request\n");
+    debug_print("%s\n", "Sending read request");
     this->create_usbtmc_header(read_request, REQUEST_DEV_DEP_MSG_IN,
         transfer_attr, sizeof(rbuf), term_char);
     this->write_bulk((const uint8_t*)read_request, s_header_len);
 
     // Read from bulk endpoint
-    debug_print("%s\n", "Reading...\n");
     int len = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
 
     // If an empty message was received, return immediatly
@@ -79,23 +78,11 @@ int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
     }
     debug_print_byte_data(data, bytes_received, "Read %zu bytes: ", 
         bytes_received);
-/*
-    // Remove header from return value
-    len -= s_header_len;
-    string ret((const char*)rbuf + s_header_len, len);
 
-    // If more data than received was anounced in the header, keep reading
-    int bytes_left = transfer_size - len;
-    while (bytes_left > 0) {
-        int nbytes = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
-        ret.append((char*)rbuf, min(bytes_left, nbytes));
-        bytes_left -= nbytes;
-    }
-*/
     // Increase bTag for next communication
     m_cur_tag++;
     
-    return 0;
+    return bytes_received;
 }
 
 int usbtmc_interface::write_vendor_specific(string msg) 
