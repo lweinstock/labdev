@@ -52,7 +52,7 @@ PYBIND11_MODULE(pylabdev, m) {
         .def(py::init<>(),
             "Create empty serial config")
         .def(py::init<string, unsigned, unsigned, bool, bool, unsigned>(),
-            py::arg("dev_file"),
+            py::arg("path"),
             py::arg("baud") = 9600,
             py::arg("nbits") = 8,
             py::arg("par_ena") = false,
@@ -60,7 +60,7 @@ PYBIND11_MODULE(pylabdev, m) {
             py::arg("stop_bits") = 1,
             "Create serial config with given arguments (default: BAUD 9600 8N1)"
         )
-        .def_readwrite("dev_file", &serial_config::dev_file, 
+        .def_readwrite("path", &serial_config::path, 
             "Path to device file of target device")
         .def_readwrite("baud", &serial_config::baud,
             "Serial baudrate in bits per second")
@@ -78,13 +78,6 @@ PYBIND11_MODULE(pylabdev, m) {
 
     // Device base class
     py::class_<device>(m, "device")
-        .def(py::init())
-        .def("connected", &device::connected,
-            "Returns true if device is ready for communication")
-        .def("disconnect", &device::disconnect, 
-            "Closes the communication interface")
-        .def("reconnect", &device::reconnect,
-            "Re-establishes the current communication interface")
         .def("get_info", &device::get_info,
             "Returns human readable information string about the interface")
     ;
@@ -93,15 +86,8 @@ PYBIND11_MODULE(pylabdev, m) {
     py::class_<xenax_xvi, device> xenax_xvi(m, "xenax_xvi");
         xenax_xvi.def_property_readonly_static("dflt_port", 
             [](py::object) { return xenax_xvi::PORT; })
-        .def(py::init<>())
-        .def(py::init<ip_address&>())
-        .def(py::init<serial_config&>())
-        .def("connect", 
-            static_cast<void (xenax_xvi::*)(ip_address&)>(&xenax_xvi::connect),
-            "Connect to given ip address")
-        .def("connect", 
-            static_cast<void (xenax_xvi::*)(serial_config&)>(&xenax_xvi::connect),
-            "Connect to given serial device")
+        .def(py::init<const ip_address>())
+        .def(py::init<const serial_config>())
         .def("__repr__", 
             [](const class xenax_xvi &self) {
                 return self.get_info();
@@ -229,11 +215,7 @@ PYBIND11_MODULE(pylabdev, m) {
     py::class_<om70_l, device>(m, "om70_l")
         .def_property_readonly_static("dflt_port", 
             [](py::object) { return om70_l::PORT; })
-        .def(py::init<>())
-        .def(py::init<ip_address&>())
-        .def("connect", 
-            static_cast<void (om70_l::*)(ip_address&)>(&om70_l::connect),
-            "Connect to given ip address")
+        .def(py::init<const ip_address>())
         .def("__repr__", 
             [](const om70_l &self) {
                 return self.get_info();
@@ -275,11 +257,7 @@ PYBIND11_MODULE(pylabdev, m) {
 
     // Musashi time-pressure dispenser ML-808 GX
     py::class_<ml_808gx, device>(m, "ml_808gx")
-        .def(py::init())
-        .def(py::init<serial_config&>())
-        .def("connect", 
-            static_cast<void (ml_808gx::*)(serial_config&)>(&ml_808gx::connect),
-            "Connect to given serial device")
+        .def(py::init<const serial_config>())
         .def("__repr__", 
             [](const ml_808gx &self) {
                 return "ML-808gx dispenser unit, "
