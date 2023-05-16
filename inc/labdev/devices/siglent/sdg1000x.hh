@@ -3,6 +3,7 @@
 
 #include <labdev/devices/fgen.hh>
 #include <labdev/tcpip_interface.hh>
+#include <labdev/usbtmc_interface.hh>
 #include <labdev/protocols/scpi.hh>
 
 namespace labdev {
@@ -10,9 +11,12 @@ namespace labdev {
 class sdg1000x: public fgen {
 public:
     sdg1000x(const ip_address ip);
+    sdg1000x(const usb_config usb);
     ~sdg1000x() {};
 
     static constexpr unsigned PORT = 5025;
+    static constexpr uint16_t SDG1032X_VID = 0xF4EC;
+    static constexpr uint16_t SDG1032X_PID = 0x1103;
 
     // Turn channel on/off
     void enable_channel(unsigned channel, bool ena = true) override;

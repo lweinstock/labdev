@@ -84,6 +84,7 @@ private:
     // Current device I/O information
     int m_cur_cfg, m_cur_alt_setting, m_cur_interface_no;
     uint8_t m_cur_ep_in_addr, m_cur_ep_out_addr;
+    size_t m_wMaxPacketSize;
 
     // General device info
     uint16_t m_vid, m_pid;

@@ -61,13 +61,12 @@ public:
 
 private:
     // Private default ctor
-    usbtmc_interface();
+    usbtmc_interface() : usb_interface(), m_cur_tag(0x01) {};
 
     static constexpr unsigned s_header_len = 12;
     static constexpr uint8_t LIBUSB_SUBCLASS_TMC = 0x03;
 
     uint8_t m_cur_tag, m_term_char;
-    bool m_eom_cap;   // TODO: check if EOM is supported by device
 
     // Creates a USBTMC header
     void create_usbtmc_header(uint8_t* header, uint8_t message_id,

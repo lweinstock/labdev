@@ -3,6 +3,7 @@
 #include <labdev/ld_debug.hh>
 
 #include <sstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -33,7 +34,7 @@ usb_interface::usb_interface(const usb_config conf) : usb_interface()
         check_and_throw(ndev, "Failed to get device descriptor");
         uint8_t tmp_bus = libusb_get_bus_number(tmp_dev);
         uint8_t tmp_port = libusb_get_port_number(tmp_dev);
-        debug_print("dev %i - ID 0x%04X:0x%04X - bus 0x%02X port 0x%02X\n", 
+        debug_print("dev %i - ID 0x%04X:0x%04X - BUS%03u:PORT%03u\n", 
             idev, desc.idVendor, desc.idProduct, tmp_bus, tmp_port);
 
         // Check for bus and port number
@@ -74,7 +75,7 @@ usb_interface::usb_interface(const usb_config conf) : usb_interface()
         check_and_throw(stat, "Failed to get usb handle");
         this->gather_device_information();
     } else {
-        fprintf(stderr, "Device ID 0x%04X:0x%04X BUS%02X:PORT%02X not found\n", 
+        fprintf(stderr, "Device ID 0x%04X:0x%04X BUS%03u:PORT%03u not found\n", 
             conf.vid, conf.pid, conf.bus_no, conf.port_no);
         abort();
     }
@@ -105,67 +106,18 @@ usb_interface::~usb_interface()
 
 int usb_interface::write_raw(const uint8_t* data, size_t len) 
 {
-    this->check_interface();
-    size_t bytes_left = len;
-    size_t bytes_written = 0;
-    ssize_t nbytes = 0;
-
-    while ( bytes_left > 0 ) {
-        nbytes = this->write_bulk(&data[bytes_written], bytes_left);
-        check_and_throw(nbytes, "Failed to write to device");
-        bytes_left -= nbytes;
-
-        debug_print("Written %zu bytes: ", nbytes);
-        #ifdef LD_DEBUG
-        if (nbytes > 20) {
-            for (int i = 0; i < 10; i++)
-                printf("0x%02X ", data[bytes_written + i]);
-            printf("[...] ");
-            for (int i = nbytes-10; i < nbytes; i++)
-                printf("0x%02X ", data[bytes_written + i]);
-        } else {
-            for (int i = 0; i < nbytes; i++)
-                printf("0x%02X ", data[bytes_written + i]);
-        }
-        printf("(%zi bytes left)\n", bytes_left);
-        #endif
-
-        bytes_written += nbytes;
-    }
-    return bytes_written;
-};
+    return this->write_bulk(data, len);
+}
 
 int usb_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
 {
-    this->check_interface();
-    ssize_t nbytes = 0;
-    uint8_t rbuf[s_dflt_buf_size] = {'\0'};
-    nbytes = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
-    check_and_throw(nbytes, "Failed to read from device");
-
-    debug_print("Read %zi bytes: ", nbytes);
-    #ifdef LD_DEBUG
-    if (nbytes > 20) {
-        for (int i = 0; i < 10; i++)
-            printf("0x%02X ", data[i]);
-        printf("[...] ");
-        for (int i = nbytes-10; i < nbytes; i++)
-            printf("0x%02X ", data[i]);
-    } else {
-        for (int i = 0; i < nbytes; i++)
-            printf("0x%02X ", data[i]);
-    }
-    printf("\n");
-    #endif
-
-    return nbytes;
-};
+    return this->read_bulk(data, max_len, timeout_ms);
+}
 
 string usb_interface::get_info() const 
 {
     // Format example: usb;002;001
-    string ret("usb;" + to_string(m_bus) + ";" 
-        + to_string(m_port) );
+    string ret("usb;" + to_string(m_bus) + ";" + to_string(m_port) );
     return ret;
 }
 
@@ -225,32 +177,24 @@ int usb_interface::read_control(uint8_t request_type, uint8_t request,
 int usb_interface::write_bulk(const uint8_t* data, int len) 
 {
     this->check_interface();
-    int nbytes = -1, stat;
-    stat = libusb_bulk_transfer(
-        m_usb_handle,
-        LIBUSB_ENDPOINT_OUT | m_cur_ep_out_addr,
-        (uint8_t*)data,
-        len,
-        &nbytes,
-        1000);
-    check_and_throw(stat, "Bulk transfer failed to send data");
+    int stat, nbytes = 0;
+    size_t bytes_left = len;
+    size_t bytes_written = 0;
 
-    // Verbose debug print
-    debug_print("Sent %i bytes : ", nbytes);
-    #ifdef LD_DEBUG
-    if (nbytes > 20) {
-        for (int i = 0; i < 10; i++)
-            printf("0x%02X ", data[i]);
-        printf("[...] ");
-        for (int i = nbytes-10; i < nbytes; i++)
-            printf("0x%02X ", data[i]);
-    } else {
-        for (int i = 0; i < nbytes; i++)
-            printf("0x%02X ", data[i]);
+    while ( bytes_left > 0 ) {
+        // Packets can be max wMaxPacketSize
+        stat = libusb_bulk_transfer(
+            m_usb_handle,
+            LIBUSB_ENDPOINT_OUT | m_cur_ep_out_addr,
+            (uint8_t*)&data[bytes_written],
+            min(bytes_left, m_wMaxPacketSize),
+            &nbytes,
+            1000);
+        check_and_throw(stat, "Bulk transfer failed to send data");
+        bytes_left -= nbytes;
+        bytes_written += nbytes;
+        debug_print_byte_data(data, nbytes, "Written %zu bytes: ", nbytes);
     }
-    printf("\n");
-    #endif
-
     return nbytes;
 }
 
@@ -266,22 +210,8 @@ int usb_interface::read_bulk(uint8_t* data, int max_len, int timeout_ms)
         &nbytes,
         timeout_ms);
     check_and_throw(stat, "Bulk transfer failed to read data");
-
-    // Verbose byte-wise debug print
-    debug_print("Read %i bytes : ", nbytes);
-    #ifdef LD_DEBUG
-    if (nbytes > 20) {
-        for (int i = 0; i < 10; i++)
-            printf("0x%02X ", data[i]);
-        printf("[...] ");
-        for (int i = nbytes-10; i < nbytes; i++)
-            printf("0x%02X ", data[i]);
-    } else {
-        for (int i = 0; i < nbytes; i++)
-            printf("0x%02X ", data[i]);
-    }
-    printf("\n");
-    #endif
+    
+    debug_print_byte_data(data, nbytes, "Read %zu bytes: ", nbytes);
 
     return nbytes;
 }
@@ -340,12 +270,14 @@ void usb_interface::claim_interface(int interface_no, int alt_setting)
 void usb_interface::set_endpoint_in(uint8_t ep_addr) 
 {
     m_cur_ep_in_addr = ep_addr;
+    // TODO: Get wMaxPacketSize!
     return;
 }
 
 void usb_interface::set_endpoint_out(uint8_t ep_addr) 
 {
     m_cur_ep_out_addr = ep_addr;
+    // TODO: Get wMaxPacketSize!
     return;
 }
 
@@ -355,7 +287,7 @@ void usb_interface::set_endpoint_out(uint8_t ep_addr)
 
 usb_interface::usb_interface(): m_usb_dev(NULL), m_usb_handle(NULL),
     m_cur_cfg(0), m_cur_alt_setting(0), m_cur_interface_no(-1),
-    m_cur_ep_in_addr(0), m_cur_ep_out_addr(0),
+    m_cur_ep_in_addr(0), m_cur_ep_out_addr(0), m_wMaxPacketSize(64),
     m_vid(0x0000), m_pid(0x0000), m_serial_no(""), m_bus(0xFF), m_port(0xFF),
     m_dev_class(0), m_dev_subclass(0), m_dev_protocol(0),
     m_interface_class(0), m_interface_subclass(0), m_interface_protocol(0) 
@@ -422,6 +354,8 @@ void usb_interface::gather_interface_information()
     m_interface_class = int_desc->bInterfaceClass;
     m_interface_subclass = int_desc->bInterfaceSubClass;
     m_interface_protocol = int_desc->bInterfaceProtocol;
+
+    // TODO: Get wMaxPacketSize from the libusb_endpoint_descriptor
 
     debug_print("bInterfaceClass\t0x%02X\n", m_interface_class);
     debug_print("bInterfaceSubClass\t0x%02X\n", m_interface_subclass);

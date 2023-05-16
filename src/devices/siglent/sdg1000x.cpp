@@ -20,6 +20,18 @@ sdg1000x::sdg1000x(const ip_address ip) : sdg1000x()
     return;
 }
 
+sdg1000x::sdg1000x(const usb_config conf) : sdg1000x()
+{
+    auto usbtmc = std::make_unique<usbtmc_interface>(conf);
+    // USB initialization
+    usbtmc->claim_interface(0);
+    usbtmc->set_endpoint_in(0x01);
+    usbtmc->set_endpoint_out(0x01);
+    m_comm = std::move(usbtmc);
+    this->init();
+    return;
+}
+
 void sdg1000x::enable_channel(unsigned channel, bool ena)
 {
     this->check_channel(channel);

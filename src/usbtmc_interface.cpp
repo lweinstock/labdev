@@ -6,8 +6,8 @@ using namespace std;
 
 namespace labdev {
 
-usbtmc_interface::usbtmc_interface(const usb_config conf) 
-    : usb_interface(conf), m_cur_tag(0x01), m_eom_cap(true)
+usbtmc_interface::usbtmc_interface(const usb_config conf)
+    : usb_interface(conf), m_cur_tag(0x01)
 {
     return;
 }
@@ -159,7 +159,7 @@ void usbtmc_interface::clear_buffer()
 
 void usbtmc_interface::claim_interface(int int_no, int alt_setting) 
 {
-    usb_interface::claim_interface(int_no, alt_setting);
+    this->usb_interface::claim_interface(int_no, alt_setting);
     // Check for USBTMC interface
     if ( (this->get_interface_class() != LIBUSB_CLASS_APPLICATION) ||
             (this->get_interface_subclass() != LIBUSB_SUBCLASS_TMC) ) {
@@ -173,12 +173,6 @@ void usbtmc_interface::claim_interface(int int_no, int alt_setting)
 /*
  *      P R I V A T E   M E T H O D S
  */
-
-usbtmc_interface::usbtmc_interface() 
-    : usb_interface(), m_cur_tag(0x01), m_eom_cap(true) 
-{
-    return;
-}
 
 void usbtmc_interface::create_usbtmc_header(uint8_t* header, uint8_t message_id, 
     uint8_t transfer_attr, uint32_t transfer_size, uint8_t term_char) 
