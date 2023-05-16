@@ -44,17 +44,14 @@ public:
     void clear_device();
 
 private:   
-    static const size_t MAX_BUF_SIZE = 1024*1024;   // 1MB buffer
-    static const unsigned DFLT_TIMEOUT_MS = 2000;   // 2s timeout
+    // Private default ctor
+    visa_interface();
+
     static ViSession s_default_rm;
     static int s_interface_ctr;
-
     ViSession m_instr;
     std::string m_visa_id;
     unsigned m_timeout;
-
-    // Private default ctor
-    visa_interface();
 
     void init();
     void check_and_throw(ViStatus stat, const std::string &msg) const;

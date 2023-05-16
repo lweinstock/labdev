@@ -19,7 +19,6 @@ visa_interface::visa_interface(const visa_identifier visa_id) : visa_interface()
     check_and_throw(stat, "Could not open instrument '" + visa_id + "'");
 
     m_visa_id = visa_id;
-    m_good = true;
     return;
 }
 
@@ -136,7 +135,8 @@ void visa_interface::clear_device()
  */
 
 visa_interface::visa_interface()
-    : m_instr(0), m_visa_id("ASRL1::INSTR"), m_timeout(DFLT_TIMEOUT_MS) 
+    : m_instr(0), m_visa_id("ASRL1::INSTR"), 
+      m_timeout(ld_interface::s_dflt_timeout_ms) 
 {
     ViStatus stat;
     if (s_interface_ctr == 0) {

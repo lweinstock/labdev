@@ -18,8 +18,8 @@ INC=inc
 OBJ=
 
 # libusb compiler flags
-LIBUSB_CFLAGS=$(shell pkg-config libusb-1.0 --cflags)
-CFLAGS+=$(LIBUSB_CFLAGS)
+CFLAGS+=$(shell pkg-config libusb-1.0 --cflags)
+LDFLAGS+=$(shell pkg-config libusb-1.0 --libs)
 
 # Debugging
 OBJ+=$(SRC)/ld_debug.o
