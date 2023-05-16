@@ -194,8 +194,8 @@ void ds1000z::read_sample_data(unsigned channel, vector<double> &horz_data,
     string data = m_comm->query(":WAV:PRE?\n");
     vector<string> preamble = split(data, ",", 10);
     if (preamble.size() != 10) {
-        debug_print("Received wrong preamble size: %s (%lu)\n",
-            data.c_str(), preamble.size());
+        debug_print("Received wrong preamble size (%lu): '%s'\n",
+            preamble.size(), data.c_str());
         throw device_error("Received incomplete preamble.", -1);
     }
 

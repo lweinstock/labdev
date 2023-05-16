@@ -271,6 +271,10 @@ void usb_interface::set_endpoint_in(uint8_t ep_addr)
 {
     m_cur_ep_in_addr = ep_addr;
     // TODO: Get wMaxPacketSize!
+    int test = libusb_get_max_packet_size(m_usb_dev, 
+        LIBUSB_ENDPOINT_IN | m_cur_ep_in_addr);
+    debug_print("Endpoint 0x%02X (IN) wMaxPacketSize %i\n", m_cur_ep_in_addr, 
+        test);
     return;
 }
 
@@ -278,6 +282,10 @@ void usb_interface::set_endpoint_out(uint8_t ep_addr)
 {
     m_cur_ep_out_addr = ep_addr;
     // TODO: Get wMaxPacketSize!
+    int test = libusb_get_max_packet_size(m_usb_dev, 
+        LIBUSB_ENDPOINT_OUT | m_cur_ep_out_addr);
+    debug_print("Endpoint 0x%02X (OUT) wMaxPacketSize %i\n", m_cur_ep_out_addr, 
+        test);
     return;
 }
 
