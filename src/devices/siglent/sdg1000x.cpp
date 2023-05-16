@@ -32,6 +32,13 @@ sdg1000x::sdg1000x(const usb_config conf) : sdg1000x()
     return;
 }
 
+sdg1000x::sdg1000x(const visa_identifier visa) : sdg1000x()
+{
+    m_comm = std::make_shared<visa_interface>(visa);
+    this->init();
+    return;
+}
+
 void sdg1000x::enable_channel(unsigned channel, bool ena)
 {
     this->check_channel(channel);

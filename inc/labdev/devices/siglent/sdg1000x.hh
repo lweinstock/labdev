@@ -4,6 +4,7 @@
 #include <labdev/devices/fgen.hh>
 #include <labdev/tcpip_interface.hh>
 #include <labdev/usbtmc_interface.hh>
+#include <labdev/visa_interface.hh>
 #include <labdev/protocols/scpi.hh>
 
 namespace labdev {
@@ -12,6 +13,7 @@ class sdg1000x: public fgen {
 public:
     sdg1000x(const ip_address ip);
     sdg1000x(const usb_config usb);
+    sdg1000x(const visa_identifier visa);
     ~sdg1000x() {};
 
     static constexpr unsigned PORT = 5025;
