@@ -26,8 +26,8 @@ ds1000z::ds1000z(const usb_config conf) : ds1000z()
     auto usbtmc = std::make_unique<usbtmc_interface>(conf);
     // USB initialization
     usbtmc->claim_interface(0);
-    usbtmc->set_endpoint_in(0x02);
-    usbtmc->set_endpoint_out(0x03);
+    usbtmc->set_endpoint_in(1);
+    usbtmc->set_endpoint_out(2);
     m_comm = std::move(usbtmc);
     this->init();
     return;

@@ -25,8 +25,8 @@ sdg1000x::sdg1000x(const usb_config conf) : sdg1000x()
     auto usbtmc = std::make_unique<usbtmc_interface>(conf);
     // USB initialization
     usbtmc->claim_interface(0);
-    usbtmc->set_endpoint_in(0x01);
-    usbtmc->set_endpoint_out(0x01);
+    usbtmc->set_endpoint_in(0);
+    usbtmc->set_endpoint_out(1);
     m_comm = std::move(usbtmc);
     this->init();
     return;

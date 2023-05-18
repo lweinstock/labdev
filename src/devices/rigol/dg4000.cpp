@@ -32,8 +32,8 @@ dg4000::dg4000(const usb_config usb): dg4000()
     auto usbtmc = std::make_unique<usbtmc_interface>(usb);
     // USB initialization
     usbtmc->claim_interface(0);
-    usbtmc->set_endpoint_in(0x08);
-    usbtmc->set_endpoint_out(0x02);
+    usbtmc->set_endpoint_out(1);
+    usbtmc->set_endpoint_in(2);
     m_comm = std::move(usbtmc);
     this->init();
     return;

@@ -185,9 +185,9 @@ int usb_interface::write_bulk(const uint8_t* data, int len)
         // Packets can be max wMaxPacketSize
         stat = libusb_bulk_transfer(
             m_usb_handle,
-            LIBUSB_ENDPOINT_OUT | m_cur_ep_out_addr,
+            m_ep_out_addr,
             (uint8_t*)&data[bytes_written],
-            min(bytes_left, m_wMaxPacketSize),
+            min(bytes_left, m_max_pkt_size_out),
             &nbytes,
             1000);
         check_and_throw(stat, "Bulk transfer failed to send data");
@@ -201,16 +201,20 @@ int usb_interface::write_bulk(const uint8_t* data, int len)
 int usb_interface::read_bulk(uint8_t* data, int max_len, int timeout_ms) 
 {
     this->check_interface();
-    int nbytes = 0, stat;
-    stat = libusb_bulk_transfer(
-        m_usb_handle,
-        LIBUSB_ENDPOINT_IN | m_cur_ep_in_addr,
-        data,
-        max_len,
-        &nbytes,
-        timeout_ms);
-    check_and_throw(stat, "Bulk transfer failed to read data");
-    
+    int stat;
+    int nbytes = m_max_pkt_size_in;
+    int bytes_received = 0;
+    while (nbytes == m_max_pkt_size_in) {
+        stat = libusb_bulk_transfer(
+            m_usb_handle,
+            m_ep_in_addr,
+            &data[bytes_received],
+            max_len,
+            &nbytes,
+            timeout_ms);
+        check_and_throw(stat, "Bulk transfer failed to read data");
+        bytes_received += nbytes;
+    }
     debug_print_byte_data(data, nbytes, "Read %zu bytes: ", nbytes);
 
     return nbytes;
@@ -229,7 +233,7 @@ int usb_interface::read_interrupt(uint8_t* data, int max_len,
     return 0;
 }
 
-void usb_interface::claim_interface(int interface_no, int alt_setting) 
+void usb_interface::claim_interface(unsigned interface_no, unsigned alt_setting) 
 {
     int stat;
     string msg("");
@@ -267,25 +271,69 @@ void usb_interface::claim_interface(int interface_no, int alt_setting)
     return;
 }
 
-void usb_interface::set_endpoint_in(uint8_t ep_addr) 
+void usb_interface::set_endpoint_in(unsigned ep_no) 
 {
-    m_cur_ep_in_addr = ep_addr;
-    // TODO: Get wMaxPacketSize!
-    int test = libusb_get_max_packet_size(m_usb_dev, 
-        LIBUSB_ENDPOINT_IN | m_cur_ep_in_addr);
-    debug_print("Endpoint 0x%02X (IN) wMaxPacketSize %i\n", m_cur_ep_in_addr, 
-        test);
+    this->check_interface();
+
+    // Get endpoint descriptor
+    libusb_config_descriptor* cfg_desc;
+    const libusb_interface* usb_interface;
+    const libusb_interface_descriptor* int_desc;
+    const libusb_endpoint_descriptor* ep_desc;
+
+    int stat = libusb_get_config_descriptor(m_usb_dev, m_cur_cfg, &cfg_desc);
+    check_and_throw(stat, "Failed to get config descriptor");
+    usb_interface = &cfg_desc->interface[m_cur_interface_no];
+    int_desc = &usb_interface->altsetting[m_cur_alt_setting];
+
+    unsigned n_eps = static_cast<unsigned>(int_desc->bNumEndpoints);
+    if (ep_no < n_eps)
+        ep_desc = &int_desc->endpoint[ep_no];
+    else 
+        throw bad_io("Invalid endpoint number", ep_no);
+    // Get endpoint address
+    uint8_t ep_addr = ep_desc->bEndpointAddress;
+    if (ep_addr & LIBUSB_ENDPOINT_IN)
+        m_ep_in_addr = ep_addr;
+    else
+        throw bad_io("Wrong endpoint direction", ep_no);
+    // Get max packet size
+    m_max_pkt_size_in = ep_desc->wMaxPacketSize;
+    debug_print("Endpoint %u address (IN) 0x%02X (wMaxPacketSize %lu)\n", ep_no, 
+        m_ep_in_addr, m_max_pkt_size_in);
     return;
 }
 
-void usb_interface::set_endpoint_out(uint8_t ep_addr) 
+void usb_interface::set_endpoint_out(unsigned ep_no) 
 {
-    m_cur_ep_out_addr = ep_addr;
-    // TODO: Get wMaxPacketSize!
-    int test = libusb_get_max_packet_size(m_usb_dev, 
-        LIBUSB_ENDPOINT_OUT | m_cur_ep_out_addr);
-    debug_print("Endpoint 0x%02X (OUT) wMaxPacketSize %i\n", m_cur_ep_out_addr, 
-        test);
+    this->check_interface();
+
+    // Get endpoint descriptor
+    libusb_config_descriptor* cfg_desc;
+    const libusb_interface* usb_interface;
+    const libusb_interface_descriptor* int_desc;
+    const libusb_endpoint_descriptor* ep_desc;
+
+    int stat = libusb_get_config_descriptor(m_usb_dev, m_cur_cfg, &cfg_desc);
+    check_and_throw(stat, "Failed to get config descriptor");
+    usb_interface = &cfg_desc->interface[m_cur_interface_no];
+    int_desc = &usb_interface->altsetting[m_cur_alt_setting];
+
+    unsigned n_eps = static_cast<unsigned>(int_desc->bNumEndpoints);
+    if (ep_no < n_eps)
+        ep_desc = &int_desc->endpoint[ep_no];
+    else 
+        throw bad_io("Invalid endpoint number", ep_no);
+    // Get endpoint address
+    uint8_t ep_addr = ep_desc->bEndpointAddress;
+    if ( !(ep_addr & LIBUSB_ENDPOINT_IN) )
+        m_ep_out_addr = ep_addr;
+    else 
+        throw bad_io("Wrong endpoint direction", ep_no);
+    // Get max packet size
+    m_max_pkt_size_out = ep_desc->wMaxPacketSize;
+    debug_print("Endpoint %u address (OUT) 0x%02X (wMaxPacketSize %lu)\n", ep_no, 
+        m_ep_out_addr, m_max_pkt_size_out);
     return;
 }
 
@@ -295,7 +343,7 @@ void usb_interface::set_endpoint_out(uint8_t ep_addr)
 
 usb_interface::usb_interface(): m_usb_dev(NULL), m_usb_handle(NULL),
     m_cur_cfg(0), m_cur_alt_setting(0), m_cur_interface_no(-1),
-    m_cur_ep_in_addr(0), m_cur_ep_out_addr(0), m_wMaxPacketSize(64),
+    m_ep_in_addr(0), m_ep_out_addr(0), m_max_pkt_size_in(64), m_max_pkt_size_out(64),
     m_vid(0x0000), m_pid(0x0000), m_serial_no(""), m_bus(0xFF), m_port(0xFF),
     m_dev_class(0), m_dev_subclass(0), m_dev_protocol(0),
     m_interface_class(0), m_interface_subclass(0), m_interface_protocol(0) 
@@ -331,14 +379,14 @@ void usb_interface::gather_device_information()
     } else
         m_serial_no = "-1";
 
-    debug_print("Bus\t\t %i\n", m_bus);
-    debug_print("Port\t\t %i\n", m_port);
-    debug_print("idVendor\t 0x%02X\n", m_vid);
-    debug_print("idProduct\t 0x%02X\n", m_pid);
-    debug_print("iSerial\t %s\n", m_serial_no.c_str());
-    debug_print("bDeviceClass\t 0x%02X\n", m_dev_class);
-    debug_print("bDeviceSubClass 0x%02X\n", m_dev_subclass);
-    debug_print("bDeviceProtocol 0x%02X\n", m_dev_protocol);
+    debug_print("Bus\t%i\n", m_bus);
+    debug_print("Port\t%i\n", m_port);
+    debug_print("idVendor\t0x%02X\n", m_vid);
+    debug_print("idProduct\t0x%02X\n", m_pid);
+    debug_print("iSerial\t%s\n", m_serial_no.c_str());
+    debug_print("bDeviceClass\t0x%02X\n", m_dev_class);
+    debug_print("bDeviceSubClass\t0x%02X\n", m_dev_subclass);
+    debug_print("bDeviceProtocol\t0x%02X\n", m_dev_protocol);
 
     return;
 }

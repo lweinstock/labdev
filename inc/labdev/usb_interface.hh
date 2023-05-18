@@ -54,9 +54,9 @@ public:
         int timeout_ms = s_dflt_timeout_ms);
 
     // Set current I/O configuration
-    void claim_interface(int int_no, int alt_setting = 0);
-    void set_endpoint_in(uint8_t ep_addr);
-    void set_endpoint_out(uint8_t ep_addr);
+    void claim_interface(unsigned int_no, unsigned alt_setting = 0);
+    void set_endpoint_in(unsigned ep_no);
+    void set_endpoint_out(unsigned ep_no);
 
     // Get information on the device
     uint16_t get_vid() const { return m_vid; }
@@ -83,10 +83,10 @@ private:
 
     // Current device I/O information
     int m_cur_cfg, m_cur_alt_setting, m_cur_interface_no;
-    uint8_t m_cur_ep_in_addr, m_cur_ep_out_addr;
-    size_t m_wMaxPacketSize;
+    uint8_t m_ep_in_addr, m_ep_out_addr;
+    size_t m_max_pkt_size_in, m_max_pkt_size_out;
 
-    // General device info
+    // Device info
     uint16_t m_vid, m_pid;
     std::string m_serial_no;
     uint8_t m_bus, m_port;
