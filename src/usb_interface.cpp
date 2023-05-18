@@ -121,6 +121,13 @@ string usb_interface::get_info() const
     return ret;
 }
 
+void usb_interface::clear()
+{
+    libusb_clear_halt(m_usb_handle, m_ep_in_addr);
+    libusb_clear_halt(m_usb_handle, m_ep_out_addr);
+    return;
+}
+
 int usb_interface::write_control(uint8_t request_type, uint8_t request,
     uint16_t value, uint16_t index, const uint8_t* data, int len) 
 {
@@ -228,7 +235,7 @@ int usb_interface::write_interrupt(const uint8_t* data, int len)
 
 int usb_interface::read_interrupt(uint8_t* data, int max_len,
     int timeout_ms) 
-    {
+{
     // TODO
     return 0;
 }
@@ -299,8 +306,8 @@ void usb_interface::set_endpoint_in(unsigned ep_no)
         throw bad_io("Wrong endpoint direction", ep_no);
     // Get max packet size
     m_max_pkt_size_in = ep_desc->wMaxPacketSize;
-    debug_print("Endpoint %u address (IN) 0x%02X (wMaxPacketSize %lu)\n", ep_no, 
-        m_ep_in_addr, m_max_pkt_size_in);
+    debug_print("Endpoint %u address (IN) 0x%02X (wMaxPacketSize %i)\n", ep_no, 
+        m_ep_in_addr, ep_desc->wMaxPacketSize);
     return;
 }
 
@@ -410,9 +417,6 @@ void usb_interface::gather_interface_information()
     m_interface_class = int_desc->bInterfaceClass;
     m_interface_subclass = int_desc->bInterfaceSubClass;
     m_interface_protocol = int_desc->bInterfaceProtocol;
-
-    // TODO: Get wMaxPacketSize from the libusb_endpoint_descriptor
-
     debug_print("bInterfaceClass\t0x%02X\n", m_interface_class);
     debug_print("bInterfaceSubClass\t0x%02X\n", m_interface_subclass);
     debug_print("bInterfaceProtocol\t0x%02X\n", m_interface_protocol);

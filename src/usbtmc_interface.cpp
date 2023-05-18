@@ -26,7 +26,9 @@ int usbtmc_interface::write_dev_dep_msg(const uint8_t* msg, size_t len,
     uint8_t transfer_attr) 
 {
     // add space for header + total length must be multiple of 4
-    size_t tot_len = s_header_len + len + 4 - len%4;
+    size_t tot_len = s_header_len + len;
+    if (tot_len%4 > 0)
+        tot_len += 4 - tot_len%4;
     uint8_t* usbtmc_message = new uint8_t[tot_len];
     this->create_usbtmc_header(usbtmc_message, DEV_DEP_MSG_OUT,
         transfer_attr, len);
@@ -37,6 +39,7 @@ int usbtmc_interface::write_dev_dep_msg(const uint8_t* msg, size_t len,
         if (i > len+s_header_len)
             usbtmc_message[i] = 0x00;   // zero padding
     }
+    debug_print("%s\n", "Sending device dependent message");
     int nbytes = this->write_bulk((const uint8_t*)usbtmc_message, tot_len);
     debug_print_byte_data(usbtmc_message, nbytes, "Written %zu bytes: ", nbytes);
 
@@ -59,6 +62,7 @@ int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
     this->write_bulk((const uint8_t*)read_request, s_header_len);
 
     // Read from bulk endpoint
+    debug_print("%s\n", "Reading device dependent message");
     int len = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
 
     // If an empty message was received, return immediatly

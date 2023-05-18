@@ -43,6 +43,8 @@ public:
     // Returns human readable info string
     std::string get_info() const override;
 
+    void clear();
+
     // libusb-style data transfer to bulk endpoints
     int write_bulk(const uint8_t* data, int len);
     int read_bulk(uint8_t* data, int max_len,
