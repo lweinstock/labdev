@@ -4,15 +4,17 @@ using namespace std;
 
 namespace labdev {
 
-void ld_debug_print(FILE* stream, const char* file, int line, 
-    const char* function, const char* msg, ...)
+void ld_debug_print(FILE* stream, const char* file, const char* function, 
+    const char* msg, ...)
 {
-    // Print header with file, line number, and function
+    // Print header with file and function
     std::string fname(file);
-    size_t pos = fname.find_last_of("/");
-    if (pos != std::string::npos)
-        fname = fname.substr(pos +   1, std::string::npos);
-    fprintf(stderr, "%s:%d [%s()] - ", fname.c_str(), line, function);
+    size_t pos1 = fname.find_last_of('/');
+    if (pos1 != std::string::npos)
+        fname = fname.substr(pos1 +   1);
+    size_t pos2 = fname.find_last_of('.');
+    fname = fname.substr(0, pos2);
+    fprintf(stderr, "%-18s: %20s() - ", fname.c_str(), function);
 
     // Compose message from variable arg list
     va_list args;
