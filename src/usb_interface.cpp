@@ -28,13 +28,15 @@ usb_interface::usb_interface(const usb_config conf) : usb_interface()
     check_and_throw(ndev, "Failed to get device list");
 
     for (int idev = 0; idev < ndev; idev++) {
+        // Get dev descriptor for vid, pid, bus, and port
         libusb_device* tmp_dev = dev_list[idev];
         libusb_device_descriptor desc;
         stat = libusb_get_device_descriptor(tmp_dev, &desc);
         check_and_throw(ndev, "Failed to get device descriptor");
         uint8_t tmp_bus = libusb_get_bus_number(tmp_dev);
         uint8_t tmp_port = libusb_get_port_number(tmp_dev);
-        debug_print("dev %i - ID 0x%04X:0x%04X - BUS%03u:PORT%03u\n", 
+
+        debug_print("device %i: VID:PID=0x%04X:0x%04X (bus:port=%03u:%03u)\n", 
             idev, desc.idVendor, desc.idProduct, tmp_bus, tmp_port);
 
         // Check for bus and port number
@@ -45,26 +47,8 @@ usb_interface::usb_interface(const usb_config conf) : usb_interface()
 
         // Check for VID and PID
         if ( (desc.idVendor == conf.vid) && (desc.idProduct == conf.pid) ) {
-            // Also check for serial number, if specified
-            if (conf.serial != "") {
-                libusb_device_handle* tmp_handle;
-                stat = libusb_open(tmp_dev, &tmp_handle);
-                check_and_throw(stat, "Failed to get usb handle");
-
-                char tmp_serial_cstr[256];
-                stat = libusb_get_string_descriptor_ascii(tmp_handle,
-                    desc.iSerialNumber, (uint8_t*)tmp_serial_cstr, 256);
-                check_and_throw(stat, "Failed to get string descriptor");
-                string tmp_serial(tmp_serial_cstr, stat);
-                debug_print("SerialNumber %s\n", tmp_serial.c_str());
-                if (conf.serial == tmp_serial) {
-                    m_usb_dev = tmp_dev;
-                    break;
-                }
-            } else {
-                m_usb_dev = tmp_dev;
-                break;
-            }
+            m_usb_dev = tmp_dev;
+            break;
         }
         return;
     }
@@ -208,22 +192,16 @@ int usb_interface::write_bulk(const uint8_t* data, int len)
 int usb_interface::read_bulk(uint8_t* data, int max_len, int timeout_ms) 
 {
     this->check_interface();
-    int stat;
-    int nbytes = m_max_pkt_size_in;
-    int bytes_received = 0;
-    while (nbytes == m_max_pkt_size_in) {
-        stat = libusb_bulk_transfer(
-            m_usb_handle,
-            m_ep_in_addr,
-            &data[bytes_received],
-            max_len,
-            &nbytes,
-            timeout_ms);
-        check_and_throw(stat, "Bulk transfer failed to read data");
-        bytes_received += nbytes;
-    }
+    int nbytes = 0;
+    int stat = libusb_bulk_transfer(
+        m_usb_handle,
+        m_ep_in_addr,
+        data,
+        max_len,
+        &nbytes,
+        timeout_ms);
+    check_and_throw(stat, "Bulk transfer failed to read data");
     debug_print_byte_data(data, nbytes, "Read %zu bytes: ", nbytes);
-
     return nbytes;
 }
 
@@ -390,7 +368,7 @@ void usb_interface::gather_device_information()
     debug_print("Port\t%i\n", m_port);
     debug_print("idVendor\t0x%02X\n", m_vid);
     debug_print("idProduct\t0x%02X\n", m_pid);
-    debug_print("iSerial\t%s\n", m_serial_no.c_str());
+    debug_print("iSerialNumber\t%s\n", m_serial_no.c_str());
     debug_print("bDeviceClass\t0x%02X\n", m_dev_class);
     debug_print("bDeviceSubClass\t0x%02X\n", m_dev_subclass);
     debug_print("bDeviceProtocol\t0x%02X\n", m_dev_protocol);

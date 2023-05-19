@@ -6,17 +6,15 @@
 
 namespace labdev{
 
-// biref struct for usb config
+// brief struct for usb config
 struct usb_config{
-    usb_config() : vid(0x0000), pid(0x0000), serial(""), 
-        bus_no(0xFF), port_no(0xFF) {};
-    usb_config(uint16_t vid, uint16_t pid, std::string serial_no = "") :
-        vid(vid), pid(pid), serial(serial_no), bus_no(0xFF), port_no(0xFF) {};
-    usb_config(uint8_t bus_no, uint8_t port_no) : vid(0x0000), pid(0x0000), 
-        serial(""), bus_no(bus_no), port_no(port_no) {};
+    usb_config() : vid(0x0000), pid(0x0000), bus_no(0xFF), port_no(0xFF) {};
+    usb_config(uint16_t vid, uint16_t pid) :
+        vid(vid), pid(pid), bus_no(0xFF), port_no(0xFF) {};
+    usb_config(uint8_t bus_no, uint8_t port_no) : 
+        vid(0x0000), pid(0x0000), bus_no(bus_no), port_no(port_no) {};
     uint16_t vid;
     uint16_t pid;
-    std::string serial;
     uint8_t bus_no;
     uint8_t port_no;
 };
