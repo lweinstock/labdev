@@ -57,7 +57,7 @@ public:
     void clear_buffer();
 
     // Claims interface and checks for USBTMC compatibility
-    void claim_interface(int int_no, int alt_setting = 0);
+    //void claim_interface(int int_no, int alt_setting = 0);
 
 private:
     // Private default ctor

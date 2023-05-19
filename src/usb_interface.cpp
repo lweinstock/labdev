@@ -284,7 +284,7 @@ void usb_interface::set_endpoint_in(unsigned ep_no)
         throw bad_io("Wrong endpoint direction", ep_no);
     // Get max packet size
     m_max_pkt_size_in = ep_desc->wMaxPacketSize;
-    debug_print("Endpoint %u address (IN) 0x%02X (wMaxPacketSize %i)\n", ep_no, 
+    debug_print("Endpoint%u (IN): address 0x%02X, wMaxPacketSize%lu)\n", ep_no, 
         m_ep_in_addr, ep_desc->wMaxPacketSize);
     return;
 }
@@ -317,7 +317,7 @@ void usb_interface::set_endpoint_out(unsigned ep_no)
         throw bad_io("Wrong endpoint direction", ep_no);
     // Get max packet size
     m_max_pkt_size_out = ep_desc->wMaxPacketSize;
-    debug_print("Endpoint %u address (OUT) 0x%02X (wMaxPacketSize %lu)\n", ep_no, 
+    debug_print("Endpoint%u (OUT): address 0x%02X, wMaxPacketSize%lu)\n", ep_no, 
         m_ep_out_addr, m_max_pkt_size_out);
     return;
 }
@@ -362,7 +362,7 @@ void usb_interface::gather_device_information()
         check_and_throw(stat, "Failed to get string descriptor");
         m_serial_no = strdesc_buf;
     } else
-        m_serial_no = "-1";
+        m_serial_no = "";
 
     debug_print("Bus\t%i\n", m_bus);
     debug_print("Port\t%i\n", m_port);

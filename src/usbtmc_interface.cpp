@@ -161,6 +161,7 @@ void usbtmc_interface::clear_buffer()
     return;
 }
 
+/*
 void usbtmc_interface::claim_interface(int int_no, int alt_setting) 
 {
     this->usb_interface::claim_interface(int_no, alt_setting);
@@ -173,6 +174,7 @@ void usbtmc_interface::claim_interface(int int_no, int alt_setting)
     debug_print("%s\n", "Device supports USBTMC");
     return;
 }
+*/
 
 /*
  *      P R I V A T E   M E T H O D S
