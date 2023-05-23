@@ -71,6 +71,7 @@ public:
     void set_output_type(unsigned output_no, output_type type);
     void set_output_activity(unsigned output_no, bool active_hi);
     void set_output(unsigned output_no, bool high);
+    bool get_output(unsigned output_no);
     // Returns true when high, false when low
     bool get_input(unsigned input_no);
 

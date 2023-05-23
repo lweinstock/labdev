@@ -300,6 +300,16 @@ void xenax_xvi::set_output(unsigned output_no, bool high)
     return;
 }
 
+bool xenax_xvi::get_output(unsinged output_no)
+{
+    if ( (output_no > 8) || (output_no < 1) ){
+        fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
+        abort();
+    }
+    uint8_t output_reg = this->get_output_state_reg();
+    return ( (1 << (output_no - 1)) & output_reg );
+}
+
 bool xenax_xvi::get_input(unsigned input_no)
 {
     if ( (input_no > 16) || (input_no < 1) ){
@@ -307,7 +317,7 @@ bool xenax_xvi::get_input(unsigned input_no)
         abort();
     }
     uint16_t input_reg = this->get_input_state_reg();
-    return ( (1 << (input_no-1)) & input_reg );
+    return ( (1 << (input_no - 1)) & input_reg );
 }
 
 uint32_t xenax_xvi::get_status_register() 
