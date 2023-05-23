@@ -300,7 +300,7 @@ void xenax_xvi::set_output(unsigned output_no, bool high)
     return;
 }
 
-bool xenax_xvi::get_output(unsinged output_no)
+bool xenax_xvi::get_output(unsigned output_no)
 {
     if ( (output_no > 8) || (output_no < 1) ){
         fprintf(stderr, "GPIO output number has to be between 1 and 8.\n");
