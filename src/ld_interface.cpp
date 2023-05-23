@@ -30,7 +30,8 @@ vector<uint8_t> ld_interface::read_byte(unsigned timeout_ms)
     return ret;
 }
 
-string ld_interface::read(unsigned timeout_ms) {
+string ld_interface::read(unsigned timeout_ms) 
+{
     uint8_t rbuf[s_dflt_buf_size] = {0};
     ssize_t nbytes = this->read_raw(rbuf, s_dflt_buf_size, timeout_ms);
     string ret((char*)rbuf, nbytes);
@@ -41,18 +42,21 @@ string ld_interface::read(unsigned timeout_ms) {
 }
 
 string ld_interface::read_until(const string& delim, size_t& pos, 
-unsigned timeout_ms) {
+    unsigned timeout_ms) 
+{
     string ret("");
-    while ( (pos = ret.find(delim)) == string::npos ) {
+    do {
         string rbuf = this->read(timeout_ms);
         if (rbuf.size() > 0)
             ret.append(rbuf);
-    }
+        pos = ret.rfind(delim);
+    } while ( pos == string::npos );
     return ret;
 }
 
 string ld_interface::read_until(const string& delim, 
-unsigned timeout_ms) {
+    unsigned timeout_ms) 
+{
     size_t temp = 0;
     return this->read_until(delim, temp, timeout_ms);    
 }

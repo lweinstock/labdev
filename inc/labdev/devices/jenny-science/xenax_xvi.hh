@@ -19,6 +19,7 @@ public:
     void power_on(bool enable = true);
     void power_off() { power_on(false); }
     void power_continue();
+    bool is_on();
 
     // Referencing for absolute position measurements (see manual p.48)
     void reference_axis();

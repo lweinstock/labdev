@@ -50,6 +50,11 @@ void xenax_xvi::power_continue()
     return;
 }
 
+bool xenax_xvi::is_on()
+{
+    return stoi(this->query_command("TS"));
+}
+
 void xenax_xvi::reference_axis() 
 {
     debug_print("%s\n", "Referencing axis...");
@@ -468,7 +473,7 @@ string xenax_xvi::query_command(string cmd, unsigned timeout_ms)
 
 xenax_xvi::xenax_xvi()
     : device("XENAX Xvi 75v8"), m_strerror(""), m_force_const(0), m_error(0),
-      m_output_type(0x5555), m_output_activity(0xFF)
+      m_output_type(0x5555), m_output_activity(0xFF), m_has_error(false)
 {
     return;
 }
