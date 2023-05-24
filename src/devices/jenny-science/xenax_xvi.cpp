@@ -38,27 +38,10 @@ xenax_xvi::xenax_xvi(const ip_address ip): xenax_xvi()
     return;
 }
 
-void xenax_xvi::power_on(bool enable) 
-{
-    this->query_command( enable? "PW" : "PQ");
-    return;
-}
-
-void xenax_xvi::power_continue() 
-{
-    this->query_command("PWC");
-    return;
-}
-
-bool xenax_xvi::is_on()
-{
-    return stoi(this->query_command("TS"));
-}
-
 void xenax_xvi::reference_axis() 
 {
     debug_print("%s\n", "Referencing axis...");
-    this->query_command("REF");
+    this->query_cmd("REF");
     // Wait until referencing is complete (max. 10s)
     this->wait_status_set(IN_MOTION);
     this->wait_status_set(IN_POSITION | REF);
@@ -71,53 +54,24 @@ void xenax_xvi::reference_axis(bool pos_dir)
     debug_print("Changing reference direction to %s\n", 
         pos_dir ? "positive" : "negative");
     if (pos_dir)
-        this->query_command("DRHR0");
+        this->query_cmd("DRHR0");
     else 
-        this->query_command("DRHR1");
+        this->query_cmd("DRHR1");
     this->reference_axis();
     return;
 }
 
-bool xenax_xvi::is_referenced() 
-{
-    return (this->get_status_register() & REF);
-}
 
 bool xenax_xvi::force_limit_reached() 
 {
     return (this->get_status_register() & I_FORCE_LIMIT_REACHED);
 }
 
-void xenax_xvi::move_position(int pos) 
+void xenax_xvi::stop_motion() 
 {
-    this->query_command("G" + to_string(pos));
+    this->query_cmd("SM");
+    this->wait_status_clr(IN_MOTION, 200);
     return;
-}
-
-void xenax_xvi::goto_position(int pos, unsigned interval_ms, unsigned timeout_ms) 
-{
-    this->move_position(pos);
-
-    /*    
-    // First: check if the axis is moving
-    int dx = abs(this->get_position() - pos);
-    if (dx > 10)    // Perform first check, if distance is large enough!
-        this->wait_status_set(IN_MOTION);
-    */
-
-    // Alternative: Wait for 100ms
-    usleep(100e3);
-
-    // Second: check if the axis reached the position
-    this->wait_status_set(IN_POSITION, interval_ms, timeout_ms);
-    // Third: check if the axis is not moving anymore
-    this->wait_status_clr(IN_MOTION, interval_ms, timeout_ms);
-    return;
-}
-
-int xenax_xvi::get_position() 
-{
-    return stoi(this->query_command("TP"));
 }
 
 bool xenax_xvi::in_motion() 
@@ -146,45 +100,22 @@ bool xenax_xvi::in_position()
     return ret;
 }
 
-void xenax_xvi::jog_pos() 
+bool xenax_xvi::error_pending()
 {
-    this->query_command("JP");
-    return;
+    // Reading the status register also updates m_error_pending
+    this->get_status_register();
+    return m_error_pending;
 }
 
-void xenax_xvi::jog_neg() 
+bool xenax_xvi::is_referenced() 
 {
-    this->query_command("JN");
-    return;
-}
-
-void xenax_xvi::stop_motion() 
-{
-    this->query_command("SM");
-    this->wait_status_clr(IN_MOTION, 200);
-    return;
+    return (this->get_status_register() & REF);
 }
 
 void xenax_xvi::set_speed(unsigned inc_per_sec) 
 {
-    this->query_command("SP" + to_string(inc_per_sec));
+    this->query_cmd("SP" + to_string(inc_per_sec));
     return;
-}
-
-unsigned xenax_xvi::get_speed() 
-{
-    return stoi( this-> query_command("SP?") );
-}
-
-void xenax_xvi::set_acceleration(unsigned inc_per_sec2) 
-{
-    this->query_command("AC" + to_string(inc_per_sec2));
-    return;
-}
-
-unsigned xenax_xvi::get_acceleration() 
-{
-    return stoi( this-> query_command("AC?") );
 }
 
 void xenax_xvi::set_s_curve(unsigned percent) 
@@ -193,33 +124,23 @@ void xenax_xvi::set_s_curve(unsigned percent)
         printf("Invalid S-curve percentage value %i\n", percent);
         abort();
     }
-    this->query_command("SCRV" + to_string(percent));
+    this->query_cmd("SCRV" + to_string(percent));
     return;
-}
-
-unsigned xenax_xvi::get_s_curve() 
-{
-    return stoi( this-> query_command("SCRV?") );
 }
 
 void xenax_xvi::force_calibration(unsigned len) 
 {
     debug_print("%s\n", "Performing force calibration...");
-    this->query_command("FC" + to_string(len));
+    this->query_cmd("FC" + to_string(len));
     this->wait_status_set(IN_MOTION, 200);
     this->wait_status_clr(FORCE_CALIBRATION_ACTIVE, 500);
     this->get_force_constant();
     return;
 }
 
-int xenax_xvi::get_motor_current() 
-{
-    return stoi( this-> query_command("TMC") );
-}
-
 float xenax_xvi::get_force_constant() 
 {
-    string resp = this->query_command("FCM?");
+    string resp = this->query_cmd("FCM?");
     m_force_const = 1e-6 * stoi(resp);
     debug_print("force constant = %f N/mA\n", m_force_const);
     return m_force_const;
@@ -236,13 +157,13 @@ float xenax_xvi::get_motor_force()
 void xenax_xvi::set_force_limit(float fmax_N) 
 {
     int flim_10mA = int(0.1*fmax_N/m_force_const);
-    this->query_command("LIF" + to_string(flim_10mA));
+    this->query_cmd("LIF" + to_string(flim_10mA));
     return;
 }
 
 float xenax_xvi::get_force_limit() 
 {
-    int flim_10mA = stoi( this->query_command("LIF?") );
+    int flim_10mA = stoi( this->query_cmd("LIF?") );
     return float(10.*flim_10mA*m_force_const);
 }
 
@@ -262,19 +183,9 @@ void xenax_xvi::set_output_type(unsigned output_no, output_type type)
 
 void xenax_xvi::set_limits(unsigned left, unsigned right)
 {
-    this->query_command("LL" + to_string(left));
-    this->query_command("LR" + to_string(right));
+    this->query_cmd("LL" + to_string(left));
+    this->query_cmd("LR" + to_string(right));
     return;
-}
-
-unsigned xenax_xvi::get_limit_left()
-{
-    return stoi(this->query_command("LL?"));
-}
-
-unsigned xenax_xvi::get_limit_right()
-{
-    return stoi(this->query_command("LR?"));
 }
 
 void xenax_xvi::set_output_activity(unsigned output_no, bool active_hi) 
@@ -299,9 +210,9 @@ void xenax_xvi::set_output(unsigned output_no, bool high)
         abort();
     }
     if (high)
-        this->query_command("SO" + to_string(output_no));
+        this->query_cmd("SO" + to_string(output_no));
     else 
-        this->query_command("CO" + to_string(output_no));
+        this->query_cmd("CO" + to_string(output_no));
     return;
 }
 
@@ -325,29 +236,64 @@ bool xenax_xvi::get_input(unsigned input_no)
     return ( (1 << (input_no - 1)) & input_reg );
 }
 
+unsigned xenax_xvi::get_error(std::string &strerror) 
+{
+    // Toggle error pending
+    if (m_error_pending)
+        m_error_pending = false;
+    m_error = stoi(this->query_cmd("TE"));
+    strerror = this->query_cmd("TES");
+    return m_error;
+}
+
+/*
+ *      P R I V A T E   M E T H O D S
+ */
+
+xenax_xvi::xenax_xvi()
+    : device("XENAX Xvi 75v8"), m_force_const(0), m_error(0),
+      m_output_type(0x5555), m_output_activity(0xFF), m_error_pending(false)
+{
+    return;
+}
+
+void xenax_xvi::init() 
+{
+    // Clear input buffer
+    this->flush_buffer();
+    // Disable asynchronous status updates
+    this->query_cmd("EVT0");
+    // Get force constant for force calculations
+    this->get_force_constant();
+    return;
+}
+
+void xenax_xvi::flush_buffer() 
+{
+    debug_print("%s\n", "flushing read buffer...");
+    while (true) {
+        try { m_comm->read(200); }
+        catch (const timeout &ex) { break; }
+    }
+    m_input_buffer.clear();
+    debug_print("%s\n", "buffer flushed");
+    return;
+}
+
 uint32_t xenax_xvi::get_status_register() 
 {
-    string resp = this->query_command("TPSR");
+    string resp = this->query_cmd("TPSR");
     uint32_t status = stoi(resp, 0 , 16);
 
     debug_print("status register = 0x%08X\n", status);
 
-    // Check error, warning, and info bit
-    if ( status & (ERROR | WARNING | INFO) ) {
-        m_error = this->get_error();
-        m_strerror = this->get_strerror();
-        if (status & ERROR)
-            throw device_error(m_strerror, m_error);
-        else if (status & WARNING)  // Does WARNING need an exception...?
-            throw device_error(m_strerror, m_error);
-        else if (status & INFO)     // Does INFO need an exception...?
-            throw device_error(m_strerror, m_error);
-    }
+    // Check error, warning, and info bit => update error pending
+    m_error_pending = (status & (ERROR | WARNING | INFO));
 
     return status;
 }
 
-string xenax_xvi::query_command(string cmd, unsigned timeout_ms) 
+string xenax_xvi::query_cmd(string cmd, unsigned timeout_ms) 
 {
     // Send command and CR
     m_comm->write(cmd + "\n");
@@ -467,40 +413,6 @@ string xenax_xvi::query_command(string cmd, unsigned timeout_ms)
     return "";
 }
 
-/*
- *      P R I V A T E   M E T H O D S
- */
-
-xenax_xvi::xenax_xvi()
-    : device("XENAX Xvi 75v8"), m_strerror(""), m_force_const(0), m_error(0),
-      m_output_type(0x5555), m_output_activity(0xFF), m_has_error(false)
-{
-    return;
-}
-
-void xenax_xvi::init() 
-{
-    // Clear input buffer
-    this->flush_buffer();
-    // Disable asynchronous status updates
-    this->query_command("EVT0");
-    // Get force constant for force calculations
-    this->get_force_constant();
-    return;
-}
-
-void xenax_xvi::flush_buffer() 
-{
-    debug_print("%s\n", "flushing read buffer...");
-    while (true) {
-        try { m_comm->read(200); }
-        catch (const timeout &ex) { break; }
-    }
-    m_input_buffer.clear();
-    debug_print("%s\n", "buffer flushed");
-    return;
-}
-
 void xenax_xvi::wait_status_set(uint32_t status, unsigned interval_ms,
 unsigned timeout_ms) 
 {
@@ -566,25 +478,15 @@ unsigned timeout_ms)
 void xenax_xvi::set_output_type_reg(uint16_t mask) 
 {
     debug_print("Setting output type to 0x%04X\n", mask);
-    this->query_command("SOT" + to_string(mask));
+    this->query_cmd("SOT" + to_string(mask));
     return;
 }
 
 void xenax_xvi::set_output_state_reg(uint8_t mask) 
 {
     debug_print("Setting output state to 0x%02X\n", mask);
-    this->query_command("SOA" + to_string(mask));
+    this->query_cmd("SOA" + to_string(mask));
     return;
-}
-
-uint8_t xenax_xvi::get_output_state_reg() 
-{
-    return stoi(this->query_command("TO"));
-}
-
-uint16_t xenax_xvi::get_input_state_reg() 
-{
-    return stoi(this->query_command("TI"));
 }
 
 }
