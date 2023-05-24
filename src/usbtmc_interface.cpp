@@ -77,7 +77,7 @@ int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
     int bytes_received = len - s_header_len;
     while (bytes_received < transfer_size) {
         int nbytes = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
-        if (bytes_received > max_len)
+        if (bytes_received > static_cast<int>(max_len))
             throw bad_io("Buffer size too small");
         std::copy(rbuf, rbuf + nbytes, data + bytes_received);
         bytes_received += nbytes;

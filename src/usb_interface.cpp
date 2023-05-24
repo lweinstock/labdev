@@ -218,7 +218,7 @@ int usb_interface::read_interrupt(uint8_t* data, int max_len,
     return 0;
 }
 
-void usb_interface::claim_interface(unsigned interface_no, unsigned alt_setting) 
+void usb_interface::claim_interface(int interface_no, int alt_setting) 
 {
     int stat;
     string msg("");

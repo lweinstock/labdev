@@ -54,7 +54,7 @@ public:
         int timeout_ms = s_dflt_timeout_ms);
 
     // Set current I/O configuration
-    void claim_interface(unsigned int_no, unsigned alt_setting = 0);
+    void claim_interface(int int_no, int alt_setting = 0);
     void set_endpoint_in(unsigned ep_no);
     void set_endpoint_out(unsigned ep_no);
 

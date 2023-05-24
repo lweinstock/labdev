@@ -278,7 +278,7 @@ void dg4000::write_at_least(string msg, unsigned time_ms) {
     m_comm->write(msg);
     gettimeofday(&sto, NULL);
 
-    int diff_ms = (sto.tv_sec-sta.tv_sec)*1000 + (sto.tv_usec-sta.tv_usec)/1000;
+    unsigned diff_ms = (sto.tv_sec-sta.tv_sec)*1000 + (sto.tv_usec-sta.tv_usec)/1000;
     if (time_ms > diff_ms)
         usleep( (time_ms - diff_ms)*1000 );
     return;
