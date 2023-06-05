@@ -78,14 +78,19 @@ public:
     // Returns true when high, false when low
     bool get_input(unsigned input_no);
 
-
     // Motor type reset (in response to error 59)
     void reset_motor_type() { this->query_cmd("RESM", 10000); }
     // Disable motion blocked by unconfigured Safety Motion Unit (SMU)
     void disable_smu() { this->query_cmd("DMBUS"); }
 
-    // Get error information 
+    // Set custom servo identifier (max. 16 bytes)
+    void set_sid(std::string sid);
+    void reset_sid() { this->set_sid(""); }
+    std::string get_sid() { return this->query_cmd("SID?"); }
+
+    // Get error information (C- and python-style)
     unsigned get_error(std::string &strerror);
+    std::tuple<unsigned,std::string> get_error();
 
 private:
     // Private default ctor

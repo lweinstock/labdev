@@ -116,12 +116,6 @@ PYBIND11_MODULE(pylabdev, m) {
             &xenax_xvi::move_position, 
             "Non-blocking movement to absolute position in incs",
             py::arg("pos"))
-        .def("goto_position", 
-            &xenax_xvi::goto_position, 
-            "Blocking movement to absolute position in incs",
-            py::arg("pos"),
-            py::arg("interval_ms") = 500,
-            py::arg("timeout_ms") = 10000)
         .def("get_position", 
             &xenax_xvi::get_position, 
             "Returns absolute position in incs")
@@ -182,11 +176,9 @@ PYBIND11_MODULE(pylabdev, m) {
             &xenax_xvi::force_limit_reached, 
             "Returns true if force limit was reached")
         .def("get_error",
-            &xenax_xvi::get_error,
+            static_cast<std::tuple<unsigned,std::string> (xenax_xvi::*)()>
+                (&xenax_xvi::get_error),
             "Returns current error number")
-        .def("get_strerror",
-            &xenax_xvi::get_strerror,
-            "Returns current error string")
         .def("set_output_type",
             &xenax_xvi::set_output_type,
             "Set output type for given PLC output",
@@ -202,6 +194,16 @@ PYBIND11_MODULE(pylabdev, m) {
             "Set output state for given PLC output",
             py::arg("output number"),
             py::arg("output state"))
+        .def("set_sid",
+            &xenax_xvi::set_sid,
+            "Set custom servo identifier",
+            py::arg("sid"))
+        .def("reset_sid",
+            &xenax_xvi::reset_sid,
+            "Reset servo identifier")
+        .def("get_sid",
+            &xenax_xvi::get_sid,
+            "Read servo identifier")
     ;
 
     // Output type enums for Xenax Xvi 75v8

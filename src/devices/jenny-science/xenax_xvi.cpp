@@ -237,6 +237,18 @@ bool xenax_xvi::get_input(unsigned input_no)
     return ( (1 << (input_no - 1)) & input_reg );
 }
 
+void xenax_xvi::set_sid(std::string sid)
+{
+    if (sid.size() > 16) {
+        fprintf(stderr, "SID '%s' exceeds max. length of 16 characters.\n",
+            sid.c_str());
+        abort();
+    }
+    this->query_cmd("SID" + sid);
+    return;
+}
+
+
 unsigned xenax_xvi::get_error(std::string &strerror) 
 {
     // Toggle error pending
@@ -246,6 +258,14 @@ unsigned xenax_xvi::get_error(std::string &strerror)
     strerror = this->query_cmd("TES");
     return m_error;
 }
+
+tuple<unsigned,string> xenax_xvi::get_error()
+{
+    string error_str;
+    unsigned error_no = this->get_error(error_str);
+    return make_tuple<unsigned,string>(move(error_no), move(error_str));
+}
+
 
 /*
  *      P R I V A T E   M E T H O D S
@@ -266,6 +286,10 @@ void xenax_xvi::init()
     this->query_cmd("EVT0");
     // Get force constant for force calculations
     this->get_force_constant();
+    // Get servo identifier
+    string servo_id = this->query_cmd("SID?");
+    if (!servo_id.empty())
+        m_dev_name += "," + servo_id;
     return;
 }
 
