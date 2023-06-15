@@ -42,10 +42,6 @@ void xenax_xvi::reference_axis()
 {
     debug_print("%s\n", "Referencing axis...");
     this->query_cmd("REF");
-    // Wait until referencing is complete (max. 10s)
-    this->wait_status_set(IN_MOTION);
-    this->wait_status_set(IN_POSITION | REF);
-    this->wait_status_clr(IN_MOTION);
     return;
 }
 
