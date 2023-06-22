@@ -49,6 +49,14 @@ public:
     void disable_vacuum() { this->enable_vacuum(false); }
     void set_vacuum_interval(unsigned on_ms, unsigned off_ms);
 
+
+private:
+    // Private default ctor
+    ml_808gx() : device("ML-808GX"), m_cur_ch(0) {};
+
+    void init();
+    unsigned m_cur_ch;
+    
     // Send formatted command (see manual p. 55)
     void send_command(std::string cmd, std::string data = "");
 
@@ -57,13 +65,6 @@ public:
 
     // Query data device -> host (see manual p. 57, 67ff)
     void upload_command(std::string cmd, std::string& payload);
-
-private:
-    // Private default ctor
-    ml_808gx() : device("ML-808GX"), m_cur_ch(0) {};
-
-    void init();
-    unsigned m_cur_ch;
 
     // Protocol definitions (see manual p. 57)
     const static std::string STX;   // Start of text (ASCII)

@@ -308,8 +308,9 @@ void ml_808gx::upload_command(string cmd, string& payload)
      */
 
 void ml_808gx::init() 
-{
-    this->set_channel(m_cur_ch);
+{   
+    // Update current channel
+    this->get_channel();
     return;
 }
 
