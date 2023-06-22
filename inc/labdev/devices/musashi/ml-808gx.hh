@@ -17,7 +17,8 @@ public:
     void dispense();
 
     // Select dispensing parameters from channel/recipe
-    void select_channel(unsigned ch);
+    void set_channel(unsigned ch);
+    unsigned get_channel();
 
     // Set parameters for current channel recipe (see manual p. 61):
     //  - pressure in 100 Pa

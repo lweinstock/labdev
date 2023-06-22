@@ -30,7 +30,7 @@ void ml_808gx::dispense()
     return;
 }
 
-void ml_808gx::select_channel(unsigned ch)
+void ml_808gx::set_channel(unsigned ch)
 {
     if (ch > 399) {
         printf("Invalid channel %i (allowed 0 - 399)\n", ch);
@@ -43,6 +43,16 @@ void ml_808gx::select_channel(unsigned ch)
     this->download_command(cmd, data.str());
     m_cur_ch = ch;
     return;
+}
+
+unsigned ml_808gx::get_channel()
+{
+    debug_print("%s\n", "Reading current channel number...");
+    string resp("");
+    this->upload_command("UA   ", resp);
+    resp = resp.substr(resp.find("D0")+2, 3);
+    m_cur_ch = strtoul(resp.c_str(), NULL, 10);
+    return m_cur_ch;
 }
 
 void ml_808gx::set_channel_params(unsigned pressure, unsigned dur, 
@@ -293,13 +303,13 @@ void ml_808gx::upload_command(string cmd, string& payload)
     return;
 }
 
-/*
-    *      P R I V A T E   M E T H O D S
-    */
+    /*
+     *      P R I V A T E   M E T H O D S
+     */
 
 void ml_808gx::init() 
 {
-    this->select_channel(m_cur_ch);
+    this->set_channel(m_cur_ch);
     return;
 }
 
