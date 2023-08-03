@@ -114,6 +114,13 @@ void xenax_xvi::set_speed(unsigned inc_per_sec)
     return;
 }
 
+void xenax_xvi::set_acceleration(unsigned inc_per_sec2)
+{
+    this->query_cmd("AC" + to_string(inc_per_sec2));
+    return;
+}
+
+
 void xenax_xvi::set_s_curve(unsigned percent) 
 {
     if (percent > 100) {
