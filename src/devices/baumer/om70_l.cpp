@@ -45,6 +45,25 @@ void om70_l::enable_laser(bool ena)
     return;
 }
 
+void om70_l::set_session_timeout(unsigned timeout_sec)
+{
+    if (!m_config_mode) {
+        m_modbus->write_single_holding_reg(UNIT_ID, ADDR_CONF_ON, 0x0001);
+        m_config_mode = true;
+    }
+    vector<uint16_t> data{};
+    data.push_back( static_cast<uint16_t>(timeout_sec & 0xFFFF) );
+    data.push_back( static_cast<uint16_t>( (timeout_sec >> 16) & 0xFFFF) );
+    m_modbus->write_multiple_holding_regs(UNIT_ID, ADDR_TIMEOUT, data);
+    return;
+}
+
+unsigned om70_l::get_session_timeout()
+{
+    auto resp = m_modbus->read_multiple_holding_regs(UNIT_ID, ADDR_TIMEOUT, 2);
+    return static_cast<unsigned>( resp.at(0) | (resp.at(1) << 16) );
+}
+
 float om70_l::get_measurement()
 {
     // Turn off config mode to increase sample rate

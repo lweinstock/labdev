@@ -19,6 +19,10 @@ public:
     void enable_laser(bool ena = true);
     void disable_laser() { this->enable_laser(false); }
 
+    // LDS has a timeout for TCP/IP connection, default = 300 sec (WTF?!)
+    void set_session_timeout(unsigned timeout_sec);
+    unsigned get_session_timeout();
+
     // Get single measurement; get_measurement() updates quality, sample
     // rate, exposure, and delay
     float get_measurement();                    // returns distance in [mm]
@@ -42,6 +46,7 @@ private:
     // Address space holding registers (FC03/06/16)
     static constexpr uint16_t ADDR_CONF_ON = 0x0000;
     static constexpr uint16_t ADDR_CONF_OFF = 0x0001;
+    static constexpr uint16_t ADDR_TIMEOUT = 0x0002;
     static constexpr uint16_t ADDR_ENA_LASER = 0x019A;
     // Address space input registers (FC04)
     static constexpr uint16_t ADDR_VEND_INFO = 0x0000;
