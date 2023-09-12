@@ -266,7 +266,7 @@ tuple<unsigned,string> xenax_xvi::get_error()
 {
     string error_str;
     unsigned error_no = this->get_error(error_str);
-    return make_tuple<unsigned,string>(move(error_no), move(error_str));
+    return make_tuple<unsigned,string>(std::move(error_no), std::move(error_str));
 }
 
 
