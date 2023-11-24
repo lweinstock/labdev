@@ -45,7 +45,10 @@ tcpip_interface::tcpip_interface(const ip_address addr) : tcpip_interface()
 tcpip_interface::~tcpip_interface()
 {
     debug_print("Closing connection to %s:%i\n", m_ip_addr.c_str(), m_port);
-    shutdown(m_socket_fd, SHUT_RDWR);
+    shutdown(m_socket_fd, SHUT_WR);
+    while ( !this->read().empty() ) { usleep(10e3); }   // Read remaining messages
+    shutdown(m_socket_fd, SHUT_RD);
+    ::close(m_socket_fd);
     return;
 }
 
