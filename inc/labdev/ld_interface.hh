@@ -19,9 +19,10 @@ enum Interface_type {none, serial, tcpip, usb, usbtmc, visa};
 
 class ld_interface {
 public:
+    ld_interface() : m_good(false) {};
     virtual ~ld_interface() {};
 
-    // No copy ctor or assignment
+    // No copy ctor or assignment; interfaces are unique physical entities
     ld_interface(const ld_interface&) = delete;
     ld_interface& operator=(const ld_interface&) = delete;
 
@@ -67,6 +68,15 @@ public:
      *      Utility methods
      */
 
+    // Open interface with stored settings
+    virtual void open() = 0;
+
+    // Close interface
+    virtual void close() = 0;
+
+    // Returns true if interface is usable
+    virtual bool good() const { return m_good; }
+
     // Returns human readable string with information
     virtual std::string get_info() const = 0;
 
@@ -74,8 +84,8 @@ public:
     virtual Interface_type type() const = 0;
 
 protected:
-    // Protected default ctor
-    ld_interface() {};
+    // Can be set by derived classes if the interface is valid and usable
+    bool m_good;
 };
 
 }

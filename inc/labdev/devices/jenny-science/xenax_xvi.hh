@@ -1,16 +1,20 @@
 #ifndef XENAX_XVI_HH
 #define XENAX_XVI_HH
 
-#include <labdev/devices/device.hh>
+#include <labdev/devices/ld_device.hh>
 #include <labdev/serial_interface.hh>
 #include <labdev/tcpip_interface.hh>
 
 namespace labdev {
 
-class xenax_xvi : public device {
+class xenax_xvi : public ld_device {
 public:
-    xenax_xvi(const serial_config ser);
-    xenax_xvi(const ip_address ip);
+    xenax_xvi(serial_interface* ser);
+    xenax_xvi(tcpip_interface* tcpip);
+    ~xenax_xvi() { this->disconnect(); }
+
+    void connect(serial_interface* ser);
+    void connect(tcpip_interface* tcpip);
 
     // XENAX default port 10001
     static constexpr unsigned PORT = 10001;

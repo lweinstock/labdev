@@ -9,32 +9,55 @@ using namespace std;
 
 namespace labdev {
 
-dg4000::dg4000(const ip_address ip): dg4000()
+dg4000::dg4000(tcpip_interface* tcpip): dg4000()
 {
-    if ( ip.port != dg4000::PORT ) {
+    this->connect(tcpip);
+    return;
+}
+
+dg4000::dg4000(visa_interface* visa): dg4000()
+{
+    this->connect(visa);
+    return;
+}
+
+dg4000::dg4000(usbtmc_interface* usbtmc): dg4000()
+{
+    this->connect(usbtmc);
+    return;
+}
+
+void dg4000::connect(tcpip_interface* tcpip)
+{
+    // Check and set comm interface
+    this->set_comm(tcpip);
+
+    if ( tcpip->get_port() != dg4000::PORT ) {
         fprintf(stderr, "DG4000 only supports port %i\n", dg4000::PORT);
         abort();
     }
-    m_comm = std::make_shared<tcpip_interface>(ip);
     this->init();
     return;
 }
 
-dg4000::dg4000(const visa_identifier visa_id): dg4000()
+void dg4000::connect(usbtmc_interface* usbtmc)
 {
-    m_comm = std::make_shared<visa_interface>(visa_id);
-    this->init();
-    return;
-}
+    // Check and set comm interface
+    this->set_comm(usbtmc);
 
-dg4000::dg4000(const usb_config usb): dg4000()
-{
-    auto usbtmc = std::make_unique<usbtmc_interface>(usb);
     // USB initialization
     usbtmc->claim_interface(0);
     usbtmc->set_endpoint_out(1);
     usbtmc->set_endpoint_in(2);
-    m_comm = std::move(usbtmc);
+
+    this->init();
+    return;
+}
+
+void dg4000::connect(visa_interface* visa)
+{
+    // Check and set comm interface
+    this->set_comm(visa);
     this->init();
     return;
 }
@@ -44,7 +67,7 @@ void dg4000::enable_channel(unsigned channel, bool enable)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":OUTP" << channel << ":STAT" << (enable? " ON" : " OFF") << "\n";
-    m_comm->write(msg.str());
+    get_comm()->write(msg.str());
     return;
 }
 
@@ -63,8 +86,8 @@ void dg4000::set_sine(unsigned channel,float freq_hz, float ampl_v,
     msg << ampl_v << ","; 
     msg << offset_v << ",";
     msg << phase_deg << "\n";
-    //m_comm->write_at_least(msg.str(), 10);
-    m_comm->write(msg.str());
+    //get_comm()->write_at_least(msg.str(), 10);
+    get_comm()->write(msg.str());
     m_scpi->wait_to_complete();
     return;
 }
@@ -147,7 +170,7 @@ float dg4000::get_freq(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":FREQ?\n";
-    string resp = m_comm->query(msg.str());
+    string resp = get_comm()->query(msg.str());
     return stof(resp);
 }
 
@@ -187,7 +210,7 @@ float dg4000::get_phase(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":PHAS?\n";
-    string resp = m_comm->query(msg.str());
+    string resp = get_comm()->query(msg.str());
     return stof(resp);
 }
 
@@ -209,7 +232,7 @@ float dg4000::get_ampl(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":VOLT?\n";
-    string resp = m_comm->query(msg.str());
+    string resp = get_comm()->query(msg.str());
     return stof(resp);
 }
 
@@ -231,7 +254,7 @@ float dg4000::get_offset(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":VOLT:OFFS?\n";
-    string resp = m_comm->query(msg.str());
+    string resp = get_comm()->query(msg.str());
     return stof(resp);
 }
 
@@ -241,7 +264,7 @@ float dg4000::get_offset(unsigned channel)
 
 void dg4000::init() 
 {
-    m_scpi = std::make_unique<scpi>(m_comm.get());
+    m_scpi = std::make_unique<scpi>(this->get_comm());
     m_scpi->clear_status();
     m_scpi->wait_to_complete();
     return;
@@ -259,7 +282,7 @@ void dg4000::check_channel(unsigned channel)
 std::string dg4000::get_waveform_str(unsigned channel)
 {
     this->check_channel(channel);
-    string resp = m_comm->query(":SOUR" + to_string(channel) + ":APPL?\n");
+    string resp = get_comm()->query(":SOUR" + to_string(channel) + ":APPL?\n");
     string waveform = resp.substr(resp.find_first_of(','));
     return waveform;
 }
@@ -275,7 +298,7 @@ void dg4000::write_at_least(string msg, unsigned time_ms) {
 
     struct timeval sta, sto;
     gettimeofday(&sta, NULL);
-    m_comm->write(msg);
+    get_comm()->write(msg);
     gettimeofday(&sto, NULL);
 
     unsigned diff_ms = (sto.tv_sec-sta.tv_sec)*1000 + (sto.tv_usec-sta.tv_usec)/1000;

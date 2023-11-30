@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include <labdev/devices/device.hh>
+#include <labdev/devices/ld_device.hh>
 
 namespace labdev{
 
@@ -13,10 +13,10 @@ namespace labdev{
  *  Abstract base class for all function generators
  */
 
-class fgen : public device {
+class fgen : public ld_device {
 public:
     fgen(unsigned n_ch, std::string name = "?") : 
-        device(name), m_n_ch(n_ch) {};
+        ld_device(name), m_n_ch(n_ch) {};
     virtual ~fgen() {};
 
     // Returns number of channels of device

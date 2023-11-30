@@ -17,23 +17,66 @@ using namespace std;
 
 namespace labdev {
 
-xenax_xvi::xenax_xvi(const serial_config ser): xenax_xvi() 
+xenax_xvi::xenax_xvi()
+    : ld_device("XENAX Xvi 75v8"), m_force_const(0), m_error(0),
+      m_output_type(0x5555), m_output_activity(0xFF), m_error_pending(false)
 {
-    // TODO: check serial setup: 115200 8N1 (manual p. 28)
-    m_comm = std::make_shared<serial_interface>(ser);
+    return;
+}
+
+xenax_xvi::xenax_xvi(serial_interface* ser) : xenax_xvi()
+{
+    this->connect(ser);
+    return;
+}
+
+xenax_xvi::xenax_xvi(tcpip_interface* tcpip) : xenax_xvi()
+{
+    this->connect(tcpip);
+    return;
+}
+
+void xenax_xvi::connect(serial_interface* ser)
+{
+    // Check and assign interface
+    this->set_comm(ser);
+
+    // Check for correct serial setup => 115200 8N1 (manual p. 28)
+    if (ser->get_baud() != 115200) {
+        fprintf(stderr, "Invalid baud rate %u BAUD; 115200 8N1 required\n", 
+            ser->get_baud());
+        abort();
+    }
+    if (ser->get_nbits() != 8) {
+        fprintf(stderr, "Invalid number of bits %u; 115200 8N1 required\n", 
+            ser->get_nbits());
+        abort();
+    }
+    if (ser->get_parity() != false) {
+        fprintf(stderr, "Invalid parity; 115200 8N1 required\n");
+        abort();
+    }
+    if (ser->get_stop_bits() != 1) {
+        fprintf(stderr, "Invalid number of stop bits %u; 115200 8N1 required\n", 
+            ser->get_stop_bits());
+        abort();
+    }
+
     this->init();
     return;
 }
 
-xenax_xvi::xenax_xvi(const ip_address ip): xenax_xvi() 
+void xenax_xvi::connect(tcpip_interface* tcpip)
 {
-    // Default port 10001
-    if (ip.port != xenax_xvi::PORT) {
-        fprintf(stderr, "XENAX Xvi 75v8 only supports port %u.\n",
-            xenax_xvi::PORT);
+    // Check and assign interface
+    this->set_comm(tcpip);
+
+    // Check port => 10001
+    if (tcpip->get_port() != xenax_xvi::PORT) {
+        fprintf(stderr, "Invalid port %u (port 10001 required).\n", 
+            tcpip->get_port());
         abort();
     }
-    m_comm = std::make_shared<tcpip_interface>(ip);
     this->init();
     return;
 }
@@ -269,17 +312,9 @@ tuple<unsigned,string> xenax_xvi::get_error()
     return make_tuple<unsigned,string>(std::move(error_no), std::move(error_str));
 }
 
-
 /*
  *      P R I V A T E   M E T H O D S
  */
-
-xenax_xvi::xenax_xvi()
-    : device("XENAX Xvi 75v8"), m_force_const(0), m_error(0),
-      m_output_type(0x5555), m_output_activity(0xFF), m_error_pending(false)
-{
-    return;
-}
 
 void xenax_xvi::init() 
 {
@@ -300,7 +335,7 @@ void xenax_xvi::flush_buffer()
 {
     debug_print("%s\n", "flushing read buffer...");
     while (true) {
-        try { m_comm->read(200); }
+        try { get_comm()->read(200); }
         catch (const timeout &ex) { break; }
     }
     m_input_buffer.clear();
@@ -324,12 +359,12 @@ uint32_t xenax_xvi::get_status_register()
 string xenax_xvi::query_cmd(string cmd, unsigned timeout_ms) 
 {
     // Send command and CR
-    m_comm->write(cmd + "\n");
+    get_comm()->write(cmd + "\n");
     size_t pos;
 
     // Read until an EOM delimiter was received and store in buffer
     // (see application note 'TCP_IP_KOMMUNIKATION.pdf' p. 1)
-    m_input_buffer.append( m_comm->read_until(">", pos, timeout_ms) );
+    m_input_buffer.append( get_comm()->read_until(">", pos, timeout_ms) );
 
     // Split response into parameters and remove it from the buffer
     string resp = m_input_buffer.substr(0, pos);

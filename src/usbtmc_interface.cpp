@@ -6,12 +6,6 @@ using namespace std;
 
 namespace labdev {
 
-usbtmc_interface::usbtmc_interface(const usb_config conf)
-    : usb_interface(conf), m_cur_tag(0x01)
-{
-    return;
-}
-
 int usbtmc_interface::write_raw(const uint8_t* data, size_t len) 
 {
     return this->write_dev_dep_msg(data, len);
@@ -160,21 +154,6 @@ void usbtmc_interface::clear_buffer()
     // TODO: check return value!
     return;
 }
-
-/*
-void usbtmc_interface::claim_interface(int int_no, int alt_setting) 
-{
-    this->usb_interface::claim_interface(int_no, alt_setting);
-    // Check for USBTMC interface
-    if ( (this->get_interface_class() != LIBUSB_CLASS_APPLICATION) ||
-            (this->get_interface_subclass() != LIBUSB_SUBCLASS_TMC) ) {
-        fprintf(stderr, "Interface %i does not support USBTMC\n", int_no);
-        abort();
-    }
-    debug_print("%s\n", "Device supports USBTMC");
-    return;
-}
-*/
 
 /*
  *      P R I V A T E   M E T H O D S

@@ -12,7 +12,42 @@ namespace labdev {
 libusb_context* usb_interface::s_default_ctx = NULL;
 int usb_interface::s_dev_count = 0;
 
-usb_interface::usb_interface(const usb_config conf) : usb_interface() 
+
+usb_interface::usb_interface(): m_usb_dev(NULL), m_usb_handle(NULL),
+    m_cur_cfg(0), m_cur_alt_setting(0), m_cur_interface_no(-1),
+    m_ep_in_addr(0), m_ep_out_addr(0), m_max_pkt_size_in(64), m_max_pkt_size_out(64),
+    m_vid(0x0000), m_pid(0x0000), m_serial_no(""), m_bus(0xFF), m_port(0xFF),
+    m_dev_class(0), m_dev_subclass(0), m_dev_protocol(0),
+    m_interface_class(0), m_interface_subclass(0), m_interface_protocol(0) 
+{
+    return;
+}
+
+usb_interface::usb_interface(uint16_t vid, uint16_t pid) : usb_interface() 
+{
+    this->open(vid, pid);
+    return;
+}
+
+usb_interface::usb_interface(uint8_t bus, uint8_t port) : usb_interface() 
+{
+    this->open(bus, port);
+    return;
+}
+
+usb_interface::~usb_interface()
+{
+    this->close();
+    return;
+}
+
+void usb_interface::open()
+{
+    this->open(m_vid, m_pid);
+    return;
+}
+
+void usb_interface::open(uint16_t vid, uint16_t pid)
 {
     int stat;
     // If first device, start new libusb session
@@ -32,25 +67,20 @@ usb_interface::usb_interface(const usb_config conf) : usb_interface()
         libusb_device* tmp_dev = dev_list[idev];
         libusb_device_descriptor desc;
         stat = libusb_get_device_descriptor(tmp_dev, &desc);
-        check_and_throw(ndev, "Failed to get device descriptor");
-        uint8_t tmp_bus = libusb_get_bus_number(tmp_dev);
-        uint8_t tmp_port = libusb_get_port_number(tmp_dev);
+        check_and_throw(stat, "Failed to get device descriptor");
 
-        debug_print("device %i: VID:PID=0x%04X:0x%04X (bus:port=%03u:%03u)\n", 
-            idev, desc.idVendor, desc.idProduct, tmp_bus, tmp_port);
-
-        // Check for bus and port number
-        if ( (tmp_port == conf.port_no) && (tmp_bus == conf.bus_no) ) {
-            m_usb_dev = tmp_dev;
-            break;
-        }
+        debug_print("device %i: VID:PID=0x%04X:0x%04X\n", 
+            idev, desc.idVendor, desc.idProduct);
 
         // Check for VID and PID
-        if ( (desc.idVendor == conf.vid) && (desc.idProduct == conf.pid) ) {
+        if ( (desc.idVendor == vid) && (desc.idProduct == pid) ) {
             m_usb_dev = tmp_dev;
+            m_vid = vid;
+            m_pid = pid;
+            m_bus = libusb_get_bus_number(m_usb_dev);
+            m_port = libusb_get_port_number(m_usb_dev);
             break;
         }
-        return;
     }
 
     // Get I/O handle
@@ -59,18 +89,74 @@ usb_interface::usb_interface(const usb_config conf) : usb_interface()
         check_and_throw(stat, "Failed to get usb handle");
         this->gather_device_information();
     } else {
-        fprintf(stderr, "Device ID 0x%04X:0x%04X BUS%03u:PORT%03u not found\n", 
-            conf.vid, conf.pid, conf.bus_no, conf.port_no);
+        fprintf(stderr, "Device ID 0x%04X:0x%04X not found\n", vid, pid);
         abort();
     }
     s_dev_count++;
     debug_print("Opened device, new device count = %i\n", s_dev_count);
 
     libusb_free_device_list(dev_list, 1);
+    m_good = true;
     return;
 }
 
-usb_interface::~usb_interface()
+void usb_interface::open(uint8_t bus, uint8_t port)
+{
+    int stat;
+    // If first device, start new libusb session
+    if (s_dev_count == 0) {
+        stat = libusb_init(&s_default_ctx);
+        check_and_throw(stat, "libusb init failed");
+        debug_print("new libusb session initialized (%i)\n", stat);
+    }
+
+    // Search for deivce with given bus- & port number
+    libusb_device** dev_list;
+    int ndev = libusb_get_device_list(s_default_ctx, &dev_list);
+    check_and_throw(ndev, "Failed to get device list");
+
+    for (int idev = 0; idev < ndev; idev++) {
+        // Get dev descriptor for vid, pid, bus, and port
+        libusb_device* tmp_dev = dev_list[idev];
+        uint8_t tmp_bus = libusb_get_bus_number(tmp_dev);
+        uint8_t tmp_port = libusb_get_port_number(tmp_dev);
+
+        debug_print("device %i: bus=%03u port=%03u)\n", idev, tmp_bus, tmp_port);
+
+        // Check for bus and port number
+        if ( (tmp_port == port) && (tmp_bus == bus) ) {
+            m_usb_dev = tmp_dev;
+            m_bus = bus;
+            m_port = port;
+            // Get VID and PID
+            libusb_device_descriptor desc;
+            stat = libusb_get_device_descriptor(tmp_dev, &desc);
+            check_and_throw(stat, "Failed to get device descriptor");
+            m_vid = desc.idVendor;
+            m_pid = desc.idProduct;
+            break;
+        }
+    }
+
+    // Get I/O handle
+    if (m_usb_dev) {
+        stat = libusb_open(m_usb_dev, &m_usb_handle);
+        check_and_throw(stat, "Failed to get usb handle");
+        this->gather_device_information();
+    } else {
+        fprintf(stderr, "Device ID bus %03u port %03u not found\n", 
+            bus, port);
+        abort();
+    }
+    s_dev_count++;
+    debug_print("Opened device, new device count = %i\n", s_dev_count);
+
+    libusb_free_device_list(dev_list, 1);
+    m_good = true;
+    return;
+}
+
+void usb_interface::close()
 {
     // Release claimed interfaces and device
     if (m_cur_interface_no != s_no_interface)
@@ -85,6 +171,8 @@ usb_interface::~usb_interface()
         debug_print("%s\n", "Last device closed, exiting libusb\n");
         libusb_exit(s_default_ctx);
     }
+
+    m_good = false;
     return;
 }
 
@@ -325,16 +413,6 @@ void usb_interface::set_endpoint_out(unsigned ep_no)
 /*
  *      P R I V A T E   M E T H O D S
  */
-
-usb_interface::usb_interface(): m_usb_dev(NULL), m_usb_handle(NULL),
-    m_cur_cfg(0), m_cur_alt_setting(0), m_cur_interface_no(-1),
-    m_ep_in_addr(0), m_ep_out_addr(0), m_max_pkt_size_in(64), m_max_pkt_size_out(64),
-    m_vid(0x0000), m_pid(0x0000), m_serial_no(""), m_bus(0xFF), m_port(0xFF),
-    m_dev_class(0), m_dev_subclass(0), m_dev_protocol(0),
-    m_interface_class(0), m_interface_subclass(0), m_interface_protocol(0) 
-{
-    return;
-}
 
 void usb_interface::gather_device_information() 
 {

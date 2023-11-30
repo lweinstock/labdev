@@ -10,17 +10,41 @@ using namespace std;
 
 namespace labdev {
 
-ut61b::ut61b(serial_config &ser): ut61b() 
+ut61b::ut61b(serial_interface *ser): ut61b() 
 {
-    if ( ser.baud != ut61b::BAUD || ser.nbits != 8 || ser.par_ena
-      || ser.stop_bits != 1) {
-        fprintf(stderr, "UT61B only supports %i baud 8N1\n", ut61b::BAUD);
-        abort();
-    }
-    m_serial = std::make_unique<serial_interface>(ser);
-    //m_serial->read();
+    this->connect(ser);
     return;
 }
+
+void ut61b::connect(serial_interface* ser)
+{
+    // Check and assign communication interface
+    this->set_comm(ser);
+
+    // Check correct serial setup => 2400 8N1 (manual p. 28)
+    if (ser->get_baud() != ut61b::BAUD) {
+        fprintf(stderr, "Invalid baud rate %u BAUD (2400 8N1 required)\n", 
+            ser->get_baud());
+        abort();
+    }
+    if (ser->get_nbits() != 8) {
+        fprintf(stderr, "Invalid number of bits %u (2400 8N1 required)\n", 
+            ser->get_nbits());
+        abort();
+    }
+    if (ser->get_parity() != false) {
+        fprintf(stderr, "Invalid parity (2400 8N1 required)\n");
+        abort();
+    }
+    if (ser->get_stop_bits() != 1) {
+        fprintf(stderr, "Invalid number of stop bits %u (2400 8N1 required)\n", 
+            ser->get_stop_bits());
+        abort();
+    }
+
+    return;
+}
+
 
 double ut61b::get_value() {
     // with dtr+ and rts- the multimeter starts sending values

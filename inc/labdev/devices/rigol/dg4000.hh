@@ -15,10 +15,15 @@ namespace labdev {
 
 class dg4000 : public fgen {
 public:
-    dg4000(const ip_address ip);
-    dg4000(const visa_identifier visa_id);
-    dg4000(const usb_config usb);
+    dg4000() : fgen(2, "Rigol,DG4000"), m_scpi(nullptr) {};
+    dg4000(tcpip_interface* tcpip);
+    dg4000(usbtmc_interface* usb);
+    dg4000(visa_interface* visa);
     ~dg4000() {};
+
+    void connect(tcpip_interface* tcpip);
+    void connect(usbtmc_interface* usb);
+    void connect(visa_interface* visa);
 
     static constexpr uint16_t VID = 0x1AB1;
     static constexpr uint16_t PID = 0x0641;
@@ -69,9 +74,6 @@ public:
     float get_offset(unsigned channel) override;
 
 private:
-    // Private default ctor
-    dg4000() : fgen(2, "Rigol,DG4000"), m_scpi(nullptr) {};
-
     std::unique_ptr<scpi> m_scpi;
 
     void init();

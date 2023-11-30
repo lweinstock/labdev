@@ -19,21 +19,42 @@ namespace labdev {
 
 serial_interface::serial_interface()
     : m_path(""), m_fd(-1), m_term_settings(), m_timeout(), m_stop_bits(0),
-      m_nbits(0x00), m_baud(0), m_par_en(false), m_par_even(false), 
-      m_update_settings(true) 
+      m_nbits(0), m_baud(0), m_par_en(false), m_par_even(false), 
+      m_update_settings(true)
 {
     return;
 }
 
-serial_interface::serial_interface(const serial_config conf): serial_interface() 
+serial_interface::serial_interface(std::string path, unsigned baud, 
+    unsigned nbits, bool par_ena, bool par_even, unsigned stop_bits) 
+    : serial_interface()
 {
-    debug_print("Opening device '%s'\n", conf.path.c_str());
-    m_fd = ::open(conf.path.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
-    check_and_throw(m_fd, "Failed to open device " + conf.path);
-    m_path = conf.path;
+    this->open(path, baud, nbits, par_ena, par_even, stop_bits);
+    return;
+}
+
+serial_interface::~serial_interface() 
+{
+    this->close();
+    return;
+}
+
+void serial_interface::open()
+{
+    this->open(m_path, m_baud, m_nbits, m_par_en, m_par_even, m_stop_bits);
+    return;
+}
+
+void serial_interface::open(std::string path, unsigned baud, unsigned nbits, 
+    bool par_ena, bool par_even, unsigned stop_bits)
+{
+    debug_print("Opening device '%s'\n", path.c_str());
+    m_fd = ::open(path.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+    check_and_throw(m_fd, "Failed to open device " + path);
+    m_path = path;
 
     int stat = tcgetattr(m_fd, &m_term_settings);
-    check_and_throw(stat, "Failed to get termios attributes from " + conf.path);
+    check_and_throw(stat, "Failed to get termios attributes from " + path);
 
     // Ignore modem control lines, enable receiver
     m_term_settings.c_cflag |= (CLOCAL | CREAD);
@@ -52,18 +73,22 @@ serial_interface::serial_interface(const serial_config conf): serial_interface()
     m_term_settings.c_cc[VTIME] = 0;
 
     this->disable_hw_flow_ctrl();
-    this->set_baud(conf.baud);
-    this->set_nbits(conf.nbits);
-    this->set_parity(conf.par_ena, conf.par_even);
-    this->set_stop_bits(conf.stop_bits);
+    this->set_baud(baud);
+    this->set_nbits(nbits);
+    this->set_parity(par_ena, par_even);
+    this->set_stop_bits(stop_bits);
     this->apply_settings();
+
+    m_good = true;
     return;
 }
 
-serial_interface::~serial_interface() 
+void serial_interface::close()
 {
     debug_print("Closing device '%s'\n", m_path.c_str());
-    ::close(m_fd);
+    int stat = ::close(m_fd);
+    check_and_throw(stat, "Failed to close '" + m_path + "'");
+    m_good = false;
     return;
 }
 

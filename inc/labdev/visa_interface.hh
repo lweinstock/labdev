@@ -7,12 +7,6 @@
 #include <labdev/ld_interface.hh>
 #include <labdev/exceptions.hh>
 
-namespace labdev {
-
-typedef std::string visa_identifier;
-
-}
-
 #ifdef LDVISA
 
 #ifdef __APPLE__
@@ -25,7 +19,7 @@ namespace labdev {
 
 class visa_interface : public ld_interface {
 public:
-    visa_interface(const visa_identifier visa_id);
+    visa_interface(std::string visa_id);
     virtual ~visa_interface();
 
     // Find all available VISA resource, returns list of VISA IDs
@@ -70,7 +64,7 @@ namespace labdev {
 class visa_interface : public ld_interface {
 public:
 
-    visa_interface(const visa_identifier visa_id) : visa_interface() {};
+    visa_interface(std::string visa_id) : visa_interface() {};
     virtual ~visa_interface() {};
 
     int write_raw(const uint8_t* data, size_t len) override { return -1; }

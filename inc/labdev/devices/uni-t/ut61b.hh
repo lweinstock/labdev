@@ -2,7 +2,7 @@
 #define UT61B_H
 
 #include <labdev/serial_interface.hh>
-#include <labdev/devices/device.hh>
+#include <labdev/devices/ld_device.hh>
 
 namespace labdev {
 
@@ -10,10 +10,13 @@ namespace labdev {
  *      UNI-T UT61B series multimeter
  */
 
-class ut61b : public device {
+class ut61b : public ld_device {
 public:
-    ut61b(serial_config &ser);
+    ut61b() : ld_device("Uni-T,UT61B"), m_unit("?"), m_serial(nullptr) {};
+    ut61b(serial_interface* ser);
     ~ut61b() {};
+
+    void connect(serial_interface* ser);
 
     static constexpr unsigned BAUD = 2400;
 
@@ -24,10 +27,7 @@ public:
     std::string get_unit() { return m_unit; }
 
 private:
-    // Private ctor
-    ut61b() : device("Uni-T,UT61B"), m_unit("?"), m_serial(nullptr) {};
-
-    std::string m_unit;
+   std::string m_unit;
     std::unique_ptr<serial_interface> m_serial;
 
     // UT61b end of message character

@@ -6,24 +6,17 @@
 
 namespace labdev{
 
-// brief struct for usb config
-struct usb_config{
-    usb_config() : vid(0x0000), pid(0x0000), bus_no(0xFF), port_no(0xFF) {};
-    usb_config(uint16_t vid, uint16_t pid) :
-        vid(vid), pid(pid), bus_no(0xFF), port_no(0xFF) {};
-    usb_config(uint8_t bus_no, uint8_t port_no) : 
-        vid(0x0000), pid(0x0000), bus_no(bus_no), port_no(port_no) {};
-    uint16_t vid;
-    uint16_t pid;
-    uint8_t bus_no;
-    uint8_t port_no;
-};
-
 class usb_interface : public ld_interface {
 public:
-    usb_interface(const usb_config conf);
+    usb_interface();
+    usb_interface(uint16_t vid, uint16_t pid);
+    usb_interface(uint8_t bus, uint8_t port);
     virtual ~usb_interface();
 
+    void open() override;
+    void open(uint16_t vid, uint16_t pid);
+    void open(uint8_t bus, uint8_t port);
+    void close() override;
 
     // Data transfer to and from bulk endpoint using current ep address
     virtual int write_raw(const uint8_t* data, size_t len) override;
@@ -69,10 +62,6 @@ public:
     uint8_t get_interface_class() const { return m_interface_class; }
     uint8_t get_interface_subclass() const { return m_interface_subclass; }
     uint8_t get_interface_protocol() const { return m_interface_protocol; }
-
-protected:
-    // Protected default ctor -> used by usbtmc_interface
-    usb_interface();
 
 private:
     static const int s_no_interface = -1;

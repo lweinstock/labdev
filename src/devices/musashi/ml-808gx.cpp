@@ -10,15 +10,56 @@ using namespace std;
 
 namespace labdev {
 
-ml_808gx::ml_808gx(const serial_config ser) : ml_808gx()
+// Static variables
+const string ml_808gx::STX = "\x02";
+const string ml_808gx::ETX = "\x03";
+const string ml_808gx::EOT = "\x04";
+const string ml_808gx::ENQ = "\x05";    
+const string ml_808gx::ACK = "\x06";
+const string ml_808gx::A0 = STX + "02A02D" + ETX;
+const string ml_808gx::A2 = STX + "02A22B" + ETX; 
+const string ml_808gx::CAN = STX + "0218186E" + ETX;
+
+ml_808gx::ml_808gx(serial_interface* ser) : ml_808gx()
 {
+    this->connect(ser);
+    return;
+}
+
+void ml_808gx::connect(serial_interface* ser)
+{
+    if ( this->connected() ) {
+        string err = this->get_info() + " : device is already connected";
+        throw device_error(err);
+        return;
+    }
+
+    // Check and assign interface
+    this->set_comm(ser);
+
     // 8N1, supported baud = 9600/19200/38400 (see manual p. 24)
-    if ( ser.baud != 9600  && ser.baud != 19200 && ser.baud != 38400) {
-        fprintf(stderr, "Baud %i is not supported by ML-808GX\n", ser.baud);
+    unsigned baud = ser->get_baud();
+    if ( baud != 9600  && baud != 19200 && baud != 38400) {
+        fprintf(stderr, "Baud %i is not supported by ML-808GX\n", baud);
         abort();
     }
-    // TODO: check the rest...
-    m_comm = std::make_shared<serial_interface>(ser);
+    if (ser->get_nbits() != 8) {
+        fprintf(stderr, "Invalid number of bits %u (8N1 required)\n", 
+            ser->get_nbits());
+        abort();
+    }
+    if (ser->get_parity() != false) {
+        fprintf(stderr, "Invalid parity (8N1 required)\n");
+        abort();
+    }
+    if (ser->get_stop_bits() != 1) {
+        fprintf(stderr, "Invalid number of stop bits %u (8N1 required)\n", 
+            ser->get_stop_bits());
+        abort();
+    }
+
+    // Everything seems to be in order...
+    this->init();
     return;
 }
 
@@ -230,6 +271,17 @@ void ml_808gx::set_vacuum_interval(unsigned on_ms, unsigned off_ms)
     return;
 }
 
+    /*
+     *      P R I V A T E   M E T H O D S
+     */
+
+void ml_808gx::init() 
+{   
+    // Update current channel
+    this->get_channel();
+    return;
+}
+
 void ml_808gx::send_command(string cmd, string data) 
 {
     if (cmd.size() < 4)
@@ -249,7 +301,7 @@ void ml_808gx::send_command(string cmd, string data)
         checksum -= msg.str()[i];
     msg << uppercase << hex << (int)checksum;
     msg << ETX;
-    m_comm->write(msg.str());  
+    get_comm()->write(msg.str());  
 
     return;
 }
@@ -257,71 +309,50 @@ void ml_808gx::send_command(string cmd, string data)
 void ml_808gx::download_command(string cmd, string data) 
 {
     // Initialize enquary
-    m_comm->write(ENQ);
-    string resp = m_comm->read();
+    get_comm()->write(ENQ);
+    string resp = get_comm()->read();
     if (resp != ACK)
         throw bad_protocol("Did not receive ACK", resp.size());
     
     this->send_command(cmd, data);
-    resp = m_comm->read_until(ETX);
+    resp = get_comm()->read_until(ETX);
     
     // Check response
     if ( resp == A2) {
         // Handle error and throw
-        m_comm->write(CAN);
+        get_comm()->write(CAN);
         throw bad_protocol("Received error A2", -1);
     }
 
     // End transmission
-    m_comm->write(EOT);
+    get_comm()->write(EOT);
     return;
 }
 
 void ml_808gx::upload_command(string cmd, string& payload) 
 {    
     // Initialize enquary
-    m_comm->write(ENQ);
-    string resp = m_comm->read();
+    get_comm()->write(ENQ);
+    string resp = get_comm()->read();
     if (resp != ACK)
         throw bad_protocol("Did not receive ACK", resp.size());
     
     this->send_command(cmd);
-    resp = m_comm->read_until(ETX);
+    resp = get_comm()->read_until(ETX);
 
     // Check response
     if (resp == A2) {
         // Handle error and throw
-        m_comm->write(CAN);
+        get_comm()->write(CAN);
         throw bad_protocol("Received error A2", -1);
     }
 
-    m_comm->write(ACK);
-    payload = m_comm->read_until(ETX);
+    get_comm()->write(ACK);
+    payload = get_comm()->read_until(ETX);
 
     // End transmission
-    m_comm->write(EOT);
+    get_comm()->write(EOT);
     return;
 }
-
-    /*
-     *      P R I V A T E   M E T H O D S
-     */
-
-void ml_808gx::init() 
-{   
-    // Update current channel
-    this->get_channel();
-    return;
-}
-
-// Static variables
-const string ml_808gx::STX = "\x02";
-const string ml_808gx::ETX = "\x03";
-const string ml_808gx::EOT = "\x04";
-const string ml_808gx::ENQ = "\x05";    
-const string ml_808gx::ACK = "\x06";
-const string ml_808gx::A0 = STX + "02A02D" + ETX;
-const string ml_808gx::A2 = STX + "02A22B" + ETX; 
-const string ml_808gx::CAN = STX + "0218186E" + ETX;
 
 }

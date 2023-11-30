@@ -6,27 +6,17 @@
 
 namespace labdev{
 
-// brief struct for serial configuration
-struct serial_config {
-    serial_config() : path("/dev/tty0"), baud(9600), nbits(8), 
-        par_ena(false), par_even(false), stop_bits(1) {};
-    serial_config(std::string dev, unsigned baud = 9600, unsigned bits = 8,
-        bool par = false, bool even = false, unsigned sbits = 1) :
-        path(dev), baud(baud), nbits(bits), par_ena(par), 
-        par_even(even),stop_bits(sbits) {};
-    std::string path;
-    unsigned baud;
-    unsigned nbits;
-    bool par_ena;
-    bool par_even;
-    unsigned stop_bits;
-};  
-
-
 class serial_interface : public ld_interface {
 public:
-    serial_interface(const serial_config conf);
+    serial_interface();
+    serial_interface(std::string path, unsigned baud = 9600, unsigned nbits = 8,
+        bool par_ena = false, bool par_even = false, unsigned stop_bits = 1);
     ~serial_interface();
+
+    void open() override;
+    void open(std::string path, unsigned baud = 9600, unsigned nbits = 8,
+        bool par_ena = false, bool par_even = false, unsigned stop_bits = 1);
+    void close() override;
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, 
@@ -78,17 +68,8 @@ private:
     int m_fd;
     struct termios m_term_settings;
     struct timeval m_timeout;
-    unsigned m_stop_bits;
-    uint32_t m_nbits;
-    speed_t m_baud;
+    unsigned m_stop_bits, m_nbits, m_baud;
     bool m_par_en, m_par_even, m_update_settings;
-
-    // Private default ctor
-    serial_interface();
-
-    // Open or close device (default 9600 baud 8N1)
-    void open(const serial_config conf);
-    void close();
 
     void check_and_throw(int status, const std::string &msg) const;
     static speed_t check_baud(unsigned baud);

@@ -38,6 +38,7 @@ OBJ+=$(SRC)/utils/utils.o
 OBJ+=$(SRC)/utils/config.o
 
 # Vendor specific devices
+OBJ+=$(SRC)/devices/ld_device.o
 OBJ+=$(SRC)/devices/feeltech/fy6900.o
 OBJ+=$(SRC)/devices/siglent/sdg1000x.o
 OBJ+=$(SRC)/devices/uni-t/ut61b.o

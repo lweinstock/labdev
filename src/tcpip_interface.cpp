@@ -12,7 +12,33 @@ using namespace std;
 
 namespace labdev {
 
-tcpip_interface::tcpip_interface(const ip_address addr) : tcpip_interface() 
+tcpip_interface::tcpip_interface() 
+    : ld_interface(), m_socket_fd(-1), m_instr_addr(), m_timeout(), 
+      m_ip_addr("127.0.0.1"), m_port(0)
+{
+    return;
+}
+
+tcpip_interface::tcpip_interface(std::string ip_addr, unsigned port) 
+    : tcpip_interface() 
+{
+    this->open(ip_addr, port);
+    return;
+}
+
+tcpip_interface::~tcpip_interface()
+{
+    this->close();
+    return;
+}
+
+void tcpip_interface::open()
+{
+    this->open(m_ip_addr, m_port);
+    return;
+}
+
+void tcpip_interface::open(std::string ip_addr, unsigned port)
 {
     // Create TCP/IP socket
     m_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -23,32 +49,38 @@ tcpip_interface::tcpip_interface(const ip_address addr) : tcpip_interface()
 
     // Set up instrument ip address
     m_instr_addr.sin_family = AF_INET;
-    m_instr_addr.sin_port = htons(addr.port);
-    int stat = inet_aton(addr.ip.c_str(), &m_instr_addr.sin_addr);
+    m_instr_addr.sin_port = htons(port);
+    int stat = inet_aton(ip_addr.c_str(), &m_instr_addr.sin_addr);
     stringstream err_msg("");
-    err_msg << "Address " << addr.ip << ":" << addr.port << " is not supported.";
+    err_msg << "Address " << ip_addr << ":" << port << " is not supported.";
     check_and_throw(stat, err_msg.str());
 
     // Connect to instrument...
     stat = connect(m_socket_fd, (struct sockaddr *)&m_instr_addr,
         sizeof(m_instr_addr));
     err_msg.str("");
-    err_msg << "Failed to connect to " << addr.ip << ":" << addr.port << ".";
+    err_msg << "Failed to connect to " << ip_addr << ":" << port << ".";
     check_and_throw(stat, err_msg.str());
     debug_print("connected to IP address = %s:%i\n",
         inet_ntoa(m_instr_addr.sin_addr), m_instr_addr.sin_port);
-    m_ip_addr = addr.ip;
-    m_port = addr.port;
+    m_ip_addr = ip_addr;
+    m_port = port;
+
+    m_good = true;
     return;
 }
 
-tcpip_interface::~tcpip_interface()
+void tcpip_interface::close()
 {
     debug_print("Closing connection to %s:%i\n", m_ip_addr.c_str(), m_port);
     shutdown(m_socket_fd, SHUT_WR);
     while ( !this->read().empty() ) { usleep(10e3); }   // Read remaining messages
     shutdown(m_socket_fd, SHUT_RD);
-    ::close(m_socket_fd);
+    int stat = ::close(m_socket_fd);
+    check_and_throw(stat, "Failed to close connection to " + m_ip_addr + ":" 
+        + to_string(m_port));
+
+    m_good = false;
     return;
 }
 
@@ -144,12 +176,6 @@ string tcpip_interface::get_info() const
  *      P R I V A T E   M E T H O D S
  */
 
-tcpip_interface::tcpip_interface() 
-    : ld_interface(), m_socket_fd(-1), m_instr_addr(), m_timeout(), 
-      m_ip_addr("127.0.0.1"), m_port(0)
-{
-    return;
-}
 
 void tcpip_interface::check_and_throw(int status, const string &msg) const 
 {

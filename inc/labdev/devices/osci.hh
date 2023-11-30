@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include <labdev/devices/device.hh>
+#include <labdev/devices/ld_device.hh>
 
 namespace labdev{
 
@@ -13,10 +13,9 @@ namespace labdev{
  *  Abstract base class for all oscis
  */
 
-class osci : public device {
+class osci : public ld_device {
 public:
-    osci(unsigned n_ch, std::string name = "?") : 
-        device(name), m_n_ch(n_ch) {};
+    osci(unsigned n_ch, std::string name = "?") : ld_device(name), m_n_ch(n_ch) {};
     virtual ~osci() {};
 
     // Generic trigger type definitions
@@ -65,6 +64,7 @@ public:
         std::vector<double> &horz_data, std::vector<double> &vert_data) = 0;
 
 private:
+    // Number of channels
     const unsigned m_n_ch;
 };
 

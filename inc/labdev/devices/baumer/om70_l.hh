@@ -1,17 +1,20 @@
 #ifndef OM70_L_HH
 #define OM70_L_HH
 
-#include <labdev/devices/device.hh>
+#include <labdev/devices/ld_device.hh>
 #include <labdev/tcpip_interface.hh>
 #include <labdev/protocols/modbus_tcp.hh>
 #include <vector>
 
 namespace labdev {
 
-class om70_l : public device {
+class om70_l : public ld_device {
 public:
-    om70_l(const ip_address ip);
+    om70_l();
+    om70_l(tcpip_interface* tcpip);
     ~om70_l();
+
+    void connect(tcpip_interface* tcpip);
 
     // OM70 default port 502
     static constexpr unsigned PORT = 502;
@@ -38,9 +41,6 @@ public:
     std::vector<float> get_exposure_mem() { return m_exp_vec; }
 
 private:
-    // Private default ctor
-    om70_l();
-
     static constexpr uint8_t UNIT_ID = 0x01;
 
     // Address space holding registers (FC03/06/16)
@@ -75,7 +75,6 @@ private:
     void extract_mem_meas(std::vector<uint16_t> data, float &dist, 
         int &quality, float &sample_rate, float &exposure);
 
-    std::shared_ptr<tcpip_interface> m_tcpip;
     modbus_tcp* m_modbus;
     int m_quality;
     float m_dist, m_sr, m_exp;

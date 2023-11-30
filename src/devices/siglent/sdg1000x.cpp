@@ -8,33 +8,67 @@ using namespace std;
 
 namespace labdev {
 
-sdg1000x::sdg1000x(const ip_address ip) : sdg1000x()
+sdg1000x::sdg1000x(tcpip_interface* tcpip) : sdg1000x()
 {
-    if ( ip.port != sdg1000x::PORT )
+    this->connect(tcpip);
+    return;
+}
+
+sdg1000x::sdg1000x(usbtmc_interface* usbtmc) : sdg1000x()
+{
+    this->connect(usbtmc);
+    return;
+}
+
+sdg1000x::sdg1000x(visa_interface* visa) : sdg1000x()
+{
+    this->connect(visa);
+    return;
+}
+
+sdg1000x::~sdg1000x() 
+{
+    if (m_scpi) {
+        delete m_scpi;
+        m_scpi = nullptr;
+    }
+    return;
+}
+
+
+void sdg1000x::connect(tcpip_interface* tcpip)
+{
+    // Check and assign interface
+    this->set_comm(tcpip);
+
+    if (tcpip->get_port() != sdg1000x::PORT)
     {
         fprintf(stderr, "SDG1000X only supports port %i\n", sdg1000x::PORT);
         abort();
     }
-    m_comm = std::make_shared<tcpip_interface>(ip);
+
     this->init();
     return;
 }
 
-sdg1000x::sdg1000x(const usb_config conf) : sdg1000x()
+void sdg1000x::connect(usbtmc_interface* usbtmc)
 {
-    auto usbtmc = std::make_unique<usbtmc_interface>(conf);
-    // USB initialization
+    // Check and assign interface
+    this->set_comm(usbtmc);
+
     usbtmc->claim_interface(0);
     usbtmc->set_endpoint_in(0);
     usbtmc->set_endpoint_out(1);
-    m_comm = std::move(usbtmc);
+
     this->init();
     return;
 }
 
-sdg1000x::sdg1000x(const visa_identifier visa) : sdg1000x()
+void sdg1000x::connect(visa_interface* visa)
 {
-    m_comm = std::make_shared<visa_interface>(visa);
+    // Check and assign interface
+    this->set_comm(visa);
+
     this->init();
     return;
 }
@@ -44,14 +78,14 @@ void sdg1000x::enable_channel(unsigned channel, bool ena)
     this->check_channel(channel);
     stringstream msg;
     msg << "C" << channel << ":OUTP " << (ena ? "ON" : "OFF") << "\n";
-    m_comm->write(msg.str()); 
+    get_comm()->write(msg.str()); 
     return;
 }
 
 bool sdg1000x::get_state(unsigned channel)
 {
     this->check_channel(channel);
-    string ret = m_comm->query("C" + to_string(channel) + ":OUTP?\n");
+    string ret = get_comm()->query("C" + to_string(channel) + ":OUTP?\n");
     if (ret.find("ON") != string::npos)
         return true;
     return false;
@@ -68,7 +102,7 @@ void sdg1000x::set_sine(unsigned channel, float freq_hz, float ampl_v,
     msg << "AMP,"   << ampl_v << ",";
     msg << "OFST,"  << offset_v << ",";
     msg << "PHSE,"  << phase_deg << "\n";
-    m_comm->write(msg.str());
+    get_comm()->write(msg.str());
     m_scpi->wait_to_complete();
     return;
 }
@@ -86,7 +120,7 @@ void sdg1000x::set_square(unsigned channel, float freq_hz, float ampl_v,
     msg << "OFST,"  << offset_v << ",";
     msg << "PHSE,"  << phase_deg << ",";
     msg << "DUTY,"  << 100*duty_cycle << "\n";
-    m_comm->write(msg.str());
+    get_comm()->write(msg.str());
     m_scpi->wait_to_complete();
     return;
 }
@@ -103,7 +137,7 @@ void sdg1000x::set_ramp(unsigned channel, float freq_hz, float ampl_v,
     msg << "OFST,"  << offset_v << ",";
     msg << "PHSE,"  << phase_deg << ",";
     msg << "SYM,"  << 100*symm << "\n";
-    m_comm->write(msg.str());
+    get_comm()->write(msg.str());
     m_scpi->wait_to_complete();
     return;
 }
@@ -122,7 +156,7 @@ void sdg1000x::set_pulse(unsigned channel, float period_s, float width_s,
     msg << "LLEV,"  << low_v << ",";
     msg << "RISE,"  << rise_s << ",";
     msg << "FALL,"  << fall_s << "\n";
-    m_comm->write(msg.str());
+    get_comm()->write(msg.str());
     m_scpi->wait_to_complete();
     return;
 }
@@ -135,7 +169,7 @@ void sdg1000x::set_noise(unsigned channel, float mean_v, float stdev_v)
     msg << setprecision(4) << fixed;
     msg << "MEAN,"  << mean_v << ",";
     msg << "STDEV,"  << stdev_v << "\n";
-    m_comm->write(msg.str());
+    get_comm()->write(msg.str());
     m_scpi->wait_to_complete();
     return;
 }
@@ -144,7 +178,7 @@ void sdg1000x::set_noise(unsigned channel, float mean_v, float stdev_v)
 bool sdg1000x::is_sine(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
     string waveform = this->get_bswv_val(bswv, "WVTP");
     debug_print("Received waveform %s\n", waveform.c_str());
     if ( waveform.compare("SINE") == 0)
@@ -155,7 +189,7 @@ bool sdg1000x::is_sine(unsigned channel)
 bool sdg1000x::is_square(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
     string waveform = this->get_bswv_val(bswv, "WVTP");
     debug_print("Received waveform %s\n", waveform.c_str());
     if ( waveform.compare("SQUARE") == 0)
@@ -167,7 +201,7 @@ bool sdg1000x::is_square(unsigned channel)
 bool sdg1000x::is_ramp(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
     string waveform = this->get_bswv_val(bswv, "WVTP");
     debug_print("Received waveform %s\n", waveform.c_str());
     if ( waveform.compare("RAMP") == 0)
@@ -178,7 +212,7 @@ bool sdg1000x::is_ramp(unsigned channel)
 bool sdg1000x::is_pulse(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
     string waveform = this->get_bswv_val(bswv, "WVTP");
     debug_print("Received waveform %s\n", waveform.c_str());
     if ( waveform.compare("PULSE") == 0)
@@ -189,7 +223,7 @@ bool sdg1000x::is_pulse(unsigned channel)
 bool sdg1000x::is_noise(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
     string waveform = this->get_bswv_val(bswv, "WVTP");
     debug_print("Received waveform %s\n", waveform.c_str());
     if ( waveform.compare("NOISE") == 0)
@@ -204,14 +238,14 @@ void sdg1000x::set_freq(unsigned channel, float freq_hz)
     stringstream msg;
     msg << "C" << channel << ":BSWV FRQ,";
     msg << setprecision(3) << fixed << freq_hz << "\n";
-    m_comm->write(msg.str());
+    get_comm()->write(msg.str());
     return;
 }
 
 float sdg1000x::get_freq(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
     string freq = this->get_bswv_val(bswv, "FRQ");
     if (freq.empty())  // Parameter not found
         return 0.;
@@ -225,14 +259,14 @@ void sdg1000x::set_duty_cycle(unsigned channel, float dcl)
     stringstream msg;
     msg << "C" << channel << ":BSWV DUTY,";
     msg << setprecision(3) << fixed << 100.*dcl << "\n";
-    m_comm->write(msg.str());
+    get_comm()->write(msg.str());
     return;
 }
 
 float sdg1000x::get_duty_cycle(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
     string dcl = this->get_bswv_val(bswv, "DUTY");
     if (dcl.empty())  // Parameter not found
         return 0.;
@@ -246,14 +280,14 @@ void sdg1000x::set_phase(unsigned channel, float phase_deg)
     stringstream msg;
     msg << "C" << channel << ":BSWV PHSE,";
     msg << setprecision(3) << fixed << phase_deg << "\n";
-    m_comm->write(msg.str());
+    get_comm()->write(msg.str());
     return;
 }
 
 float sdg1000x::get_phase(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
     string phase = this->get_bswv_val(bswv, "PHSE");
     if (phase.empty())  // Parameter not found
         return 0.;
@@ -267,14 +301,14 @@ void sdg1000x::set_ampl(unsigned channel, float ampl_v)
     stringstream msg;
     msg << "C" << channel << ":BSWV AMP,";
     msg << setprecision(3) << fixed << ampl_v << "\n";
-    m_comm->write(msg.str());
+    get_comm()->write(msg.str());
     return;
 }
 
 float sdg1000x::get_ampl(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
     string ampl = this->get_bswv_val(bswv, "AMP");
     if (ampl.empty())  // Parameter not found
         return 0.;
@@ -288,14 +322,14 @@ void sdg1000x::set_offset(unsigned channel, float offset_v)
     stringstream msg;
     msg << "C" << channel << ":BSWV OFST,";
     msg << setprecision(3) << fixed << offset_v << "\n";
-    m_comm->write(msg.str());
+    get_comm()->write(msg.str());
     return;
 }
 
 float sdg1000x::get_offset(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
     string offset = this->get_bswv_val(bswv, "OFST");
     if (offset.empty())  // Parameter not found
         return 0.;
@@ -310,7 +344,7 @@ float sdg1000x::get_offset(unsigned channel)
 void sdg1000x::init() 
 {
     // Setup SCPI
-    m_scpi = std::make_unique<scpi>(m_comm.get());
+    m_scpi = new scpi( get_comm() );
     m_scpi->clear_status();
     m_dev_name = m_scpi->get_identifier();
     return;

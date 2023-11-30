@@ -1,17 +1,20 @@
 #ifndef LD_ML_808_GX_HH
 #define LD_ML_808_GX_HH
 
-#include <labdev/devices/device.hh>
+#include <labdev/devices/ld_device.hh>
 #include <labdev/serial_interface.hh>
 
 #include <tuple>
 
 namespace labdev {
 
-class ml_808gx : public device {
+class ml_808gx : public ld_device {
 public:
-    ml_808gx(const serial_config ser);
+    ml_808gx() : ld_device("ML-808GX"), m_cur_ch(0) {};
+    ml_808gx(serial_interface* ser);
     ~ml_808gx() {};
+
+    void connect(serial_interface* ser);
 
     // Dispense glue using parameters from current channel
     void dispense();
@@ -51,8 +54,15 @@ public:
 
 
 private:
-    // Private default ctor
-    ml_808gx() : device("ML-808GX"), m_cur_ch(0) {};
+    // Protocol definitions (see manual p. 57)
+    const static std::string STX;   // Start of text (ASCII)
+    const static std::string ETX;   // End of text (ASCII)
+    const static std::string EOT;   // End of transmission (ASCII)
+    const static std::string ENQ;   // Start enquiry (ASCII)
+    const static std::string ACK;   // Acknowledge (ASCII)
+    const static std::string A0;    // Success
+    const static std::string A2;    // Error
+    const static std::string CAN;   // No idea what this is
 
     void init();
     unsigned m_cur_ch;
@@ -66,15 +76,6 @@ private:
     // Query data device -> host (see manual p. 57, 67ff)
     void upload_command(std::string cmd, std::string& payload);
 
-    // Protocol definitions (see manual p. 57)
-    const static std::string STX;   // Start of text (ASCII)
-    const static std::string ETX;   // End of text (ASCII)
-    const static std::string EOT;   // End of transmission (ASCII)
-    const static std::string ENQ;   // Start enquiry (ASCII)
-    const static std::string ACK;   // Acknowledge (ASCII)
-    const static std::string A0;    // Success
-    const static std::string A2;    // Error
-    const static std::string CAN;   // No idea what this is
 
 };
 

@@ -8,18 +8,15 @@
 
 namespace labdev {
 
-// brief struct for tcpip configuration
-struct ip_address {
-    ip_address() : ip("127.0.0.1"), port(0) {};
-    ip_address(std::string ip, unsigned port) : ip(ip), port(port) {};
-    std::string ip;
-    unsigned port;
-};
-
 class tcpip_interface : public ld_interface {
 public:
-    tcpip_interface(const ip_address ip_addr);
+    tcpip_interface();
+    tcpip_interface(std::string ip_addr, unsigned port);
     virtual ~tcpip_interface();
+
+    void open() override;
+    void open(std::string ip_addr, unsigned port);
+    void close() override;
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, 
@@ -51,15 +48,6 @@ private:
     struct timeval m_timeout;
     std::string m_ip_addr;
     unsigned m_port;
-
-    // Private default ctor
-    tcpip_interface();
-
-    // Open TCP/IP socket with given IP and port
-    void open(const ip_address ip_addr);
-
-    // Close TCP/IP socket
-    void close();
 
     void check_and_throw(int stat, const std::string& msg) const;
 };

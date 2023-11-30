@@ -9,24 +9,49 @@ using namespace std;
 
 namespace labdev {
 
-om70_l::om70_l(const ip_address ip) : om70_l() 
+om70_l::om70_l() 
+    : ld_device("Baumer,OM70-L"), m_modbus(nullptr), m_quality(0),  m_dist(0),
+      m_sr(0), m_exp(0), m_quality_vec(), m_dist_vec(), m_sr_vec(), m_exp_vec(),
+      m_config_mode(false)
 {
-    // Default port 502
-    if (ip.port != om70_l::PORT) {
-        fprintf(stderr, "OM70-L only supports port %u.\n", om70_l::PORT);
-        abort();
-    }
-    m_tcpip = std::make_shared<tcpip_interface>(ip);
-    m_modbus = new modbus_tcp(m_tcpip.get());
+    return;
+}
+
+om70_l::om70_l(tcpip_interface* tcpip) : om70_l() 
+{
+    this->connect(tcpip);
     return;
 }
 
 om70_l::~om70_l()
 {
+    // Cleanup
     if (m_modbus) {
         delete m_modbus;
         m_modbus = nullptr;
     }
+    return;
+}
+
+void om70_l::connect(tcpip_interface* tcpip)
+{
+    if ( this->connected() ) {
+        string err = this->get_info() + " : device is already connected";
+        throw device_error(err);
+        return;
+    }
+
+    // Check and assign interface
+    this->set_comm(tcpip);  // TODO: not sure if this is actually needed..?
+
+    // Check port -> 502
+    if (tcpip->get_port() != om70_l::PORT) {
+        fprintf(stderr, "OM70-L only supports port %u.\n", om70_l::PORT);
+        abort();
+    }
+
+    // Create modbus interface
+    m_modbus = new modbus_tcp(tcpip);
     return;
 }
 
@@ -135,15 +160,6 @@ vector<float> om70_l::get_measurement_mem()
 /*
  *      P R I V A T E   M E T H O D S
  */
- 
-om70_l::om70_l() 
-    : device("Baumer,OM70-L"), m_modbus(nullptr), m_quality(0),  m_dist(0),
-      m_sr(0), m_exp(0), m_quality_vec(), m_dist_vec(), m_sr_vec(), m_exp_vec(),
-      m_config_mode(false)
-{
-    return;
-}
-
 
 void om70_l::extract_mem_meas(std::vector<uint16_t> data, float &dist, 
     int &quality, float &sample_rate, float &exposure)

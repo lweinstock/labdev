@@ -7,7 +7,11 @@ namespace labdev{
 
 class usbtmc_interface : public usb_interface {
 public:
-    usbtmc_interface(const usb_config conf);
+    usbtmc_interface() : usb_interface(), m_cur_tag(0x01) {};
+    usbtmc_interface(uint16_t vid, uint16_t pid) 
+        : usb_interface(vid, pid), m_cur_tag(0x01) {};
+    usbtmc_interface(uint8_t bus, uint8_t port) 
+        : usb_interface(bus, port), m_cur_tag(0x01) {};
     virtual ~usbtmc_interface() {};
 
     // USBTMC protocol definitions
@@ -56,12 +60,7 @@ public:
     // USBTMC clear Bulk-IN/OUT buffers
     void clear_buffer();
 
-    // Claims interface and checks for USBTMC compatibility
-    //void claim_interface(int int_no, int alt_setting = 0);
-
 private:
-    // Private default ctor
-    usbtmc_interface() : usb_interface(), m_cur_tag(0x01) {};
 
     static constexpr unsigned s_header_len = 12;
     static constexpr uint8_t LIBUSB_SUBCLASS_TMC = 0x03;
