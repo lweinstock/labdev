@@ -50,6 +50,7 @@ void om70_l::connect(tcpip_interface* tcpip)
     if (m_modbus)
         delete m_modbus;
     m_modbus = new modbus_tcp(tcpip);
+    this->enable_laser();
     return;
 }
 
