@@ -62,6 +62,17 @@ void dg4000::connect(visa_interface* visa)
     return;
 }
 
+void dg4000::disconnect()
+{
+    if (m_scpi) {
+        delete m_scpi;
+        m_scpi = nullptr;
+    }
+    this->reset_comm();
+    return;
+}
+
+
 void dg4000::enable_channel(unsigned channel, bool enable) 
 {
     this->check_channel(channel);
@@ -264,7 +275,9 @@ float dg4000::get_offset(unsigned channel)
 
 void dg4000::init() 
 {
-    m_scpi = std::make_unique<scpi>(this->get_comm());
+    if (m_scpi)
+        delete m_scpi;
+    m_scpi = new scpi( get_comm() );
     m_scpi->clear_status();
     m_scpi->wait_to_complete();
     return;

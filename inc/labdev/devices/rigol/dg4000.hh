@@ -19,11 +19,12 @@ public:
     dg4000(tcpip_interface* tcpip);
     dg4000(usbtmc_interface* usb);
     dg4000(visa_interface* visa);
-    ~dg4000() {};
+    ~dg4000();
 
     void connect(tcpip_interface* tcpip);
     void connect(usbtmc_interface* usb);
     void connect(visa_interface* visa);
+    void disconnect() override;
 
     static constexpr uint16_t VID = 0x1AB1;
     static constexpr uint16_t PID = 0x0641;
@@ -74,7 +75,7 @@ public:
     float get_offset(unsigned channel) override;
 
 private:
-    std::unique_ptr<scpi> m_scpi;
+    scpi* m_scpi;
 
     void init();
 

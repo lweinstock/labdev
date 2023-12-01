@@ -36,6 +36,12 @@ xenax_xvi::xenax_xvi(tcpip_interface* tcpip) : xenax_xvi()
     return;
 }
 
+xenax_xvi::~xenax_xvi()
+{
+    this->disconnect();
+    return;
+}
+
 void xenax_xvi::connect(serial_interface* ser)
 {
     // Check and assign interface
@@ -78,6 +84,13 @@ void xenax_xvi::connect(tcpip_interface* tcpip)
         abort();
     }
     this->init();
+    return;
+}
+
+void xenax_xvi::disconnect()
+{
+    this->stop_motion();
+    this->reset_comm();
     return;
 }
 

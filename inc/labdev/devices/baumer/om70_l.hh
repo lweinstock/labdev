@@ -15,6 +15,7 @@ public:
     ~om70_l();
 
     void connect(tcpip_interface* tcpip);
+    void disconnect() override;
 
     // OM70 default port 502
     static constexpr unsigned PORT = 502;

@@ -17,8 +17,8 @@ public:
     ld_device(const ld_device&) = delete;
     ld_device& operator=(const ld_device&) = delete;
 
-    // Resets the communication interface
-    void disconnect() { m_comm = nullptr; }
+    // Disconnect device from communication interface
+    virtual void disconnect() = 0;
 
     // Returns true if the device has a valid connection
     bool connected() const { return (m_comm ? m_comm->good() : false); }
@@ -37,6 +37,7 @@ protected:
     // Check and set/get the current communication interface
     void set_comm(ld_interface* comm);
     ld_interface* get_comm() const;
+    void reset_comm() { m_comm = nullptr; }
 
 private:
     // Communication interface

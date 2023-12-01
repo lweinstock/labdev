@@ -17,6 +17,7 @@ public:
     ~ut61b() {};
 
     void connect(serial_interface* ser);
+    void disconnect() override {};
 
     static constexpr unsigned BAUD = 2400;
 

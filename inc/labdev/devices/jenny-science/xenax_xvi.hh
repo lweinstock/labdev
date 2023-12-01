@@ -11,10 +11,11 @@ class xenax_xvi : public ld_device {
 public:
     xenax_xvi(serial_interface* ser);
     xenax_xvi(tcpip_interface* tcpip);
-    ~xenax_xvi() { this->disconnect(); }
+    ~xenax_xvi();
 
     void connect(serial_interface* ser);
     void connect(tcpip_interface* tcpip);
+    void disconnect() override;
 
     // XENAX default port 10001
     static constexpr unsigned PORT = 10001;

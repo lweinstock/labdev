@@ -12,9 +12,10 @@ class ml_808gx : public ld_device {
 public:
     ml_808gx() : ld_device("ML-808GX"), m_cur_ch(0) {};
     ml_808gx(serial_interface* ser);
-    ~ml_808gx() {};
+    ~ml_808gx();
 
     void connect(serial_interface* ser);
+    void disconnect() override;
 
     // Dispense glue using parameters from current channel
     void dispense();

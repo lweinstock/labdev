@@ -26,6 +26,12 @@ ml_808gx::ml_808gx(serial_interface* ser) : ml_808gx()
     return;
 }
 
+ml_808gx::~ml_808gx()
+{
+    this->disconnect();
+    return;
+}
+
 void ml_808gx::connect(serial_interface* ser)
 {
     if ( this->connected() ) {
@@ -62,6 +68,13 @@ void ml_808gx::connect(serial_interface* ser)
     this->init();
     return;
 }
+
+void ml_808gx::disconnect()
+{
+    this->reset_comm();
+    return;
+}
+
 
 void ml_808gx::dispense() 
 {

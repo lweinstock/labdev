@@ -17,6 +17,7 @@ public:
     ~fy6900() {};
 
     void connect(serial_interface* ser);
+    void disconnect() override { this->reset_comm(); }
 
     static constexpr unsigned BAUD = 115200;
 

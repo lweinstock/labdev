@@ -25,11 +25,7 @@ om70_l::om70_l(tcpip_interface* tcpip) : om70_l()
 
 om70_l::~om70_l()
 {
-    // Cleanup
-    if (m_modbus) {
-        delete m_modbus;
-        m_modbus = nullptr;
-    }
+    this->disconnect();
     return;
 }
 
@@ -51,7 +47,20 @@ void om70_l::connect(tcpip_interface* tcpip)
     }
 
     // Create modbus interface
+    if (m_modbus)
+        delete m_modbus;
     m_modbus = new modbus_tcp(tcpip);
+    return;
+}
+
+void om70_l::disconnect()
+{
+    this->disable_laser();
+    if (m_modbus) {
+        delete m_modbus;
+        m_modbus = nullptr;
+    }
+    this->reset_comm();
     return;
 }
 

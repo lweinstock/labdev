@@ -18,6 +18,10 @@ std::string ld_device::get_info() const
 
 void ld_device::set_comm(ld_interface* comm)
 {
+    // Skip if already connected to this interface
+    if (comm == m_comm)
+        return;
+
     // Only connect if not already connected
     if ( this->connected() ) {
         string err = m_dev_name + ": device is already connected";

@@ -11,6 +11,7 @@ namespace labdev {
 
 class sdg1000x: public fgen {
 public:
+    sdg1000x();
     sdg1000x(tcpip_interface* tcpip);
     sdg1000x(usbtmc_interface* usbtmc);
     sdg1000x(visa_interface* visa);
@@ -19,6 +20,7 @@ public:
     void connect(tcpip_interface* tcpip);
     void connect(usbtmc_interface* tmc);
     void connect(visa_interface* visa);
+    void disconnect() override;
 
     static constexpr unsigned PORT = 5025;
     static constexpr uint16_t SDG1032X_VID = 0xF4EC;
@@ -69,9 +71,6 @@ public:
     float get_offset(unsigned channel) override;
 
 private:
-    // Private default ctor
-    sdg1000x() : fgen(2, "Siglent,SDG1000X") {};
-
     void init();
     // Allowed channels = 1 or 2!
     void check_channel(unsigned channel);

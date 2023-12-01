@@ -8,6 +8,11 @@ using namespace std;
 
 namespace labdev {
 
+sdg1000x::sdg1000x() : fgen(2, "Siglent,SDG1000X"), m_scpi(nullptr)
+{
+    return;
+}
+
 sdg1000x::sdg1000x(tcpip_interface* tcpip) : sdg1000x()
 {
     this->connect(tcpip);
@@ -28,10 +33,7 @@ sdg1000x::sdg1000x(visa_interface* visa) : sdg1000x()
 
 sdg1000x::~sdg1000x() 
 {
-    if (m_scpi) {
-        delete m_scpi;
-        m_scpi = nullptr;
-    }
+    this->disconnect();
     return;
 }
 
@@ -61,6 +63,16 @@ void sdg1000x::connect(usbtmc_interface* usbtmc)
     usbtmc->set_endpoint_out(1);
 
     this->init();
+    return;
+}
+
+void sdg1000x::disconnect()
+{
+    this->reset_comm();
+    if (m_scpi) {
+        delete m_scpi;
+        m_scpi = nullptr;
+    }
     return;
 }
 
@@ -344,8 +356,11 @@ float sdg1000x::get_offset(unsigned channel)
 void sdg1000x::init() 
 {
     // Setup SCPI
+    if (m_scpi)
+        delete m_scpi;
     m_scpi = new scpi( get_comm() );
     m_scpi->clear_status();
+
     m_dev_name = m_scpi->get_identifier();
     return;
 }
