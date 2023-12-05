@@ -1,7 +1,7 @@
-#ifndef LD_SERIAL_INTERFACE_CPP
-#define LD_SERIAL_INTERFACE_CPP
+#ifndef LD_SERIAL_PORT_CPP
+#define LD_SERIAL_PORT_CPP
 
-#include <labdev/serial_interface.hh>
+#include <labdev/serial_port.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/ld_debug.hh>
 
@@ -17,35 +17,34 @@ using namespace std;
 
 namespace labdev {
 
-serial_interface::serial_interface()
-    : m_path(""), m_fd(-1), m_term_settings(), m_timeout(), m_stop_bits(0),
-      m_nbits(0), m_baud(0), m_par_en(false), m_par_even(false), 
+serial_port::serial_port()
+    : serial_interface(), m_path(""), m_fd(-1), m_term_settings(), m_timeout(),
       m_update_settings(true)
 {
     return;
 }
 
-serial_interface::serial_interface(std::string path, unsigned baud, 
-    unsigned nbits, bool par_ena, bool par_even, unsigned stop_bits) 
-    : serial_interface()
+serial_port::serial_port(std::string path, unsigned baud, unsigned nbits, 
+    bool par_ena, bool par_even, unsigned stop_bits) 
+    : serial_port()
 {
     this->open(path, baud, nbits, par_ena, par_even, stop_bits);
     return;
 }
 
-serial_interface::~serial_interface() 
+serial_port::~serial_port() 
 {
     this->close();
     return;
 }
 
-void serial_interface::open()
+void serial_port::open()
 {
-    this->open(m_path, m_baud, m_nbits, m_par_en, m_par_even, m_stop_bits);
+    this->open(m_path, m_baud, m_nbits, m_par_en, m_par_even, m_sbits);
     return;
 }
 
-void serial_interface::open(std::string path, unsigned baud, unsigned nbits, 
+void serial_port::open(std::string path, unsigned baud, unsigned nbits, 
     bool par_ena, bool par_even, unsigned stop_bits)
 {
     debug_print("Opening device '%s'\n", path.c_str());
@@ -83,7 +82,7 @@ void serial_interface::open(std::string path, unsigned baud, unsigned nbits,
     return;
 }
 
-void serial_interface::close()
+void serial_port::close()
 {
     debug_print("Closing device '%s'\n", m_path.c_str());
     int stat = ::close(m_fd);
@@ -92,7 +91,7 @@ void serial_interface::close()
     return;
 }
 
-int serial_interface::write_raw(const uint8_t* data, size_t len) 
+int serial_port::write_raw(const uint8_t* data, size_t len) 
 {
     if (m_update_settings) this->apply_settings();
 
@@ -113,7 +112,7 @@ int serial_interface::write_raw(const uint8_t* data, size_t len)
     return bytes_written;
 }
 
-int serial_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
+int serial_port::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
 {
     if (m_update_settings) this->apply_settings();
 
@@ -140,7 +139,7 @@ int serial_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_m
     return nbytes;
 }
 
-string serial_interface::get_info() const 
+string serial_port::get_info() const 
 {
     // Format example: serial;/dev/tty0;9600;8N1
     string ret("serial;" + m_path + ";" + to_string(m_baud));
@@ -149,11 +148,11 @@ string serial_interface::get_info() const
         if (m_par_even) ret += "E";
         else ret += "O";
     else ret += "N";
-    ret += to_string(m_stop_bits);
+    ret += to_string(m_sbits);
     return ret;
 }
 
-void serial_interface::set_baud(unsigned baud) 
+void serial_port::set_baud(unsigned baud) 
 {
     int good_baud = this->check_baud(baud);
     debug_print("Setting baudrate to %i\n", baud);
@@ -169,7 +168,7 @@ void serial_interface::set_baud(unsigned baud)
     return;
 }
 
-void serial_interface::set_nbits(unsigned nbits) noexcept 
+void serial_port::set_nbits(unsigned nbits) 
 {
     uint32_t good_nbits = this->check_bits(nbits);
     m_term_settings.c_cflag &= ~CSIZE;
@@ -180,7 +179,7 @@ void serial_interface::set_nbits(unsigned nbits) noexcept
     return;
 }
 
-void serial_interface::set_parity(bool en, bool even) noexcept 
+void serial_port::set_parity(bool en, bool even) 
 {
     m_par_en = en;
     m_par_even = even;
@@ -196,7 +195,7 @@ void serial_interface::set_parity(bool en, bool even) noexcept
     return;
 }
 
-void serial_interface::set_stop_bits(unsigned stop_bits) noexcept 
+void serial_port::set_stop_bits(unsigned stop_bits) 
 {
     switch (stop_bits) {
     case 1: m_term_settings.c_cflag &= ~CSTOPB; break;
@@ -205,14 +204,14 @@ void serial_interface::set_stop_bits(unsigned stop_bits) noexcept
         fprintf(stderr, "%i stop bits are not supported\n",stop_bits );
         abort();
     }
-    m_stop_bits = stop_bits;
+    m_sbits = stop_bits;
 
-    debug_print("set number of stop bits to %i\n", m_stop_bits);
+    debug_print("set number of stop bits to %i\n", m_sbits);
     m_update_settings = true;
     return;
 }
 
-void serial_interface::apply_settings() 
+void serial_port::apply_settings() 
 {
     debug_print("%s", "Applying termio settings\n");
     int stat = tcsetattr(m_fd, TCSANOW, &m_term_settings);
@@ -223,16 +222,30 @@ void serial_interface::apply_settings()
     return;
 }
 
-void serial_interface::set_hw_flow_ctrl(bool ena) 
+void serial_port::enable_rts_cts()
 {
-    if (ena) m_term_settings.c_cflag |= CRTSCTS;
-    else m_term_settings.c_cflag &= ~CRTSCTS;
-    debug_print("Hardware flow control %s\n", ena ? "enabled" : "disabled");
+    m_term_settings.c_cflag |= CRTSCTS;
+    debug_print("%s\n", "RTS/CTS hardware flow control enabled");
     m_update_settings = true;
     return;
 }
 
-void serial_interface::set_dtr() 
+void serial_port::enable_dtr_dsr()
+{
+    throw exception("DTR/DSR hardwardware flow control is currently not "
+        "supported by labdev::serial_port");
+    return;
+}
+
+void serial_port::disable_hw_flow_ctrl()
+{
+    m_term_settings.c_cflag &= ~CRTSCTS;
+    debug_print("%s\n", "RTS/CTS hardware flow control disabled");
+    m_update_settings = true;
+    return;
+}
+
+void serial_port::set_dtr() 
 {
     int flag = TIOCM_DTR;
     int stat = ioctl(m_fd, TIOCMBIS, &flag);
@@ -240,7 +253,7 @@ void serial_interface::set_dtr()
     return;
 }
 
-void serial_interface::clear_dtr() 
+void serial_port::clear_dtr() 
 {
     int flag = TIOCM_DTR;
     int stat = ioctl(m_fd, TIOCMBIC, &flag);
@@ -248,7 +261,7 @@ void serial_interface::clear_dtr()
     return;
 }
 
-void serial_interface::set_rts() 
+void serial_port::set_rts() 
 {
     int flag = TIOCM_RTS;
     int stat = ioctl(m_fd, TIOCMBIS, &flag);
@@ -256,7 +269,7 @@ void serial_interface::set_rts()
     return;
 }
 
-void serial_interface::clear_rts() 
+void serial_port::clear_rts() 
 {
     int flag = TIOCM_RTS;
     int stat = ioctl(m_fd, TIOCMBIC, &flag);
@@ -268,7 +281,7 @@ void serial_interface::clear_rts()
  *      P R I V A T E   M E T H O D S
  */
 
-void serial_interface::check_and_throw(int status, const string &msg) const 
+void serial_port::check_and_throw(int status, const string &msg) const 
 {
     if (status < 0) {
         int error = errno;
@@ -292,7 +305,7 @@ void serial_interface::check_and_throw(int status, const string &msg) const
     return;
 }
 
-speed_t serial_interface::check_baud(unsigned baud)
+speed_t serial_port::check_baud(unsigned baud)
 {
     speed_t good_baud;
     switch (baud) {
@@ -322,7 +335,7 @@ speed_t serial_interface::check_baud(unsigned baud)
     return good_baud;
 }
 
-uint32_t serial_interface::check_bits(unsigned nbits)
+uint32_t serial_port::check_bits(unsigned nbits)
 {
     uint32_t good_nbits;
     switch (nbits) {

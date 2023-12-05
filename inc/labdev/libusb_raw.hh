@@ -1,28 +1,26 @@
-#ifndef LD_USB_INTERFACE_H
-#define LD_USB_INTERFACE_H
+#ifndef LD_LIBUSB_RAW_H
+#define LD_LIBUSB_RAW_H
 
 #include <labdev/ld_interface.hh>
 #include <libusb.h>
 
 namespace labdev{
 
-class usb_interface : public ld_interface {
+class libusb_raw : public ld_interface {
 public:
-    usb_interface();
-    usb_interface(uint16_t vid, uint16_t pid);
-    usb_interface(uint8_t bus, uint8_t port);
-    virtual ~usb_interface();
+    libusb_raw();
+    libusb_raw(uint16_t vid, uint16_t pid, std::string serno = "");
+    virtual ~libusb_raw();
 
-    void open() override;
-    void open(uint16_t vid, uint16_t pid);
-    void open(uint8_t bus, uint8_t port);
-    void close() override;
-
-    // Data transfer to and from bulk endpoint using current ep address
-    virtual int write_raw(const uint8_t* data, size_t len) override;
-    virtual int read_raw(uint8_t* data, size_t max_len, 
+    int write_raw(const uint8_t* data, size_t len) override;
+    int read_raw(uint8_t* data, size_t max_len, 
         unsigned timeout_ms = s_dflt_timeout_ms) override;
 
+    void open() override;
+    void open(uint16_t vid, uint16_t pid, std::string serno = "");
+    void close() override;
+
+    std::string get_info() const override;
     Interface_type type() const override { return usb; }
 
     // libusb-style data transfer to control endpoint (ep0)
@@ -31,19 +29,14 @@ public:
     int read_control(uint8_t request_type, uint8_t request, uint16_t value,
         uint16_t index, const uint8_t* data, int len);
 
-    // Returns human readable info string
-    std::string get_info() const override;
-
-    void clear();
-
     // libusb-style data transfer to bulk endpoints
     int write_bulk(const uint8_t* data, int len);
-    int read_bulk(uint8_t* data, int max_len,
+    int read_bulk(uint8_t* data, int max_len, 
         int timeout_ms = s_dflt_timeout_ms);
 
     // libusb-style data transfer to interrupt endpoints
     int write_interrupt(const uint8_t* data, int len);
-    int read_interrupt(uint8_t* data, int max_len,
+    int read_interrupt(uint8_t* data, int max_len, 
         int timeout_ms = s_dflt_timeout_ms);
 
     // Set current I/O configuration
@@ -51,10 +44,20 @@ public:
     void set_endpoint_in(unsigned ep_no);
     void set_endpoint_out(unsigned ep_no);
 
-    // Get information on the device
+    // Clear endpoint buffers
+    void clear();
+
+    // Set/get vendor ID
+    void set_vid(uint16_t vid) { m_vid = vid; }
     uint16_t get_vid() const { return m_vid; }
+    // Set/get product ID
+    void set_pid(uint16_t pid) { m_pid = pid; }
     uint16_t get_pid() const { return m_pid; }
-    std::string get_serial() const { return m_serial_no; }
+    // Set/get serial number
+    void set_serial(std::string serno) { m_serno = serno; }
+    std::string get_serial() const { return m_serno; }
+
+    // Get bus:port
     uint8_t get_bus() const { return m_bus; }
     uint8_t get_port() const { return m_port; }
 
@@ -63,7 +66,7 @@ public:
     uint8_t get_interface_subclass() const { return m_interface_subclass; }
     uint8_t get_interface_protocol() const { return m_interface_protocol; }
 
-private:
+protected:
     static const int s_no_interface = -1;
     static libusb_context* s_default_ctx;
     static int s_dev_count;
@@ -77,7 +80,7 @@ private:
 
     // Device info
     uint16_t m_vid, m_pid;
-    std::string m_serial_no;
+    std::string m_serno;
     uint8_t m_bus, m_port;
     uint8_t m_dev_class, m_dev_subclass, m_dev_protocol;
     uint8_t m_interface_class, m_interface_subclass, m_interface_protocol;

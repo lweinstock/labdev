@@ -61,8 +61,8 @@ void tcpip_interface::open(std::string ip_addr, unsigned port)
     err_msg.str("");
     err_msg << "Failed to connect to " << ip_addr << ":" << port << ".";
     check_and_throw(stat, err_msg.str());
-    debug_print("connected to IP address = %s:%i\n",
-        inet_ntoa(m_instr_addr.sin_addr), m_instr_addr.sin_port);
+    debug_print("Connected to IP address = %s:%u\n",
+        inet_ntoa(m_instr_addr.sin_addr), ntohs(m_instr_addr.sin_port));
     m_ip_addr = ip_addr;
     m_port = port;
 
@@ -73,9 +73,10 @@ void tcpip_interface::open(std::string ip_addr, unsigned port)
 void tcpip_interface::close()
 {
     debug_print("Closing connection to %s:%i\n", m_ip_addr.c_str(), m_port);
-    shutdown(m_socket_fd, SHUT_WR);
-    while ( !this->read().empty() ) { usleep(10e3); }   // Read remaining messages
-    shutdown(m_socket_fd, SHUT_RD);
+    //shutdown(m_socket_fd, SHUT_WR);
+    //while ( !this->read().empty() ) { usleep(100e3); } // Read remaining messages
+    //shutdown(m_socket_fd, SHUT_RD);
+    shutdown(m_socket_fd, SHUT_RDWR);
     int stat = ::close(m_socket_fd);
     check_and_throw(stat, "Failed to close connection to " + m_ip_addr + ":" 
         + to_string(m_port));

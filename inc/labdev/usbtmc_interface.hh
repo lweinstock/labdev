@@ -1,18 +1,16 @@
 #ifndef LD_USBTMC_INTERFACE_H
 #define LD_USBTMC_INTERFACE_H
 
-#include <labdev/usb_interface.hh>
+#include <labdev/ld_interface.hh>
+#include <labdev/libusb_raw.hh>
 
 namespace labdev{
 
-class usbtmc_interface : public usb_interface {
+class usbtmc_interface : public ld_interface {
 public:
-    usbtmc_interface() : usb_interface(), m_cur_tag(0x01) {};
-    usbtmc_interface(uint16_t vid, uint16_t pid) 
-        : usb_interface(vid, pid), m_cur_tag(0x01) {};
-    usbtmc_interface(uint8_t bus, uint8_t port) 
-        : usb_interface(bus, port), m_cur_tag(0x01) {};
-    virtual ~usbtmc_interface() {};
+    usbtmc_interface();
+    usbtmc_interface(uint16_t vid, uint16_t pid, std::string serno);
+    ~usbtmc_interface();
 
     // USBTMC protocol definitions
     enum bRequest : uint16_t {
@@ -44,7 +42,27 @@ public:
     int read_raw(uint8_t* data, size_t max_len, 
         unsigned timeout_ms = s_dflt_timeout_ms) override;
 
+    void open() override;
+    void open(uint16_t vid, uint16_t pid, std::string serno);
+    void close() override;
+
     Interface_type type() const override { return usbtmc; }
+
+    // Set current interface and endpoint configuration
+    void claim_interface(int int_no, int alt_setting = 0)
+        { m_usb.claim_interface(int_no, alt_setting); }
+    void set_endpoint_in(unsigned ep_no) { m_usb.set_endpoint_in(ep_no); }
+    void set_endpoint_out(unsigned ep_no) { m_usb.set_endpoint_out(ep_no); }
+
+    // Set/get vendor ID
+    void set_vid(uint16_t vid) { m_usb.set_vid(vid); }
+    uint16_t get_vid() const { return m_usb.get_vid(); }
+    // Set/get product ID
+    void set_pid(uint16_t pid) { m_usb.set_pid(pid); }
+    uint16_t get_pid() const { return m_usb.get_pid(); }
+    // Set/get serial number
+    void set_serial(std::string serno) { m_usb.set_serial(serno); }
+    std::string get_serial() const { return m_usb.get_serial(); }
 
     // USBTMC device dependant data transfer
     int write_dev_dep_msg(const uint8_t* msg, size_t len,
@@ -61,7 +79,7 @@ public:
     void clear_buffer();
 
 private:
-
+    libusb_raw m_usb;
     static constexpr unsigned s_header_len = 12;
     static constexpr uint8_t LIBUSB_SUBCLASS_TMC = 0x03;
 

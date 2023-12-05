@@ -5,7 +5,7 @@
 #include <labdev/ld_interface.hh>
 #include <labdev/serial_interface.hh>
 #include <labdev/tcpip_interface.hh>
-#include <labdev/usb_interface.hh>
+#include <labdev/libusb_raw.hh>
 #include <labdev/visa_interface.hh>
 
 #include <labdev/devices/device.hh>

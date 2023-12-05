@@ -11,7 +11,7 @@ namespace labdev{
  *  Interface types
  */
 
-enum Interface_type {none, serial, tcpip, usb, usbtmc, visa};
+enum Interface_type {none, rs232, tcpip, usb, usbtmc, visa};
 
 /*
  *  Abstract base class for all interfaces

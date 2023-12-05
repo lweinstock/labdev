@@ -1,53 +1,61 @@
-#include <labdev/usb_interface.hh>
+#include <labdev/libusb_raw.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/ld_debug.hh>
 
 #include <sstream>
 #include <algorithm>
+#include <iostream>
+#include <iomanip>
 
 using namespace std;
 
 namespace labdev {
 
-libusb_context* usb_interface::s_default_ctx = NULL;
-int usb_interface::s_dev_count = 0;
+libusb_context* libusb_raw::s_default_ctx = NULL;
+int libusb_raw::s_dev_count = 0;
 
 
-usb_interface::usb_interface(): m_usb_dev(NULL), m_usb_handle(NULL),
+libusb_raw::libusb_raw(): m_usb_dev(NULL), m_usb_handle(NULL),
     m_cur_cfg(0), m_cur_alt_setting(0), m_cur_interface_no(-1),
-    m_ep_in_addr(0), m_ep_out_addr(0), m_max_pkt_size_in(64), m_max_pkt_size_out(64),
-    m_vid(0x0000), m_pid(0x0000), m_serial_no(""), m_bus(0xFF), m_port(0xFF),
-    m_dev_class(0), m_dev_subclass(0), m_dev_protocol(0),
-    m_interface_class(0), m_interface_subclass(0), m_interface_protocol(0) 
+    m_ep_in_addr(0), m_ep_out_addr(0), m_max_pkt_size_in(64), 
+    m_max_pkt_size_out(64), m_vid(0x0000), m_pid(0x0000), m_serno(""), 
+    m_bus(0xFF), m_port(0xFF), m_dev_class(0), m_dev_subclass(0), 
+    m_dev_protocol(0), m_interface_class(0), m_interface_subclass(0), 
+    m_interface_protocol(0) 
 {
     return;
 }
 
-usb_interface::usb_interface(uint16_t vid, uint16_t pid) : usb_interface() 
+libusb_raw::libusb_raw(uint16_t vid, uint16_t pid, string serno) 
+    : libusb_raw() 
 {
-    this->open(vid, pid);
+    this->open(vid, pid, serno);
     return;
 }
 
-usb_interface::usb_interface(uint8_t bus, uint8_t port) : usb_interface() 
-{
-    this->open(bus, port);
-    return;
-}
-
-usb_interface::~usb_interface()
+libusb_raw::~libusb_raw()
 {
     this->close();
     return;
 }
 
-void usb_interface::open()
+int libusb_raw::write_raw(const uint8_t* data, size_t len)
 {
-    this->open(m_vid, m_pid);
+    return this->write_bulk(data, len);
+}
+
+int libusb_raw::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
+{
+    return this->read_bulk(data, max_len, timeout_ms);
+}
+
+void libusb_raw::open()
+{
+    this->open(m_vid, m_pid, m_serno);
     return;
 }
 
-void usb_interface::open(uint16_t vid, uint16_t pid)
+void libusb_raw::open(uint16_t vid, uint16_t pid, string serno)
 {
     int stat;
     // If first device, start new libusb session
@@ -74,9 +82,26 @@ void usb_interface::open(uint16_t vid, uint16_t pid)
 
         // Check for VID and PID
         if ( (desc.idVendor == vid) && (desc.idProduct == pid) ) {
+            // Also check for serial number, if specified
+            if ( !serno.empty() ) {
+                libusb_device_handle* tmp_handle;
+                stat = libusb_open(tmp_dev, &tmp_handle);
+                check_and_throw(stat, "Failed to get usb handle");
+
+                uint8_t serial_cstr[126];
+                stat = libusb_get_string_descriptor_ascii(tmp_handle,
+                    desc.iSerialNumber, serial_cstr, 126);
+                check_and_throw(stat, "Failed to get string descriptor");
+                debug_print("SerialNumber %s\n", serial_cstr);
+                string serial_str( (char*)serial_cstr );
+
+                // If serial number does not match, skip rest
+                if (serno != serial_str) continue;
+            }
             m_usb_dev = tmp_dev;
             m_vid = vid;
             m_pid = pid;
+            m_serno = serno;
             m_bus = libusb_get_bus_number(m_usb_dev);
             m_port = libusb_get_port_number(m_usb_dev);
             break;
@@ -100,63 +125,7 @@ void usb_interface::open(uint16_t vid, uint16_t pid)
     return;
 }
 
-void usb_interface::open(uint8_t bus, uint8_t port)
-{
-    int stat;
-    // If first device, start new libusb session
-    if (s_dev_count == 0) {
-        stat = libusb_init(&s_default_ctx);
-        check_and_throw(stat, "libusb init failed");
-        debug_print("new libusb session initialized (%i)\n", stat);
-    }
-
-    // Search for deivce with given bus- & port number
-    libusb_device** dev_list;
-    int ndev = libusb_get_device_list(s_default_ctx, &dev_list);
-    check_and_throw(ndev, "Failed to get device list");
-
-    for (int idev = 0; idev < ndev; idev++) {
-        // Get dev descriptor for vid, pid, bus, and port
-        libusb_device* tmp_dev = dev_list[idev];
-        uint8_t tmp_bus = libusb_get_bus_number(tmp_dev);
-        uint8_t tmp_port = libusb_get_port_number(tmp_dev);
-
-        debug_print("device %i: bus=%03u port=%03u)\n", idev, tmp_bus, tmp_port);
-
-        // Check for bus and port number
-        if ( (tmp_port == port) && (tmp_bus == bus) ) {
-            m_usb_dev = tmp_dev;
-            m_bus = bus;
-            m_port = port;
-            // Get VID and PID
-            libusb_device_descriptor desc;
-            stat = libusb_get_device_descriptor(tmp_dev, &desc);
-            check_and_throw(stat, "Failed to get device descriptor");
-            m_vid = desc.idVendor;
-            m_pid = desc.idProduct;
-            break;
-        }
-    }
-
-    // Get I/O handle
-    if (m_usb_dev) {
-        stat = libusb_open(m_usb_dev, &m_usb_handle);
-        check_and_throw(stat, "Failed to get usb handle");
-        this->gather_device_information();
-    } else {
-        fprintf(stderr, "Device ID bus %03u port %03u not found\n", 
-            bus, port);
-        abort();
-    }
-    s_dev_count++;
-    debug_print("Opened device, new device count = %i\n", s_dev_count);
-
-    libusb_free_device_list(dev_list, 1);
-    m_good = true;
-    return;
-}
-
-void usb_interface::close()
+void libusb_raw::close()
 {
     // Release claimed interfaces and device
     if (m_cur_interface_no != s_no_interface)
@@ -176,31 +145,22 @@ void usb_interface::close()
     return;
 }
 
-int usb_interface::write_raw(const uint8_t* data, size_t len) 
+string libusb_raw::get_info() const
 {
-    return this->write_bulk(data, len);
+    stringstream info("");
+    info << std::uppercase << setfill('0') << setw(4) << std::hex;
+    info << "usb;0x" << m_vid << m_pid << m_serno;
+    return info.str();
 }
 
-int usb_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
-{
-    return this->read_bulk(data, max_len, timeout_ms);
-}
-
-string usb_interface::get_info() const 
-{
-    // Format example: usb;002;001
-    string ret("usb;" + to_string(m_bus) + ";" + to_string(m_port) );
-    return ret;
-}
-
-void usb_interface::clear()
+void libusb_raw::clear()
 {
     libusb_clear_halt(m_usb_handle, m_ep_in_addr);
     libusb_clear_halt(m_usb_handle, m_ep_out_addr);
     return;
 }
 
-int usb_interface::write_control(uint8_t request_type, uint8_t request,
+int libusb_raw::write_control(uint8_t request_type, uint8_t request,
     uint16_t value, uint16_t index, const uint8_t* data, int len) 
 {
     this->check_interface();
@@ -226,7 +186,7 @@ int usb_interface::write_control(uint8_t request_type, uint8_t request,
     return nbytes;
 }
 
-int usb_interface::read_control(uint8_t request_type, uint8_t request, 
+int libusb_raw::read_control(uint8_t request_type, uint8_t request, 
     uint16_t value, uint16_t index, const uint8_t* data, int len) 
 {
     this->check_interface();
@@ -253,7 +213,7 @@ int usb_interface::read_control(uint8_t request_type, uint8_t request,
 }
 
 
-int usb_interface::write_bulk(const uint8_t* data, int len) 
+int libusb_raw::write_bulk(const uint8_t* data, int len) 
 {
     this->check_interface();
     int stat, nbytes = 0;
@@ -277,7 +237,7 @@ int usb_interface::write_bulk(const uint8_t* data, int len)
     return nbytes;
 }
 
-int usb_interface::read_bulk(uint8_t* data, int max_len, int timeout_ms) 
+int libusb_raw::read_bulk(uint8_t* data, int max_len, int timeout_ms) 
 {
     this->check_interface();
     int nbytes = 0;
@@ -293,20 +253,20 @@ int usb_interface::read_bulk(uint8_t* data, int max_len, int timeout_ms)
     return nbytes;
 }
 
-int usb_interface::write_interrupt(const uint8_t* data, int len) 
+int libusb_raw::write_interrupt(const uint8_t* data, int len) 
 {
     // TODO
     return 0;
 }
 
-int usb_interface::read_interrupt(uint8_t* data, int max_len,
+int libusb_raw::read_interrupt(uint8_t* data, int max_len,
     int timeout_ms) 
 {
     // TODO
     return 0;
 }
 
-void usb_interface::claim_interface(int interface_no, int alt_setting) 
+void libusb_raw::claim_interface(int interface_no, int alt_setting) 
 {
     int stat;
     string msg("");
@@ -344,7 +304,7 @@ void usb_interface::claim_interface(int interface_no, int alt_setting)
     return;
 }
 
-void usb_interface::set_endpoint_in(unsigned ep_no) 
+void libusb_raw::set_endpoint_in(unsigned ep_no) 
 {
     this->check_interface();
 
@@ -377,7 +337,7 @@ void usb_interface::set_endpoint_in(unsigned ep_no)
     return;
 }
 
-void usb_interface::set_endpoint_out(unsigned ep_no) 
+void libusb_raw::set_endpoint_out(unsigned ep_no) 
 {
     this->check_interface();
 
@@ -414,7 +374,7 @@ void usb_interface::set_endpoint_out(unsigned ep_no)
  *      P R I V A T E   M E T H O D S
  */
 
-void usb_interface::gather_device_information() 
+void libusb_raw::gather_device_information() 
 {
     if (!m_usb_dev)
         return;
@@ -424,7 +384,6 @@ void usb_interface::gather_device_information()
     m_port = libusb_get_port_number(m_usb_dev);
 
     // Get device info
-    char strdesc_buf[100] = {'\0'};
     libusb_device_descriptor desc;
     int stat = libusb_get_device_descriptor(m_usb_dev, &desc);
     check_and_throw(stat, "Failed to get device descriptor");
@@ -433,20 +392,21 @@ void usb_interface::gather_device_information()
     m_dev_class = desc.bDeviceClass;
     m_dev_subclass = desc.bDeviceSubClass;
     m_dev_protocol = desc.bDeviceProtocol;
-
+/*
+    char strdesc_buf[100] = {'\0'};
     if (desc.iSerialNumber) {
         stat = libusb_get_string_descriptor_ascii(m_usb_handle,
             desc.iSerialNumber, (uint8_t*)strdesc_buf, 100);
         check_and_throw(stat, "Failed to get string descriptor");
-        m_serial_no = strdesc_buf;
+        m_serno = strdesc_buf;
     } else
-        m_serial_no = "";
-
+        m_serno = "";
+*/
     debug_print("Bus\t%i\n", m_bus);
     debug_print("Port\t%i\n", m_port);
     debug_print("idVendor\t0x%02X\n", m_vid);
     debug_print("idProduct\t0x%02X\n", m_pid);
-    debug_print("iSerialNumber\t%s\n", m_serial_no.c_str());
+    debug_print("iSerialNumber\t%s\n", m_serno.c_str());
     debug_print("bDeviceClass\t0x%02X\n", m_dev_class);
     debug_print("bDeviceSubClass\t0x%02X\n", m_dev_subclass);
     debug_print("bDeviceProtocol\t0x%02X\n", m_dev_protocol);
@@ -454,7 +414,7 @@ void usb_interface::gather_device_information()
     return;
 }
 
-void usb_interface::gather_interface_information() 
+void libusb_raw::gather_interface_information() 
 {
     this->check_interface();
 
@@ -480,7 +440,7 @@ void usb_interface::gather_interface_information()
     return;
 }
 
-void usb_interface::check_and_throw(int stat, const string& msg) const 
+void libusb_raw::check_and_throw(int stat, const string& msg) const 
 {
     if (stat < 0) {
         stringstream err_msg;
@@ -515,7 +475,7 @@ void usb_interface::check_and_throw(int stat, const string& msg) const
     return;
 }
 
-void usb_interface::check_interface() 
+void libusb_raw::check_interface() 
 {
     if (m_cur_interface_no == s_no_interface)
         throw bad_io("No USB interface claimed");
