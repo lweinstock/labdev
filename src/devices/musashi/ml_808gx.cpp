@@ -1,7 +1,7 @@
 #include <sstream>
 #include <iomanip>
 
-#include <labdev/devices/musashi/ml-808gx.hh>
+#include <labdev/devices/musashi/ml_808gx.hh>
 #include <labdev/serial_interface.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/ld_debug.hh>
@@ -109,41 +109,47 @@ unsigned ml_808gx::get_channel()
     return m_cur_ch;
 }
 
-void ml_808gx::set_channel_params(unsigned pressure, unsigned dur, 
-    unsigned on_delay, unsigned off_delay) 
+void ml_808gx::set_channel_params(float pressure_kPa, float dur_ms, 
+    float on_delay_ms, float off_delay_ms) 
 {
-    if ( (pressure < 200) || (pressure > 8000) ) {
-        fprintf(stderr, "Invalid pressure %i (allowed 200 - 8000)\n", 
-            pressure);
+    // Pressure in units of 100 Pa, duratio in ms, on/off delay in 0.1ms
+    unsigned p = static_cast<unsigned>(1e1*pressure_kPa);
+    unsigned dt = static_cast<unsigned>(1e3*dur_ms);
+    unsigned ton = static_cast<unsigned>(1e4*on_delay_ms);
+    unsigned toff = static_cast<unsigned>(1e4*off_delay_ms);
+    if ( (p < 200) || (p > 8000) ) {
+        fprintf(stderr, "Invalid pressure %.2f kPa (valid range: 0.2 - 8.0 kPa)\n", 
+            pressure_kPa);
         abort();
     }
-    if ( (dur < 10) || (dur > 9999) ) {
-        fprintf(stderr, "Invalid duration %i (allowed 10 - 9999)\n", dur);
+    if ( (dt < 10) || (dt > 9999) ) {
+        fprintf(stderr, "Invalid duration %.2f ms (valid range: 10 - 9999 ms)\n", 
+            dur_ms);
         abort();
     }
-    if ( (on_delay > 99999) || (off_delay > 99999) ) {
-        fprintf(stderr, "Invalid delay %i/%i (allowed 0 - 99999)\n", 
-            on_delay, off_delay);
+    if ( (ton < 0) || (ton > 99999) || (ton < 0) || (toff > 99999) ) {
+        fprintf(stderr, "Invalid delay %.2f/%.2f (valid range: 0 - 9.9999 ms)\n", 
+            on_delay_ms, off_delay_ms);
         abort();
     }
 
     debug_print("Setting parameters of ch %i to:\n", m_cur_ch);
-    debug_print("p = %i x 100Pa\n", pressure);
-    debug_print("t = %i ms\n", dur);
-    debug_print("don/off = %i/%i x 0.1ms\n", on_delay, off_delay);
+    debug_print("p = %i x 100Pa\n", p);
+    debug_print("t = %i ms\n", dt);
+    debug_print("don/off = %i/%i x 0.1ms\n", ton, toff);
     string cmd = "SC  ";
     stringstream data("");
     data << "CH" << setfill('0') << setw(3) << m_cur_ch;
-    data << "P"  << setfill('0') << setw(4) << pressure;
-    data << "T"  << setfill('0') << setw(4) << dur;
-    data << "OD" << setfill('0') << setw(5) << on_delay;
-    data << "OF" << setfill('0') << setw(5) << off_delay;
+    data << "P"  << setfill('0') << setw(4) << p;
+    data << "T"  << setfill('0') << setw(4) << dt;
+    data << "OD" << setfill('0') << setw(5) << ton;
+    data << "OF" << setfill('0') << setw(5) << toff;
     this->download_command(cmd, data.str());
     return;
 }
 
-void ml_808gx::get_channel_params(unsigned& pressure, unsigned& dur, 
-    unsigned& on_delay, unsigned& off_delay) 
+void ml_808gx::get_channel_params(float& pressure_kPa, float& dur_ms, 
+    float& on_delay_ms, float& off_delay_ms) 
 {
     debug_print("Reading parameters of ch %i...\n", m_cur_ch);
     string resp("");
@@ -153,99 +159,113 @@ void ml_808gx::get_channel_params(unsigned& pressure, unsigned& dur,
     this->upload_command(cmd.str(), resp);
 
     // Extract data from string
-    pressure  = stoi( resp.substr(resp.find('P')+1, 4) );
-    dur       = stoi( resp.substr(resp.find('T')+1, 4) );
-    on_delay  = stoi( resp.substr(resp.find("OD")+2, 7) );
-    off_delay = stoi( resp.substr(resp.find("OF")+2, string::npos) );
-    debug_print("p = %i x 100Pa\n", pressure);
-    debug_print("t = %i ms\n", dur);
-    debug_print("don/off = %i/%i x 0.1ms\n", on_delay, off_delay);
+    unsigned p    = stoi( resp.substr(resp.find('P')+1, 4) );
+    unsigned dt   = stoi( resp.substr(resp.find('T')+1, 4) );
+    unsigned ton  = stoi( resp.substr(resp.find("OD")+2, 7) );
+    unsigned toff = stoi( resp.substr(resp.find("OF")+2, string::npos) );
+    debug_print("p = %i x 100Pa\n", p);
+    debug_print("t = %i ms\n", dt);
+    debug_print("don/off = %i/%i x 0.1ms\n", ton, toff);
+
+    // Convert into floats
+    pressure_kPa = 1e-1*static_cast<float>(p);
+    dur_ms       = 1e-3*static_cast<float>(dt);
+    on_delay_ms  = 1e-4*static_cast<float>(ton);
+    off_delay_ms = 1e-4*static_cast<float>(toff);
     
     return;
 }
 
-tuple<unsigned, unsigned, unsigned, unsigned> ml_808gx::get_channel_params()
+tuple<float, float, float, float> ml_808gx::get_channel_params()
 {
-    unsigned p = 0, dt = 0, on = 0, off = 0;
+    float p = .0, dt = .0, on = .0, off = .0;
     this->get_channel_params(p, dt, on, off);
     return make_tuple(p, dt, on, off);
 }
 
-void ml_808gx::set_pressure(unsigned pressure)
+void ml_808gx::set_pressure(float pressure_kPa)
 {
-    if ( (pressure < 200) || (pressure > 8000) ) {
-        fprintf(stderr, "Invalid pressure (valid range 20 - 800 kPa)\n");
+    unsigned p = static_cast<unsigned>(1e1*pressure_kPa);
+    if ( (p < 200) || (p > 8000) ) {
+        fprintf(stderr, "Invalid pressure %.2f kPa (valid range: 0.2 - 8.0 kPa)\n", 
+            pressure_kPa);
         abort();
     }
 
-    debug_print("Setting pressure of ch %i to %i x 100 Pa\n", m_cur_ch, pressure);
+    debug_print("Setting pressure of ch %i to %i x 100 Pa\n", m_cur_ch, p);
     string cmd = "PH  ";
     stringstream data("");
     data << "CH" << setfill('0') << setw(3) << m_cur_ch;
-    data << "P"  << setfill('0') << setw(4) << pressure;
+    data << "P"  << setfill('0') << setw(4) << p;
     this->download_command(cmd, data.str());
     return;
 }
 
-unsigned ml_808gx::get_pressure()
+float ml_808gx::get_pressure()
 {
-    unsigned p = 0, dt = 0, on = 0, off = 0;
+    float p = .0, dt = .0, on = .0, off = .0;
     this->get_channel_params(p, dt, on, off);
     return p;
 }
 
-void ml_808gx::set_duration(unsigned dur)
+void ml_808gx::set_duration(float dur_ms)
 {
-    if ( (dur < 10) || (dur > 9999) ) {
-        fprintf(stderr, "Invalid duration (valid range 0.01 - 9.999 s)\n");
+    unsigned dt = static_cast<unsigned>(1e3*dur_ms);
+    if ( (dt < 10) || (dt > 9999) ) {
+        fprintf(stderr, "Invalid duration %.2f ms (valid range: 10 - 9999 ms)\n", 
+            dur_ms);
         abort();
     }
 
-    debug_print("Setting duration of ch %i to %i ms\n", m_cur_ch, dur);
+    debug_print("Setting duration of ch %i to %i ms\n", m_cur_ch, dt);
     string cmd = "DH  ";
     stringstream data("");
     data << "CH" << setfill('0') << setw(3) << m_cur_ch;
-    data << "T"  << setfill('0') << setw(4) << dur;
+    data << "T"  << setfill('0') << setw(4) << dt;
     this->download_command(cmd, data.str());
     return;
 }
 
-unsigned ml_808gx::get_duration()
+float ml_808gx::get_duration()
 {   
-    unsigned p = 0, dt = 0, on = 0, off = 0;
+    float p = .0, dt = .0, on = .0, off = .0;
     this->get_channel_params(p, dt, on, off);
     return dt;
 }
 
-void ml_808gx::set_delays(unsigned on_delay, unsigned off_delay)
+void ml_808gx::set_delays(float on_delay_ms, float off_delay_ms)
 {
-    if ( (on_delay > 99999) || (off_delay > 99999) ) {
-        fprintf(stderr, "Invalid delay (valid range 0 - 9.999 s)\n");
+    unsigned ton = static_cast<unsigned>(1e4*on_delay_ms);
+    unsigned toff = static_cast<unsigned>(1e4*off_delay_ms);
+    if ( (ton < 0) || (ton > 99999) || (ton < 0) || (toff > 99999) ) {
+        fprintf(stderr, "Invalid delay %.2f/%.2f (valid range: 0 - 9.9999 ms)\n", 
+            on_delay_ms, off_delay_ms);
         abort();
     }
 
+
     debug_print("Setting delays of ch %i to %i (on) %i (off) x 0.1 ms\n", 
-        m_cur_ch, on_delay, off_delay);
+        m_cur_ch, ton, toff);
     string cmd = "DD  ";
     stringstream data("");
     data << "CH" << setfill('0') << setw(3) << m_cur_ch;
-    data << "N"  << setfill('0') << setw(5) << on_delay;
-    data << "F"  << setfill('0') << setw(5) << off_delay;
+    data << "N"  << setfill('0') << setw(5) << ton;
+    data << "F"  << setfill('0') << setw(5) << toff;
     this->download_command(cmd, data.str());
     return;
 }
 
-void ml_808gx::get_delays(unsigned &on_delay, unsigned &off_delay)
+void ml_808gx::get_delays(float &on_delay_ms, float &off_delay_ms)
 {
-    unsigned p = 0, dt = 0;
-    this->get_channel_params(p, dt, on_delay, off_delay);
+    float p = 0, dt = 0;
+    this->get_channel_params(p, dt, on_delay_ms, off_delay_ms);
 }
 
-tuple<unsigned, unsigned> ml_808gx::get_delays()
+tuple<float, float> ml_808gx::get_delays()
 {
-    unsigned on = 0, off = 0;
-    this->get_delays(on, off);
-    return make_tuple(on, off);
+    float ton = .0, toff = .0;
+    this->get_delays(ton, toff);
+    return make_tuple(ton, toff);
 }
 
 
@@ -284,9 +304,9 @@ void ml_808gx::set_vacuum_interval(unsigned on_ms, unsigned off_ms)
     return;
 }
 
-    /*
-     *      P R I V A T E   M E T H O D S
-     */
+/*
+ *      P R I V A T E   M E T H O D S
+ */
 
 void ml_808gx::init() 
 {   

@@ -25,24 +25,21 @@ public:
     unsigned get_channel();
 
     // Set parameters for current channel recipe (see manual p. 61):
-    //  - pressure in 100 Pa
-    //  - duratio in ms
-    //  - on/off delay in 0.1ms
-    void set_channel_params(unsigned pressure, unsigned dur, 
-        unsigned on_delay, unsigned off_delay);
-    void get_channel_params(unsigned& pressure, unsigned& dur, 
-        unsigned& on_delay, unsigned& off_delay);
+    void set_channel_params(float pressure_kPa, float dur_ms, float on_delay_ms, 
+        float off_delay_ms);
+    void get_channel_params(float& pressure_kPa, float& dur_ms, 
+        float& on_delay_ms, float& off_delay_ms);
     // Python-style tuple return (pressure, duration, on/off delay)
-    std::tuple<unsigned, unsigned, unsigned, unsigned> get_channel_params();
+    std::tuple<float, float, float, float> get_channel_params();
 
     // Setter and getter methods for single parameters of current channel
-    void set_pressure(unsigned pressure);
-    unsigned get_pressure();
-    void set_duration(unsigned dur);
-    unsigned get_duration();
-    void set_delays(unsigned on_delay, unsigned off_delay);
-    void get_delays(unsigned &on_delay, unsigned &off_delay);
-    std::tuple<unsigned, unsigned> get_delays();
+    void set_pressure(float pressure_kPa);
+    float get_pressure();
+    void set_duration(float dur_ms);
+    float get_duration();
+    void set_delays(float on_delay_ms, float off_delay_ms);
+    void get_delays(float &on_delay_ms, float &off_delay_ms);
+    std::tuple<float, float> get_delays();
 
     // Manual and timed despense modes (see manual p. 16)
     void manual_mode();
