@@ -15,7 +15,7 @@ namespace labdev {
 
 eth_to_ser::eth_to_ser() 
     : serial_interface(), m_tcpip_cfg(), m_tcpip_ser(), m_ip_addr("0.0.0.0"), 
-      m_port(0)
+      m_port(0), m_flc(0)
 {
     return;
 }
@@ -124,7 +124,7 @@ void eth_to_ser::set_nbits(unsigned nbits)
 
 void eth_to_ser::set_stop_bits(unsigned stop_bits)
 {
-    debug_print("set number of stop bits to %i\n", m_sbits);
+    debug_print("Set number of stop bits to %i\n", m_sbits);
     m_sbits = stop_bits;
     m_update_settings = true;
     return;
@@ -150,6 +150,7 @@ void eth_to_ser::apply_settings()
     body += "dtb=" + to_string(this->get_dtb(m_nbits)) + "&";
     body += "prt=" + to_string(this->get_prt(m_par_en, m_par_even)) + "&";
     body += "stb=" + to_string(this->get_stb(m_sbits)) + "&";
+    body += "flc=" + to_string(m_flc) + "&";
     body += "rtp=&post=Submit";
     // http header
     string head = "POST /ok.html HTTP/1.1\r\n"
@@ -176,16 +177,22 @@ void eth_to_ser::apply_settings()
 
 void eth_to_ser::enable_rts_cts()
 {
+    debug_print("%s\n", "Enabled RTS/CTS flow control");
+    m_flc = 1;
     return;
 }
 
 void eth_to_ser::enable_dtr_dsr()
 {
+    debug_print("%s\n", "Enabled DTR/DSR flow control");
+    m_flc = 2;
     return;
 }
 
 void eth_to_ser::disable_hw_flow_ctrl()
 {
+    debug_print("%s\n", "Disabled hardware flow control");
+    m_flc = 0;
     return;
 }
 

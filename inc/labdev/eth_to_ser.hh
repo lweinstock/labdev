@@ -72,6 +72,7 @@ private:
     tcpip_interface m_tcpip_cfg, m_tcpip_ser;
     std::string m_ip_addr;
     unsigned m_port;
+    unsigned m_flc;
     bool m_update_settings;
 
     static constexpr unsigned HTTP_PORT = 80;
