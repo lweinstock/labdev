@@ -29,7 +29,11 @@ public:
 
     // Referencing for absolute position measurements (see manual p.48)
     void reference_axis();
-    void reference_axis(bool pos_dir);
+    // Change reference direction (see manual p. 48)
+    enum ref_dir : int {REF_POS = 0, REF_NEG, GANTRY_POS, 
+        GANTRY_NEG, GANTRY_POS_NEG, GANTRY_NEG_POS};
+    void set_reference_dir(ref_dir dir);
+    ref_dir get_reference_dir();
 
     // Go to absolute position in micro meter
     void move_position(int pos) { this->query_cmd("G" + std::to_string(pos)); }
@@ -93,6 +97,13 @@ public:
     void set_sid(std::string sid);
     void reset_sid() { this->set_sid(""); }
     std::string get_sid() { return this->query_cmd("SID?"); }
+
+    // Set card identifier (used for master/slave + gantry, manual p. 94)
+    void set_card_identifier(unsigned ci);
+    unsigned get_card_identifier();
+    // Set gantry slave id in master controller
+    void set_gantry_slave_id(unsigned gsid);
+    unsigned get_gantry_slave_id();
 
     // Get error information (C- and python-style)
     unsigned get_error(std::string &strerror);

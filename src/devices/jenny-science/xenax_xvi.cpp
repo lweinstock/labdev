@@ -103,18 +103,22 @@ void xenax_xvi::reference_axis()
     return;
 }
 
-void xenax_xvi::reference_axis(bool pos_dir) 
+void xenax_xvi::set_reference_dir(ref_dir dir)
 {
-    debug_print("Changing reference direction to %s\n", 
-        pos_dir ? "positive" : "negative");
-    if (pos_dir)
-        this->query_cmd("DRHR0");
-    else 
-        this->query_cmd("DRHR1");
-    this->reference_axis();
+    debug_print("Changing reference direction to %u\n", dir);
+    this->query_cmd("DRHR" + to_string(dir));
     return;
 }
 
+xenax_xvi::ref_dir xenax_xvi::get_reference_dir()
+{
+    string ret = this->query_cmd("DRHR?");
+    ref_dir dir = static_cast<ref_dir>(stoi(ret));
+    if (isnan(dir))
+        throw bad_protocol("Failed to get reference direction");
+    debug_print("Current reference direction %u\n", dir);
+    return dir;
+}
 
 bool xenax_xvi::force_limit_reached() 
 {
@@ -309,6 +313,43 @@ void xenax_xvi::set_sid(std::string sid)
     return;
 }
 
+void xenax_xvi::set_card_identifier(unsigned ci)
+{
+    if (ci > 4) {
+        fprintf(stderr, "Invalid card identifier %u (valid 0 - 4)\n", ci);
+        abort();
+    }
+    debug_print("Changing card identifier to %i\n", ci);
+    this->query_cmd("CI" + to_string(ci));
+    return;
+}
+
+unsigned xenax_xvi::get_card_identifier()
+{
+    string ret = this->query_cmd("CI?");
+    unsigned ci = stoi(ret);
+    if (isnan(ci))
+        throw bad_protocol("Failed to get card identifier");
+    debug_print("Reading card identifier %i\n", ci);
+    return ci;
+}
+
+void xenax_xvi::set_gantry_slave_id(unsigned gsid)
+{
+    debug_print("Changing grantry slave identifier to %i\n", gsid);
+    this->query_cmd("CI" + to_string(gsid));
+    return;
+}
+
+unsigned xenax_xvi::get_gantry_slave_id()
+{
+    string ret = this->query_cmd("GSID?");
+    unsigned gsid = stoi(ret);
+    if (isnan(gsid))
+        throw bad_protocol("Failed to get gantry slave identifier");
+    debug_print("Reading card identifier %i\n", gsid);
+    return gsid;
+}
 
 unsigned xenax_xvi::get_error(std::string &strerror) 
 {
