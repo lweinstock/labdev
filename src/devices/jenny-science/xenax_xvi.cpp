@@ -17,6 +17,8 @@ using namespace std;
 
 namespace labdev {
 
+constexpr unsigned xenax_xvi::PORT;
+
 xenax_xvi::xenax_xvi()
     : ld_device("XENAX Xvi 75v8"), m_force_const(0), m_error(0),
       m_output_type(0x5555), m_output_activity(0xFF), m_error_pending(false)

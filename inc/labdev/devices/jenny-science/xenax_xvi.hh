@@ -9,6 +9,7 @@ namespace labdev {
 
 class xenax_xvi : public ld_device {
 public:
+    xenax_xvi();
     xenax_xvi(serial_interface* ser);
     xenax_xvi(tcpip_interface* tcpip);
     ~xenax_xvi();
@@ -98,9 +99,6 @@ public:
     std::tuple<unsigned,std::string> get_error();
 
 private:
-    // Private default ctor
-    xenax_xvi();
-
     std::string m_input_buffer;
     float m_force_const;   // I->F conversion factor [N/mA]
     int m_error;
