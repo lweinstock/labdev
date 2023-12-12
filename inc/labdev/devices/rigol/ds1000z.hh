@@ -6,6 +6,7 @@
 #include <labdev/tcpip_interface.hh>
 #include <labdev/usbtmc_interface.hh>
 #include <labdev/visa_interface.hh>
+#include <memory>
 
 namespace labdev {
 

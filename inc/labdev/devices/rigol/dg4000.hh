@@ -6,6 +6,7 @@
 #include <labdev/usbtmc_interface.hh>
 #include <labdev/devices/fgen.hh>
 #include <labdev/protocols/scpi.hh>
+#include <memory>
 
 namespace labdev {
 

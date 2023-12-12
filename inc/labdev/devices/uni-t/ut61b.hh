@@ -3,6 +3,7 @@
 
 #include <labdev/serial_interface.hh>
 #include <labdev/devices/ld_device.hh>
+#include <memory>
 
 namespace labdev {
 
@@ -28,7 +29,7 @@ public:
     std::string get_unit() { return m_unit; }
 
 private:
-   std::string m_unit;
+    std::string m_unit;
     std::unique_ptr<serial_interface> m_serial;
 
     // UT61b end of message character

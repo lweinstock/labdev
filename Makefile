@@ -51,7 +51,7 @@ OBJ+=$(SRC)/devices/rohde-schwarz/hmp4000.o
 #OBJ+=$(SRC)/devices/tektronix/dpo5000b.o
 OBJ+=$(SRC)/devices/baumer/om70_l.o
 OBJ+=$(SRC)/devices/jenny-science/xenax_xvi.o
-OBJ+=$(SRC)/devices/musashi/ml-808gx.o
+OBJ+=$(SRC)/devices/musashi/ml_808gx.o
 
 ###   INSTALL SETUP   ###
 

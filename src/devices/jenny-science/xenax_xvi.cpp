@@ -113,9 +113,10 @@ void xenax_xvi::set_reference_dir(ref_dir dir)
 xenax_xvi::ref_dir xenax_xvi::get_reference_dir()
 {
     string ret = this->query_cmd("DRHR?");
-    ref_dir dir = static_cast<ref_dir>(stoi(ret));
-    if (isnan(dir))
+    unsigned tmp = stoi(ret);
+    if (isnan(tmp))
         throw bad_protocol("Failed to get reference direction");
+    ref_dir dir = static_cast<ref_dir>(tmp);
     debug_print("Current reference direction %u\n", dir);
     return dir;
 }
