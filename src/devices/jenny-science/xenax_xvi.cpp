@@ -352,6 +352,29 @@ unsigned xenax_xvi::get_gantry_slave_id()
     return gsid;
 }
 
+void xenax_xvi::set_gantry_master_slave_offs(int gmso)
+{
+    debug_print("Setting gantry master slave offset to %i\n", gmso);
+    this->query_cmd("PGMSO" + to_string(gmso));
+    return;
+}
+
+int xenax_xvi::get_gantry_master_slave_offs()
+{
+    string ret = this->query_cmd("PGMSO?");
+    unsigned gmso = stoi(ret);
+    debug_print("Reading gantry master slave offset %i\n", gmso);
+    return gmso;
+}
+
+int xenax_xvi::detected_gantry_master_slave_offs()
+{
+    string ret = this->query_cmd("DGMSO?");
+    unsigned gmso = stoi(ret);
+    debug_print("Reading detected gantry master slave offset %i\n", gmso);
+    return gmso;
+}
+
 unsigned xenax_xvi::get_error(std::string &strerror) 
 {
     // Toggle error pending

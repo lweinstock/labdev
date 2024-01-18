@@ -104,6 +104,10 @@ public:
     // Set gantry slave id in master controller
     void set_gantry_slave_id(unsigned gsid);
     unsigned get_gantry_slave_id();
+    // Set/get gantry offset master/slave
+    void set_gantry_master_slave_offs(int gmso);
+    int get_gantry_master_slave_offs();
+    int detected_gantry_master_slave_offs();
 
     // Get error information (C- and python-style)
     unsigned get_error(std::string &strerror);
