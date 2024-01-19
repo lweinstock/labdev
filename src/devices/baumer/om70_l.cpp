@@ -25,7 +25,8 @@ om70_l::om70_l(tcpip_interface* tcpip) : om70_l()
 
 om70_l::~om70_l()
 {
-    this->disconnect();
+    if ( this->connected() )
+        this->disconnect();
     return;
 }
 

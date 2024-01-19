@@ -40,7 +40,8 @@ xenax_xvi::xenax_xvi(tcpip_interface* tcpip) : xenax_xvi()
 
 xenax_xvi::~xenax_xvi()
 {
-    this->disconnect();
+    if (this->connected())
+        this->disconnect();
     return;
 }
 
@@ -331,7 +332,7 @@ unsigned xenax_xvi::get_card_identifier()
     unsigned ci = stoi(ret);
     if (isnan(ci))
         throw bad_protocol("Failed to get card identifier");
-    debug_print("Reading card identifier %i\n", ci);
+    debug_print("Read card identifier %i\n", ci);
     return ci;
 }
 
@@ -348,7 +349,7 @@ unsigned xenax_xvi::get_gantry_slave_id()
     unsigned gsid = stoi(ret);
     if (isnan(gsid))
         throw bad_protocol("Failed to get gantry slave identifier");
-    debug_print("Reading card identifier %i\n", gsid);
+    debug_print("Read card identifier %i\n", gsid);
     return gsid;
 }
 
@@ -363,7 +364,7 @@ int xenax_xvi::get_gantry_master_slave_offs()
 {
     string ret = this->query_cmd("PGMSO?");
     unsigned gmso = stoi(ret);
-    debug_print("Reading gantry master slave offset %i\n", gmso);
+    debug_print("Read gantry master slave offset %i\n", gmso);
     return gmso;
 }
 
@@ -371,7 +372,7 @@ int xenax_xvi::detected_gantry_master_slave_offs()
 {
     string ret = this->query_cmd("DGMSO?");
     unsigned gmso = stoi(ret);
-    debug_print("Reading detected gantry master slave offset %i\n", gmso);
+    debug_print("Read detected gantry master slave offset %i\n", gmso);
     return gmso;
 }
 
@@ -383,6 +384,75 @@ unsigned xenax_xvi::get_error(std::string &strerror)
     m_error = stoi(this->query_cmd("TE"));
     strerror = this->query_cmd("TES");
     return m_error;
+}
+
+void xenax_xvi::set_payload(unsigned payload_g)
+{
+    debug_print("Setting payload to %u\n", payload_g);
+    this->query_cmd("ML" + to_string(payload_g));
+    return;
+}
+
+unsigned xenax_xvi::get_payload()
+{
+    string ret = this->query_cmd("ML?");
+    debug_print("Read payload %s\n", ret.c_str());
+    return stoi(ret);
+}
+
+void xenax_xvi::set_gain_pos(unsigned gain_pos)
+{
+    debug_print("Setting GAIN POS to %u\n", gain_pos);
+    this->query_cmd("BWP" + to_string(gain_pos));
+    return;
+}
+
+unsigned xenax_xvi::get_gain_pos()
+{
+    string ret = this->query_cmd("BWP?");
+    debug_print("Read GAIN POS %s\n", ret.c_str());
+    return stoi(ret);
+}
+
+void xenax_xvi::set_gain_cur(unsigned gain_cur)
+{
+    debug_print("Setting GAIN CUR to %u\n", gain_cur);
+    this->query_cmd("BWC" + to_string(gain_cur));
+}
+
+unsigned xenax_xvi::get_gain_cur()
+{
+    string ret = this->query_cmd("BWC?");
+    debug_print("Read GAIN CUR %s\n", ret.c_str());
+    return stoi(ret);
+}
+
+void xenax_xvi::set_max_deviation(unsigned max_dev)
+{
+    debug_print("Setting Deviation POS ACT to %u\n", max_dev);
+    this->query_cmd("DP" + to_string(max_dev));
+    return;
+}
+
+unsigned xenax_xvi::get_max_deviation()
+{
+    string ret = this->query_cmd("DP?");
+    debug_print("Read Deviation POS ACT %s\n", ret.c_str());
+    return stoi(ret);
+}
+
+void xenax_xvi::set_target_deviation(unsigned tar_dev)
+{
+    debug_print("Setting Deviation TARGET to %u\n", tar_dev);
+    this->query_cmd("DTP" + to_string(tar_dev));
+    return;
+}
+
+unsigned xenax_xvi::get_target_deviation()
+{
+    string ret = this->query_cmd("DTP?");
+    debug_print("Read Deviation TARGET %s\n", ret.c_str());
+    return stoi(ret);
 }
 
 tuple<unsigned,string> xenax_xvi::get_error()

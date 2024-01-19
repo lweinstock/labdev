@@ -109,6 +109,18 @@ public:
     int get_gantry_master_slave_offs();
     int detected_gantry_master_slave_offs();
 
+    // Controller settings (manual p. 46/47)
+    void set_payload(unsigned payload_g);
+    unsigned get_payload();
+    void set_gain_pos(unsigned gain_pos);
+    unsigned get_gain_pos();
+    void set_gain_cur(unsigned gain_cur);
+    unsigned get_gain_cur();
+    void set_max_deviation(unsigned max_dev);
+    unsigned get_max_deviation();
+    void set_target_deviation(unsigned tar_dev);
+    unsigned get_target_deviation();
+
     // Get error information (C- and python-style)
     unsigned get_error(std::string &strerror);
     std::tuple<unsigned,std::string> get_error();
