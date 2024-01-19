@@ -113,10 +113,10 @@ void ml_808gx::set_channel_params(float pressure_kPa, float dur_ms,
     float on_delay_ms, float off_delay_ms) 
 {
     // Pressure in units of 100 Pa, duratio in ms, on/off delay in 0.1ms
-    unsigned p = static_cast<unsigned>(1e1*pressure_kPa);
-    unsigned dt = static_cast<unsigned>(1e3*dur_ms);
-    unsigned ton = static_cast<unsigned>(1e4*on_delay_ms);
-    unsigned toff = static_cast<unsigned>(1e4*off_delay_ms);
+    unsigned p = static_cast<unsigned>(10*pressure_kPa);
+    unsigned dt = static_cast<unsigned>(dur_ms);
+    unsigned ton = static_cast<unsigned>(10*on_delay_ms);
+    unsigned toff = static_cast<unsigned>(10*off_delay_ms);
     if ( (p < 200) || (p > 8000) ) {
         fprintf(stderr, "Invalid pressure %.2f kPa (valid range: 0.2 - 8.0 kPa)\n", 
             pressure_kPa);
@@ -169,9 +169,9 @@ void ml_808gx::get_channel_params(float& pressure_kPa, float& dur_ms,
 
     // Convert into floats
     pressure_kPa = 1e-1*static_cast<float>(p);
-    dur_ms       = 1e-3*static_cast<float>(dt);
-    on_delay_ms  = 1e-4*static_cast<float>(ton);
-    off_delay_ms = 1e-4*static_cast<float>(toff);
+    dur_ms       = static_cast<float>(dt);
+    on_delay_ms  = 1e-1*static_cast<float>(ton);
+    off_delay_ms = 1e-1*static_cast<float>(toff);
     
     return;
 }
@@ -185,7 +185,7 @@ tuple<float, float, float, float> ml_808gx::get_channel_params()
 
 void ml_808gx::set_pressure(float pressure_kPa)
 {
-    unsigned p = static_cast<unsigned>(1e1*pressure_kPa);
+    unsigned p = static_cast<unsigned>(10*pressure_kPa);
     if ( (p < 200) || (p > 8000) ) {
         fprintf(stderr, "Invalid pressure %.2f kPa (valid range: 0.2 - 8.0 kPa)\n", 
             pressure_kPa);
@@ -210,8 +210,8 @@ float ml_808gx::get_pressure()
 
 void ml_808gx::set_duration(float dur_ms)
 {
-    unsigned dt = static_cast<unsigned>(1e3*dur_ms);
-    if ( (dt < 10) || (dt > 9999) ) {
+    unsigned dt = static_cast<unsigned>(dur_ms);
+    if ( (dt < 9.999) || (dt > 9999) ) {
         fprintf(stderr, "Invalid duration %.2f ms (valid range: 10 - 9999 ms)\n", 
             dur_ms);
         abort();
@@ -235,8 +235,8 @@ float ml_808gx::get_duration()
 
 void ml_808gx::set_delays(float on_delay_ms, float off_delay_ms)
 {
-    unsigned ton = static_cast<unsigned>(1e4*on_delay_ms);
-    unsigned toff = static_cast<unsigned>(1e4*off_delay_ms);
+    unsigned ton = static_cast<unsigned>(10*on_delay_ms);
+    unsigned toff = static_cast<unsigned>(10*off_delay_ms);
     if ( (ton < 0) || (ton > 99999) || (ton < 0) || (toff > 99999) ) {
         fprintf(stderr, "Invalid delay %.2f/%.2f (valid range: 0 - 9.9999 ms)\n", 
             on_delay_ms, off_delay_ms);
