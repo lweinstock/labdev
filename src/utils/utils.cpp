@@ -55,4 +55,31 @@ template double get_stdev(vector<double> vec);
 template double get_stdev(vector<float> vec);
 template double get_stdev(vector<int> vec);
 
+template <typename T> T convert_to(const std::string &val, bool &success)
+{
+    std::istringstream iss(val);
+    T ret;
+    iss >> ret;
+    success = !iss.fail();
+    if (!success)
+        return {0};
+    return ret;
+}
+
+template int convert_to<int>(const std::string &val, bool &success);
+template unsigned convert_to<unsigned>(const std::string &val, bool &success);
+template float convert_to<float>(const std::string &val, bool &success);
+template double convert_to<double>(const std::string &val, bool &success);
+
+template <typename T> T convert_to(const std::string &val)
+{
+    bool opt;
+    return convert_to<T>(val, opt);
+}
+
+template int convert_to<int>(const std::string &val);
+template unsigned convert_to<unsigned>(const std::string &val);
+template float convert_to<float>(const std::string &val);
+template double convert_to<double>(const std::string &val);
+
 }
