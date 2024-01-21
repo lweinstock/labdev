@@ -3,8 +3,21 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
 
 namespace labdev {
+
+// Conversion using templates (template needs to be defined in header)
+template <typename T> T convert_to(const std::string &val, bool &success)
+{
+    std::istringstream iss(val);
+    T ret;
+    iss >> ret;
+    success = !iss.fail();
+    if (!success)
+        return {0};
+    return ret;
+}
 
 // Split string into vector of strings by given delimiters
 std::vector<std::string> split(std::string list, std::string delim,
