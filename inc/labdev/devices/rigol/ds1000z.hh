@@ -20,11 +20,13 @@ public:
     ds1000z(tcpip_interface* tcpip);
     ds1000z(usbtmc_interface* usbtmc);
     ds1000z(visa_interface* visa);
-    ~ds1000z() {};
+    ~ds1000z();
 
     void connect(tcpip_interface* tcpip);
     void connect(usbtmc_interface* usbtmc);
     void connect(visa_interface* visa);
+
+    void disconnect() override;
 
     static constexpr uint16_t DS1104_VID = 0x1AB1;
     static constexpr uint16_t DS1104_PID = 0x04CE;
@@ -119,7 +121,7 @@ private:
     void check_channel(unsigned channel);
     std::vector<uint8_t> read_mem_data( unsigned sta, unsigned sto);
 
-    std::unique_ptr<scpi> m_scpi;
+    scpi* m_scpi;
 
     unsigned m_npts;
     double m_xincr, m_xorg, m_xref, m_yinc;

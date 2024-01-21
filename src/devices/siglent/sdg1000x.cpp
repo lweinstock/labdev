@@ -33,7 +33,8 @@ sdg1000x::sdg1000x(visa_interface* visa) : sdg1000x()
 
 sdg1000x::~sdg1000x() 
 {
-    this->disconnect();
+    if (this->connected())
+        this->disconnect();
     return;
 }
 

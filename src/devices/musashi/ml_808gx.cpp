@@ -28,7 +28,8 @@ ml_808gx::ml_808gx(serial_interface* ser) : ml_808gx()
 
 ml_808gx::~ml_808gx()
 {
-    this->disconnect();
+    if (this->connected())
+        this->disconnect();
     return;
 }
 

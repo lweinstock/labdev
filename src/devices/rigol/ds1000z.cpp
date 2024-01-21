@@ -30,6 +30,14 @@ ds1000z::ds1000z(usbtmc_interface* usbtmc) : ds1000z()
 
 ds1000z::ds1000z(visa_interface* visa) : ds1000z()
 {
+    this->connect(visa);
+    return;
+}
+
+ds1000z::~ds1000z() 
+{
+    if (this->connected())
+        this->disconnect();
     return;
 }
 
@@ -67,6 +75,16 @@ void ds1000z::connect(visa_interface* visa)
     this->set_comm(visa);
 
     this->init();
+    return;
+}
+
+void ds1000z::disconnect()
+{
+    if (m_scpi) {
+        delete m_scpi;
+        m_scpi = nullptr;
+    }
+    this->reset_comm();
     return;
 }
 
@@ -334,7 +352,7 @@ const string ds1000z::s_meas_type_string[] = {"MAX", "MIN", "CURR",
 void ds1000z::init() 
 {
     // Setup SCPI
-    m_scpi = std::make_unique<scpi>( this->get_comm() );
+    m_scpi = new scpi( this->get_comm() );
     m_scpi->clear_status();
     m_dev_name = m_scpi->get_identifier();
 

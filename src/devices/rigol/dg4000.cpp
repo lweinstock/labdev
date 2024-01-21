@@ -27,6 +27,13 @@ dg4000::dg4000(usbtmc_interface* usbtmc): dg4000()
     return;
 }
 
+dg4000::~dg4000()
+{
+    if (this->connected())
+        this->disconnect();
+    return;
+}
+
 void dg4000::connect(tcpip_interface* tcpip)
 {
     // Check and set comm interface

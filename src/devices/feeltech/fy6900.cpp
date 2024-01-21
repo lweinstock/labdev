@@ -17,6 +17,13 @@ fy6900::fy6900(serial_interface* ser) : fy6900()
     return;
 }
 
+fy6900::~fy6900()
+{
+    if (this->connected())
+        this->disconnect();
+    return;
+}
+
 void fy6900::connect(serial_interface* ser)
 {
     // Check and assign interface

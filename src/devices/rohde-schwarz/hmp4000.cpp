@@ -30,7 +30,8 @@ hmp4000::hmp4000(serial_interface* ser) : hmp4000()
 
 hmp4000::~hmp4000()
 {
-    this->disconnect();
+    if (this->connected())
+        this->disconnect();
     return;
 }
 
