@@ -34,7 +34,8 @@ serial_port::serial_port(std::string path, unsigned baud, unsigned nbits,
 
 serial_port::~serial_port() 
 {
-    this->close();
+    if (this->good())
+        this->close();
     return;
 }
 
