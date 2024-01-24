@@ -113,14 +113,23 @@ void xenax_xvi::set_reference_dir(ref_dir dir)
 
 xenax_xvi::ref_dir xenax_xvi::get_reference_dir()
 {
-    string ret = this->query_cmd("DRHR?");
-    unsigned tmp = stoi(ret);
-    if (isnan(tmp))
+    bool success = false;
+    unsigned tmp = convert_to<unsigned>(this->query_cmd("DRHR?"), success);
+    if (!success)
         throw bad_protocol("Failed to get reference direction");
     ref_dir dir = static_cast<ref_dir>(tmp);
     debug_print("Current reference direction %u\n", dir);
     return dir;
 }
+
+int xenax_xvi::get_position() { 
+    bool success = false;
+    unsigned ret = convert_to<unsigned>(this->query_cmd("TP"), success);
+    if (!success)
+        throw bad_protocol("Failed to get current position");
+    return ret;
+}
+
 
 bool xenax_xvi::force_limit_reached() 
 {
@@ -178,12 +187,29 @@ void xenax_xvi::set_speed(unsigned inc_per_sec)
     return;
 }
 
+unsigned xenax_xvi::get_speed() 
+{
+    bool success = false;
+    unsigned ret = convert_to<unsigned>(this->query_cmd("SP?"), success);
+    if (!success)
+        throw bad_protocol("Failed to get current speed");
+    return ret; 
+}
+
 void xenax_xvi::set_acceleration(unsigned inc_per_sec2)
 {
     this->query_cmd("AC" + to_string(inc_per_sec2));
     return;
 }
 
+unsigned xenax_xvi::get_acceleration() 
+{ 
+    bool success = false;
+    unsigned ret = convert_to<unsigned>(this->query_cmd("AC?"), success);
+    if (!success)
+        throw bad_protocol("Failed to get current acceleration");
+    return ret; 
+}
 
 void xenax_xvi::set_s_curve(unsigned percent) 
 {
@@ -195,6 +221,16 @@ void xenax_xvi::set_s_curve(unsigned percent)
     return;
 }
 
+unsigned xenax_xvi::get_s_curve() 
+{ 
+    bool success = false;
+    unsigned ret = convert_to<unsigned>(this->query_cmd("SCRV?"), success);
+    if (!success)
+        throw bad_protocol("Failed to get S-curve value");
+    return ret;  
+}
+
+
 void xenax_xvi::force_calibration(unsigned len) 
 {
     debug_print("%s\n", "Performing force calibration...");
@@ -205,10 +241,22 @@ void xenax_xvi::force_calibration(unsigned len)
     return;
 }
 
+int xenax_xvi::get_motor_current() 
+{ 
+    bool success = false;
+    unsigned ret = convert_to<unsigned>(this->query_cmd("TMC"), success);
+    if (!success)
+        throw bad_protocol("Failed to get S-curve value");
+    return ret;
+}
+
+
 float xenax_xvi::get_force_constant() 
 {
-    string resp = this->query_cmd("FCM?");
-    m_force_const = 1e-6 * stoi(resp);
+    bool success = false;
+    m_force_const = 1e-6 * convert_to<int>(this->query_cmd("FCM?"), success);
+    if (!success)
+        throw bad_protocol("Failed to get force constant");
     debug_print("force constant = %f N/mA\n", m_force_const);
     return m_force_const;
 }
@@ -230,8 +278,13 @@ void xenax_xvi::set_force_limit(float fmax_N)
 
 float xenax_xvi::get_force_limit() 
 {
-    int flim_10mA = stoi( this->query_cmd("LIF?") );
-    return float(10.*flim_10mA*m_force_const);
+    bool success = false;
+    int flim_10mA = convert_to<int>(this->query_cmd("LIF?"), success);
+    if (!success)
+        throw bad_protocol("Failed to get force limit");
+    float flim = 10.*flim_10mA*m_force_const;
+    debug_print("force limit = %.3f N\n", flim);
+    return flim;
 }
 
 void xenax_xvi::set_output_type(unsigned output_no, output_type type) 
@@ -253,6 +306,23 @@ void xenax_xvi::set_limits(unsigned left, unsigned right)
     this->query_cmd("LL" + to_string(left));
     this->query_cmd("LR" + to_string(right));
     return;
+}
+
+unsigned xenax_xvi::get_limit_left() 
+{ 
+    bool success = false;
+    unsigned ret = convert_to<unsigned>(this->query_cmd("LL?"), success);
+    if (!success)
+        throw bad_protocol("Failed to get left limit");
+    return ret;
+}
+unsigned xenax_xvi::get_limit_right() 
+{ 
+    bool success = false;
+    unsigned ret = convert_to<unsigned>(this->query_cmd("LR?"), success);
+    if (!success)
+        throw bad_protocol("Failed to get right limit");
+    return ret;
 }
 
 void xenax_xvi::set_output_activity(unsigned output_no, bool active_hi) 
@@ -328,9 +398,9 @@ void xenax_xvi::set_card_identifier(unsigned ci)
 
 unsigned xenax_xvi::get_card_identifier()
 {
-    string ret = this->query_cmd("CI?");
-    unsigned ci = stoi(ret);
-    if (isnan(ci))
+    bool success = false;
+    unsigned ci = convert_to<unsigned>(this->query_cmd("CI?", success));
+    if (!success)
         throw bad_protocol("Failed to get card identifier");
     debug_print("Read card identifier %i\n", ci);
     return ci;
@@ -339,15 +409,15 @@ unsigned xenax_xvi::get_card_identifier()
 void xenax_xvi::set_gantry_slave_id(unsigned gsid)
 {
     debug_print("Changing grantry slave identifier to %i\n", gsid);
-    this->query_cmd("CI" + to_string(gsid));
+    this->query_cmd("GSID" + to_string(gsid));
     return;
 }
 
 unsigned xenax_xvi::get_gantry_slave_id()
 {
-    string ret = this->query_cmd("GSID?");
-    unsigned gsid = stoi(ret);
-    if (isnan(gsid))
+    bool success = false;
+    unsigned gsid = convert_to<unsigned>(this->query_cmd("GSID?"), success);
+    if (!success)
         throw bad_protocol("Failed to get gantry slave identifier");
     debug_print("Read card identifier %i\n", gsid);
     return gsid;
@@ -362,18 +432,22 @@ void xenax_xvi::set_gantry_master_slave_offs(int gmso)
 
 int xenax_xvi::get_gantry_master_slave_offs()
 {
-    string ret = this->query_cmd("PGMSO?");
-    unsigned gmso = stoi(ret);
+    bool success = false;
+    unsigned gmso = convert_to<unsigned>(this->query_cmd("PGMSO?"), success);
+    if (!success)
+        throw bad_protocol("Failed to get gantry master slave offset");
     debug_print("Read gantry master slave offset %i\n", gmso);
     return gmso;
 }
 
 int xenax_xvi::detected_gantry_master_slave_offs()
 {
-    string ret = this->query_cmd("DGMSO?");
-    unsigned gmso = stoi(ret);
-    debug_print("Read detected gantry master slave offset %i\n", gmso);
-    return gmso;
+    bool success = false;
+    unsigned dgmso = convert_to<unsigned>(this->query_cmd("DGMSO?"), success);
+    if (!success)
+        throw bad_protocol("Failed to get detected gantry master slave offset");
+    debug_print("Read detected gantry master slave offset %i\n", dgmso);
+    return dgmso;
 }
 
 unsigned xenax_xvi::get_error(std::string &strerror) 
@@ -381,7 +455,10 @@ unsigned xenax_xvi::get_error(std::string &strerror)
     // Toggle error pending
     if (m_error_pending)
         m_error_pending = false;
-    m_error = stoi(this->query_cmd("TE"));
+    bool success = false;
+    m_error = convert_to<int>(this->query_cmd("TE"), success);
+    if (!success)
+        throw bad_protocol("Failed to read error queue");
     strerror = this->query_cmd("TES");
     return m_error;
 }
@@ -395,9 +472,12 @@ void xenax_xvi::set_payload(unsigned payload_g)
 
 unsigned xenax_xvi::get_payload()
 {
-    string ret = this->query_cmd("ML?");
-    debug_print("Read payload %s\n", ret.c_str());
-    return stoi(ret);
+    bool success = false;
+    unsigned payload = convert_to<int>(this->query_cmd("ML?"), success);
+    if (!success)
+        throw bad_protocol("Failed to read payload");
+    debug_print("Read payload %u\n", payload);
+    return payload;
 }
 
 void xenax_xvi::set_gain_pos(unsigned gain_pos)
@@ -409,9 +489,12 @@ void xenax_xvi::set_gain_pos(unsigned gain_pos)
 
 unsigned xenax_xvi::get_gain_pos()
 {
-    string ret = this->query_cmd("BWP?");
-    debug_print("Read GAIN POS %s\n", ret.c_str());
-    return stoi(ret);
+    bool success = false;
+    unsigned gain_pos = convert_to<int>(this->query_cmd("BWP?"), success);
+    if (!success)
+        throw bad_protocol("Failed to read GAIN POS");
+    debug_print("Read GAIN POS %u\n", gain_pos);
+    return gain_pos;
 }
 
 void xenax_xvi::set_gain_cur(unsigned gain_cur)
@@ -422,9 +505,12 @@ void xenax_xvi::set_gain_cur(unsigned gain_cur)
 
 unsigned xenax_xvi::get_gain_cur()
 {
-    string ret = this->query_cmd("BWC?");
-    debug_print("Read GAIN CUR %s\n", ret.c_str());
-    return stoi(ret);
+    bool success = false;
+    unsigned gain_cur = convert_to<int>(this->query_cmd("BWC?"), success);
+    if (!success)
+        throw bad_protocol("Failed to read GAIN POS");
+    debug_print("Read GAIN CUR %u\n", gain_cur);
+    return gain_cur;
 }
 
 void xenax_xvi::set_max_deviation(unsigned max_dev)
@@ -436,9 +522,12 @@ void xenax_xvi::set_max_deviation(unsigned max_dev)
 
 unsigned xenax_xvi::get_max_deviation()
 {
-    string ret = this->query_cmd("DP?");
-    debug_print("Read Deviation POS ACT %s\n", ret.c_str());
-    return stoi(ret);
+    bool success = false;
+    unsigned max_dev = convert_to<int>(this->query_cmd("DP?"), success);
+    if (!success)
+        throw bad_protocol("Failed to read GAIN POS");
+    debug_print("Read Deviation POS ACT %u\n", max_dev);
+    return max_dev;
 }
 
 void xenax_xvi::set_target_deviation(unsigned tar_dev)
@@ -450,9 +539,12 @@ void xenax_xvi::set_target_deviation(unsigned tar_dev)
 
 unsigned xenax_xvi::get_target_deviation()
 {
-    string ret = this->query_cmd("DTP?");
-    debug_print("Read Deviation TARGET %s\n", ret.c_str());
-    return stoi(ret);
+    bool success = false;
+    unsigned tar_dev = convert_to<int>(this->query_cmd("DTP?"), success);
+    if (!success)
+        throw bad_protocol("Failed to read Deviation TARGET");
+    debug_print("Read Deviation TARGET %u\n", tar_dev);
+    return tar_dev;
 }
 
 tuple<unsigned,string> xenax_xvi::get_error()

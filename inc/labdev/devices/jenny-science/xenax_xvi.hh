@@ -37,7 +37,7 @@ public:
 
     // Go to absolute position in micro meter
     void move_position(int pos) { this->query_cmd("G" + std::to_string(pos)); }
-    int get_position() { return std::stoi(this->query_cmd("TP")); }
+    int get_position();
     // Move in positive/negative direction with constant speed
     void jog_pos() { this->query_cmd("JP"); }
     void jog_neg() { this->query_cmd("JN"); }
@@ -51,17 +51,17 @@ public:
     // Set and get movement parameters;
     //   speed [inc/s], accel [inc/s2], s curve [%]
     void set_speed(unsigned inc_per_sec);
-    unsigned get_speed() { return stoi(this->query_cmd("SP?")); }
+    unsigned get_speed();
     void set_acceleration(unsigned inc_per_sec2);
-    unsigned get_acceleration() { return stoi(this->query_cmd("AC?")); }
+    unsigned get_acceleration();
     void set_s_curve(unsigned percent);
-    unsigned get_s_curve() { return std::stoi(this->query_cmd("SCRV?")); }
+    unsigned get_s_curve();
 
     // Calibration for more precise force measurements (dF ~ 0.5 - 1.0 N)
     void force_calibration(unsigned distance);
     // Motor current and force information;
     //  current [mA], force const [N/mA], force [N]
-    int get_motor_current() { return std::stoi(this->query_cmd("TMC")); }
+    int get_motor_current();
     float get_force_constant();
     float get_motor_force();
     // Set force limit (manual p. 54)
@@ -71,8 +71,8 @@ public:
 
     // Set and get soft limits (left = min, right = max)
     void set_limits(unsigned left, unsigned right);
-    unsigned get_limit_left() { return std::stoi(this->query_cmd("LL?")); }
-    unsigned get_limit_right() { return std::stoi(this->query_cmd("LR?")); }
+    unsigned get_limit_left();
+    unsigned get_limit_right();
 
     enum output_type : uint8_t {
         SINK = 0b00,
