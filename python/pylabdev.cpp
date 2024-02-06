@@ -3,28 +3,22 @@
 #include <tuple>
 
 #include <labdev/ld_interface.hh>
-#include <labdev/serial_interface.hh>
 #include <labdev/tcpip_interface.hh>
-#include <labdev/libusb_raw.hh>
-#include <labdev/visa_interface.hh>
 
-#include <labdev/devices/device.hh>
-#include <labdev/devices/osci.hh>
+#include <labdev/devices/ld_device.hh>
 #include <labdev/devices/jenny-science/xenax_xvi.hh>
 #include <labdev/devices/baumer/om70_l.hh>
-#include <labdev/devices/musashi/ml-808gx.hh>
+#include <labdev/devices/musashi/ml_808gx.hh>
 
 namespace py = pybind11;
 
 using std::string;
 using std::tuple;
 
-using labdev::serial_config;
-using labdev::ip_address;
-using labdev::usb_config;
-using labdev::visa_identifier;
+using labdev::ld_interface;
+using labdev::tcpip_interface;
 
-using labdev::device;
+using labdev::ld_device;
 using labdev::xenax_xvi;
 using labdev::om70_l;
 using labdev::ml_808gx;
@@ -32,62 +26,89 @@ using labdev::ml_808gx;
 PYBIND11_MODULE(pylabdev, m) {
     m.doc() = "Library to communicate with lab devices.";
 
-    /*   I N T E R F A C E   C O N F I G S   */
+    /*   I N T E R F A C E S   */
 
-    py::class_<ip_address>(m, "ip_address")
-        .def(py::init<>(),
-            "Create empty IP address struct")
-        .def(py::init<string, unsigned>(),
-            py::arg("ip"),
-            py::arg("port"),
-            "Create IP address struct with given ip and port"
-        )
-        .def_readwrite("ip", &ip_address::ip, 
-            "IPv4 of target device")
-        .def_readwrite("port", &ip_address::port, 
-            "Port of target device")
+    // Interface base class
+    py::class_<ld_interface>(m, "ld_interface")
+        .def("write",
+            &ld_interface::write,
+            "Write string",
+            py::arg("msg"))
+        .def("read",
+            &ld_interface::read,
+            "Read string",
+            py::arg("timeout_ms") = 2000)
+        .def("query",
+            &ld_interface::query,
+            "Send a query and return the resulting string",
+            py::arg("msg"),
+            py::arg("timeout_ms") = 2000)
+        .def("good",
+            &ld_interface::good,
+            "Returns true if the interface is operable")
     ;
 
-    py::class_<serial_config>(m, "serial_config")
+    // TCP/IP interface
+    py::class_<tcpip_interface, ld_interface>(m, "tcpip_interface")
         .def(py::init<>(),
-            "Create empty serial config")
-        .def(py::init<string, unsigned, unsigned, bool, bool, unsigned>(),
-            py::arg("path"),
-            py::arg("baud") = 9600,
-            py::arg("nbits") = 8,
-            py::arg("par_ena") = false,
-            py::arg("par_even") = false,
-            py::arg("stop_bits") = 1,
-            "Create serial config with given arguments (default: BAUD 9600 8N1)"
-        )
-        .def_readwrite("path", &serial_config::path, 
-            "Path to device file of target device")
-        .def_readwrite("baud", &serial_config::baud,
-            "Serial baudrate in bits per second")
-        .def_readwrite("nbits", &serial_config::nbits,
-            "Number of bits per transmission")
-        .def_readwrite("par_ena", &serial_config::par_ena,
-            "En-/disable parity bit for transmission")
-        .def_readwrite("par_even", &serial_config::par_even,
-            "Parity bit is even or oddå")
-        .def_readwrite("stop_bits", &serial_config::stop_bits,
-            "Number of stop bits per transmission")
+            "Create unconnected, empty TCP/IP interface")
+        .def(py::init<string, unsigned>(),
+            py::arg("ip_addr"),
+            py::arg("port"),
+            "Create TCP/IP interface to specified IP address and port")
+        .def("open",
+            static_cast<void (tcpip_interface::*)()>(&tcpip_interface::open),
+            "Open TCP/IP socket with stored IP address and port")
+        .def("open",
+            static_cast<void (tcpip_interface::*)(std::string, unsigned)>
+                (&tcpip_interface::open),
+            "Open TCP/IP socket with specified IP address and port")
+        .def("close",
+            &tcpip_interface::close,
+            "Close current TCP/IP socket")
+        .def("write_raw",
+            &tcpip_interface::write_raw,
+            "Write array of bytes",
+            py::arg("data"),
+            py::arg("len"))
+        .def("read_raw",
+            &tcpip_interface::read_raw,
+            "Read array of bytes",
+            py::arg("data"),
+            py::arg("max_len"),
+            py::arg("timeout_ms") = 2000)
+        .def("set_ip",
+            &tcpip_interface::set_ip,
+            "Store specified IP address")
+        .def("get_ip",
+            &tcpip_interface::get_ip,
+            "Returns stored IP address")
+        .def("set_port",
+            &tcpip_interface::set_port,
+            "Store specified port")
+        .def("get_port",
+            &tcpip_interface::get_port,
+            "Returns stored port")
+        .def("set_timeout",
+            &tcpip_interface::set_timeout,
+            "Set the read/write timeout in ms")
     ;
 
     /*   D E V I C E S   */
 
     // Device base class
-    py::class_<device>(m, "device")
-        .def("get_info", &device::get_info,
+    py::class_<ld_device>(m, "ld_device")
+        .def("get_info", &ld_device::get_info,
             "Returns human readable information string about the interface")
     ;
 
     // Xenax XVI motor controller
-    py::class_<xenax_xvi, device> xenax_xvi(m, "xenax_xvi");
+
+    py::class_<xenax_xvi, ld_device> xenax_xvi(m, "xenax_xvi");
         xenax_xvi.def_property_readonly_static("dflt_port", 
             [](py::object) { return xenax_xvi::PORT; })
-        .def(py::init<const ip_address>())
-        .def(py::init<const serial_config>())
+        .def(py::init<tcpip_interface*>(),
+            py::arg("tcpip"))
         .def("__repr__", 
             [](const class xenax_xvi &self) {
                 return self.get_info();
@@ -100,12 +121,14 @@ PYBIND11_MODULE(pylabdev, m) {
             &xenax_xvi::power_off, 
             "Turn off motor power")
         .def("reference_axis", 
-            static_cast<void (xenax_xvi::*)()>(&xenax_xvi::reference_axis), 
+            &xenax_xvi::reference_axis, 
             "Start referencing axis position")
-        .def("reference_axis", 
-            static_cast<void (xenax_xvi::*)(bool pos_dir)>(&xenax_xvi::reference_axis), 
-            "Start referencing axis position in specified direction "
-            "(true = positive, false = negative)")
+        .def("set_reference_dir", 
+            &xenax_xvi::set_reference_dir, 
+            "Set direction of reference movement")
+        .def("get_reference_dir", 
+            &xenax_xvi::get_reference_dir, 
+            "Returns the direction of reference movement")
         .def("is_referenced", 
             &xenax_xvi::is_referenced, 
             "Returns true if axis is referenced")
@@ -206,18 +229,28 @@ PYBIND11_MODULE(pylabdev, m) {
             "Read servo identifier")
     ;
 
-    // Output type enums for Xenax Xvi 75v8
+    // Output type enums
     py::enum_<xenax_xvi::output_type>(xenax_xvi, "output_type")
         .value("sink", xenax_xvi::output_type::SINK)
         .value("source", xenax_xvi::output_type::SOURCE)
         .value("sink_source", xenax_xvi::output_type::SINK_SOURCE)
     ;
 
+    // Reference directions
+    py::enum_<xenax_xvi::ref_dir>(xenax_xvi, "ref_dir")
+        .value("ref_pos", xenax_xvi::ref_dir::REF_POS)
+        .value("ref_neg", xenax_xvi::ref_dir::REF_NEG)
+        .value("gantry_pos", xenax_xvi::ref_dir::GANTRY_POS)
+        .value("gantry_neg", xenax_xvi::ref_dir::GANTRY_NEG)
+        .value("gantry_pos_neg", xenax_xvi::ref_dir::GANTRY_POS_NEG)
+        .value("gantry_neg_pos", xenax_xvi::ref_dir::GANTRY_NEG_POS)
+    ;
+
     // Baumer laser distance sensor OM70
-    py::class_<om70_l, device>(m, "om70_l")
+    py::class_<om70_l, ld_device>(m, "om70_l")
         .def_property_readonly_static("dflt_port", 
             [](py::object) { return om70_l::PORT; })
-        .def(py::init<const ip_address>())
+        .def(py::init<tcpip_interface*>())
         .def("__repr__", 
             [](const om70_l &self) {
                 return self.get_info();
@@ -257,9 +290,10 @@ PYBIND11_MODULE(pylabdev, m) {
             "Returns arb. unit, higher ist better")
     ;
 
+ /*   
     // Musashi time-pressure dispenser ML-808 GX
-    py::class_<ml_808gx, device>(m, "ml_808gx")
-        .def(py::init<const serial_config>())
+    py::class_<ml_808gx, ld_device>(m, "ml_808gx")
+        .def(py::init<tcpip_interface>())
         .def("__repr__", 
             [](const ml_808gx &self) {
                 return "ML-808gx dispenser unit, "
@@ -269,8 +303,8 @@ PYBIND11_MODULE(pylabdev, m) {
             &ml_808gx::dispense, 
             "Dispense glue according to current mode (manual/timed) and "
             "channel/recipe")
-        .def("select_channel", 
-            &ml_808gx::select_channel, 
+        .def("set_channel", 
+            &ml_808gx::set_channel, 
             "Select channel/recipe")
         .def("manual_mode", 
             &ml_808gx::manual_mode, 
@@ -287,10 +321,10 @@ PYBIND11_MODULE(pylabdev, m) {
             py::arg("on_delay"), 
             py::arg("off_delay"))
         .def("get_channel_params",
-            static_cast<tuple<unsigned, unsigned, unsigned, unsigned> 
+            static_cast<tuple<float, float, float, float> 
                 (ml_808gx::*)()>(&ml_808gx::get_channel_params),
-            "Returns parameters of current channel; pressure in 100 Pa, duration "
-            "in ms, on/off delay in 0.1ms")
+            "Returns parameters of current channel; pressure in kPa, duration "
+            "in and on/off delay in ms")
         .def("set_pressure",
             &ml_808gx::set_pressure,
             "Set pressure for current channel in units of 100 Pa",
@@ -311,8 +345,10 @@ PYBIND11_MODULE(pylabdev, m) {
             &ml_808gx::get_duration,
             "Returns the duration of current channel in ms")
         .def("get_delays",
-            static_cast<tuple<unsigned, unsigned> 
+            static_cast<tuple<float, float> 
                 (ml_808gx::*)()> (&ml_808gx::get_delays),
-            "Returns the on and off delay in units of 0.1 ms")
+            "Returns the on and off delay in ms")
     ;
+*/
+
 }
