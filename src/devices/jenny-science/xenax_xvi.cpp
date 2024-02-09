@@ -181,6 +181,11 @@ bool xenax_xvi::is_referenced()
     return (this->get_status_register() & REF);
 }
 
+bool xenax_xvi::gantry_init() 
+{
+    return (this->get_status_register() & END_OF_GANTRY_INIT);
+}
+
 void xenax_xvi::set_speed(unsigned inc_per_sec) 
 {
     this->query_cmd("SP" + to_string(inc_per_sec));

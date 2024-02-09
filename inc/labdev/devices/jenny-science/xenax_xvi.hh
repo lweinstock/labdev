@@ -46,6 +46,7 @@ public:
     bool in_motion();
     bool in_position();
     bool is_referenced();
+    bool gantry_init();
     bool error_pending();
 
     // Set and get movement parameters;
@@ -176,7 +177,7 @@ private:
         IN_SECTO                  = (1 << 6),
         FORCE_IN_SECTOR           = (1 << 7),
         INVERTER_VOLTAGE          = (1 << 8),
-        END_OF_GANTRY_IN          = (1 << 9),
+        END_OF_GANTRY_INIT        = (1 << 9),
         NEGATIVE_LIMIT_SWITC      = (1 << 10),
         POSITIVE_LIMIT_SWITC      = (1 << 11),
         REMAIN_POWER_ON           = (1 << 12),
