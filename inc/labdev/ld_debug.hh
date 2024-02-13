@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string>
 #include <stdarg.h>
+#include <cstdint>
 
 /*
  *  LD_DEBUG can be used instead of PRINT_DEBUG, but some
