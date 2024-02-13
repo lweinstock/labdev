@@ -1,5 +1,6 @@
 #include <sstream>
 #include <iomanip>
+#include <tuple>
 
 #include <labdev/devices/musashi/ml_808gx.hh>
 #include <labdev/serial_interface.hh>
