@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <cmath>
+#include <tuple>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
