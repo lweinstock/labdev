@@ -45,6 +45,7 @@ public:
     // Status queries
     bool motion_completed();
     bool reference_completed();
+    bool gantry_init();
     bool error_pending();
 
     // Set and get movement parameters;
