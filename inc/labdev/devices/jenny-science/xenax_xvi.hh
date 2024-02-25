@@ -43,10 +43,8 @@ public:
     void jog_neg() { this->query_cmd("JN"); }
     void stop_motion();
     // Status queries
-    bool in_motion();
-    bool in_position();
-    bool is_referenced();
-    bool gantry_init();
+    bool motion_completed();
+    bool reference_completed();
     bool error_pending();
 
     // Set and get movement parameters;

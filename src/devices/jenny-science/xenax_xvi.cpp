@@ -144,42 +144,48 @@ void xenax_xvi::stop_motion()
     return;
 }
 
-bool xenax_xvi::in_motion() 
+bool xenax_xvi::motion_completed()
 {
-    bool ret;
-    try {
-        ret = this->get_status_register() & IN_MOTION;
+    uint32_t sreg = 0x0000;
+    try{
+        sreg = this->get_status_register();
     } catch (const device_error& ex) {
-        if (ex.error_number() == 03)    // In motion (refer manual p. 34)
-            return true;
-        throw;
-    }
-    return ret;
-}
-
-bool xenax_xvi::in_position() 
-{
-    bool ret;
-    try {
-        ret = this->get_status_register() & IN_POSITION;
-    } catch (const device_error& ex) {
-        if (ex.error_number() == 03)    // In motion (refer manual p. 34)
+        switch ( ex.error_number() ) {  // Check error codes (manual p. 34)
+            case 03:    // In motion
+            case 34:    // Rotational reference active
+            case 36:    // Linear reference active
+            case 38:    // Gantry reference active
             return false;
+            default:
+            throw;
+        }
         throw;
     }
+    // IN_POSITION set, IN_MOTION cleared
+    bool ret = (sreg & IN_POSITION) && !(sreg & IN_MOTION);
     return ret;
 }
 
-bool xenax_xvi::error_pending()
+bool xenax_xvi::reference_completed()
 {
-    // Reading the status register also updates m_error_pending
-    this->get_status_register();
-    return m_error_pending;
-}
-
-bool xenax_xvi::is_referenced() 
-{
-    return (this->get_status_register() & REF);
+    uint32_t sreg = 0x0000;
+    try{
+        sreg = this->get_status_register();
+    } catch (const device_error& ex) {
+        switch ( ex.error_number() ) {  // Check error codes (manual p. 34)
+            case 03:    // In motion
+            case 34:    // Rotational reference active
+            case 36:    // Linear reference active
+            case 38:    // Gantry reference active
+                return false;
+            default:
+                throw;
+        }
+        throw;
+    }
+    // REF set, IN_POSITION set, IN_MOTION cleared
+    bool ret = (sreg & REF) && (sreg & IN_POSITION) && !(sreg & IN_MOTION);
+    return ret;
 }
 
 bool xenax_xvi::gantry_init() 
