@@ -188,7 +188,7 @@ bool xenax_xvi::reference_completed()
     return ret;
 }
 
-bool xenax_xvi::gantry_init() 
+bool xenax_xvi::gantry_initialized() 
 {
     return (this->get_status_register() & END_OF_GANTRY_INIT);
 }
