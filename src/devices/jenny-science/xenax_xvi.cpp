@@ -193,6 +193,13 @@ bool xenax_xvi::gantry_initialized()
     return (this->get_status_register() & END_OF_GANTRY_INIT);
 }
 
+bool xenax_xvi::error_pending()
+{
+    // Reading the status register also updates m_error_pending
+    this->get_status_register();
+    return m_error_pending;
+}
+
 void xenax_xvi::set_speed(unsigned inc_per_sec) 
 {
     this->query_cmd("SP" + to_string(inc_per_sec));
