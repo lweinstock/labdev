@@ -379,8 +379,7 @@ bool xenax_xvi::get_output(unsigned output_no)
         abort();
     }
     uint8_t output_reg = this->get_output_state_reg();
-    // Bits are left-aligned; output 1 = bit 7, output 8 = bit 0
-    return ( (1 << (8 - output_no)) & output_reg );
+    return ( (1 << (output_no - 1)) & output_reg );
 }
 
 bool xenax_xvi::get_input(unsigned input_no)

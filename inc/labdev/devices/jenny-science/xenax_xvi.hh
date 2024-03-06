@@ -87,6 +87,11 @@ public:
     bool get_output(unsigned output_no);
     // Returns true when high, false when low
     bool get_input(unsigned input_no);
+    // Returns raw hex input and output registers
+    uint8_t get_output_state_reg() 
+        { return static_cast<uint8_t>(std::stoi(this->query_cmd("TOX"), 0, 16)); }
+    uint16_t get_input_state_reg() 
+        { return static_cast<uint8_t>(std::stoi(this->query_cmd("TIX"), 0, 16)); }
 
     // Motor type reset (in response to error 59)
     void reset_motor_type() { this->query_cmd("RESM", 10000); }
@@ -216,8 +221,6 @@ private:
     // GPIO register access
     void set_output_type_reg(uint16_t mask);
     void set_output_state_reg(uint8_t mask);
-    uint8_t get_output_state_reg() { return std::stoi(this->query_cmd("TO")); }
-    uint16_t get_input_state_reg() { return std::stoi(this->query_cmd("TI")); }
 
     void read_error_queue();
 
