@@ -152,14 +152,16 @@ bool xenax_xvi::motion_completed()
     } catch (const device_error& ex) {
         switch ( ex.error_number() ) {  // Check error codes (manual p. 34)
             case 03:    // In motion
+            case 05:    // Program is active
             case 34:    // Rotational reference active
             case 36:    // Linear reference active
             case 38:    // Gantry reference active
             return false;
+            break; 
+            
             default:
             throw;
         }
-        throw;
     }
     // IN_POSITION set, IN_MOTION cleared
     bool ret = (sreg & IN_POSITION) && !(sreg & IN_MOTION);
@@ -174,6 +176,7 @@ bool xenax_xvi::reference_completed()
     } catch (const device_error& ex) {
         switch ( ex.error_number() ) {  // Check error codes (manual p. 34)
             case 03:    // In motion
+            case 05:    // Program is active
             case 34:    // Rotational reference active
             case 36:    // Linear reference active
             case 38:    // Gantry reference active
