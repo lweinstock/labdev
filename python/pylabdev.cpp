@@ -130,7 +130,7 @@ PYBIND11_MODULE(pylabdev, m) {
             &xenax_xvi::get_reference_dir, 
             "Returns the direction of reference movement")
         .def("is_referenced", 
-            &xenax_xvi::is_referenced, 
+            &xenax_xvi::reference_completed, 
             "Returns true if axis is referenced")
         .def("disable_smu", 
             &xenax_xvi::disable_smu, 
@@ -142,12 +142,9 @@ PYBIND11_MODULE(pylabdev, m) {
         .def("get_position", 
             &xenax_xvi::get_position, 
             "Returns absolute position in incs")
-        .def("in_motion", 
-            &xenax_xvi::in_motion, 
-            "Returns true if axis is moving")
-        .def("in_position", 
-            &xenax_xvi::in_position, 
-            "Returns true if axis has reached its final position")
+        .def("motion_completed", 
+            &xenax_xvi::motion_completed, 
+            "Returns true if axis has completed previous motion")
         .def("stop_motion", 
             &xenax_xvi::stop_motion, 
             "Immediatly stops all movement")
