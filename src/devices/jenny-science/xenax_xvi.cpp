@@ -285,9 +285,7 @@ float xenax_xvi::get_force_constant()
 
 float xenax_xvi::get_motor_force() 
 {
-    if ( !(this->get_status_register() & FORCE_CALIBRATION_ACTIVE) )
-        throw device_error("No force calibration active, "
-            "run force_calibration(len) first\n", -1);
+    // TODO: check valid force calibration using "FCV" (manual p. 53)?
     return m_force_const*this->get_motor_current();
 }
 
