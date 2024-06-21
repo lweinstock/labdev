@@ -257,8 +257,7 @@ void xenax_xvi::force_calibration(unsigned len)
 {
     debug_print("%s\n", "Performing force calibration...");
     this->query_cmd("FC" + to_string(len));
-    this->wait_status_set(IN_MOTION, 200);
-    this->wait_status_clr(FORCE_CALIBRATION_ACTIVE, 500);
+    this->wait_status_clr(FORCE_CALIBRATION_ACTIVE, 500, 30000);
     this->get_force_constant();
     return;
 }
@@ -788,7 +787,7 @@ unsigned timeout_ms)
             stringstream msg;
             msg << "Timeout on SREG bits to clear" << endl;
             msg << "Expected 0x" << uppercase << setfill('0') << setw(8) 
-                << hex << status  << "to clear" << endl; 
+                << hex << status  << " to clear" << endl; 
             msg << "Current  0x" << uppercase << setfill('0') << setw(8) 
                 << hex << sreg << endl; 
             throw timeout(msg.str());
