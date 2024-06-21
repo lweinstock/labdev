@@ -11,7 +11,10 @@ LDFLAGS+=$(LIB_PYTHON)
 CFLAGS+=$(shell pkg-config liblabdev --cflags)
 LDFLAGS+=$(shell pkg-config liblabdev --libs)
 
-PYTHON_SITE=$(shell python3 -m site --user-site)
+# User site
+# PYTHON_SITE=$(shell python3 -m site --user-site)
+# Global site
+PYTHON_SITE=/usr/lib/python3/dist-packages
 
 # Change compiler flags for macOS/Linux
 UNAME=$(shell uname)
