@@ -165,7 +165,7 @@ string usbtmc_interface::read_vendor_specific(int timeout_ms)
 
 void usbtmc_interface::clear_buffer() 
 {
-    uint8_t buf[1];
+    uint8_t buf[1] {0};
     m_usb.write_control(LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
     INITIATE_CLEAR, 0x0000, 0x0000, buf, 0x0001);
     // TODO: check return value!
