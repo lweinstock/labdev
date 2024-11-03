@@ -10,12 +10,12 @@ namespace labdev{
  *      RS232 interface based on UNIX serial port
  */
 
-class serial_port : public serial_interface {
+class serial_interface : public serial_interface {
 public:
-    serial_port();
-    serial_port(std::string path, unsigned baud = 9600, unsigned nbits = 8,
+    serial_interface();
+    serial_interface(std::string path, unsigned baud = 9600, unsigned nbits = 8,
         bool par_ena = false, bool par_even = false, unsigned stop_bits = 1);
-    ~serial_port();
+    ~serial_interface();
 
     void open() override;
     void open(std::string path, unsigned baud = 9600, unsigned nbits = 8,

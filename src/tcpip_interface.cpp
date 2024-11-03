@@ -166,7 +166,7 @@ void tcpip_interface::set_timeout(unsigned timeout_ms)
     return;
 }
 
-string tcpip_interface::get_info() const 
+string tcpip_interface::get_info() const noexcept
 {
     // Format example: tcpip;192.168.0.1;10001
     string ret("tcpip;" + m_ip_addr + ";" + to_string(m_port));
@@ -183,7 +183,8 @@ void tcpip_interface::check_and_throw(int status, const string &msg) const
     if (status < 0) {
         int error = errno;
         stringstream err_msg;
-        err_msg << msg << " (" << strerror(error) << ", " << error << ")";
+        err_msg << this->get_info() << " - " << msg;
+        err_msg << " (" << strerror(error) << ", " << error << ")";
         debug_print("%s\n", err_msg.str().c_str());
 
         switch (error) {

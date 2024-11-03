@@ -100,7 +100,7 @@ int visa_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
         if (nbytes > 0) {
             // Check for buffer overflow
             if (bytes_received + nbytes > s_dflt_buf_size)
-                throw bad_protocol("Read buffer too small", s_dflt_buf_size);
+                throw bad_protocol(this->get_info() + " - Read buffer too small", s_dflt_buf_size);
 
             debug_print_byte_data(rbuf, nbytes, "Read %zu bytes: ", nbytes);
 
@@ -169,7 +169,8 @@ void visa_interface::check_and_throw(ViStatus status, const string &msg) const
         // Get human readable error message
         viStatusDesc(m_instr, status, vi_strerror);
         stringstream err_msg;
-        err_msg << msg << " (" << vi_strerror << ", " << status << ")";
+        err_msg << this->get_info() << " - " << msg;
+        err_msg << " (" << vi_strerror << ", " << status << ")";
 
         switch (status) {
         case VI_ERROR_TMO:

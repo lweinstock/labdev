@@ -2,7 +2,7 @@
 #define LD_USBTMC_INTERFACE_H
 
 #include <labdev/ld_interface.hh>
-#include <labdev/libusb_raw.hh>
+#include <labdev/usb_interface.hh>
 
 namespace labdev{
 
@@ -12,32 +12,6 @@ public:
     usbtmc_interface(uint16_t vid, uint16_t pid, std::string serno);
     ~usbtmc_interface();
 
-    // USBTMC protocol definitions
-    enum bRequest : uint16_t {
-        INITIATE_ABORT_BULK_OUT     = 0x01,
-        CHECK_ABORT_BULK_OUT_STATUS = 0x02,
-        INITIATE_ABORT_BULK_IN      = 0x03,
-        CHECK_ABORT_BULK_IN_STATUS  = 0x04,
-        INITIATE_CLEAR              = 0x05,
-        CHECK_CLEAR_STATUS          = 0x06,
-        GET_CAPABILITIES            = 0x07,
-        INDICATOR_PULSE             = 0x40
-    };
-
-    enum MsgID : uint16_t {
-        DEV_DEP_MSG_OUT             = 0x01,
-        REQUEST_DEV_DEP_MSG_IN      = 0x02,
-        DEV_DEP_MSG_IN              = 0x02,
-        VENDOR_SPECIFIC_OUT         = 0x7E,
-        REQUEST_VENDOR_SPECIFIC_IN  = 0x7F,
-        VENDOR_SPECIFIC_IN          = 0x7F
-    };
-
-    enum bmTransferAttributes : uint16_t {
-        EOM = 0x01,
-        TERM_CHAR = 0x02
-    };
-
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, 
         unsigned timeout_ms = s_dflt_timeout_ms) override;
@@ -46,7 +20,7 @@ public:
     void open(uint16_t vid, uint16_t pid, std::string serno);
     void close() override;
 
-    Interface_type type() const override { return usbtmc; }
+    Interface_type type() const noexcept override { return USBTMC; }
 
     // Set current interface and endpoint configuration
     void claim_interface(int int_no, int alt_setting = 0)
@@ -79,10 +53,36 @@ public:
     void clear_buffer();
 
 private:
-    libusb_raw m_usb;
+
+    // USBTMC protocol definitions
     static constexpr unsigned s_header_len = 12;
     static constexpr uint8_t LIBUSB_SUBCLASS_TMC = 0x03;
+    enum bRequest : uint16_t {
+        INITIATE_ABORT_BULK_OUT     = 0x01,
+        CHECK_ABORT_BULK_OUT_STATUS = 0x02,
+        INITIATE_ABORT_BULK_IN      = 0x03,
+        CHECK_ABORT_BULK_IN_STATUS  = 0x04,
+        INITIATE_CLEAR              = 0x05,
+        CHECK_CLEAR_STATUS          = 0x06,
+        GET_CAPABILITIES            = 0x07,
+        INDICATOR_PULSE             = 0x40
+    };
 
+    enum MsgID : uint16_t {
+        DEV_DEP_MSG_OUT             = 0x01,
+        REQUEST_DEV_DEP_MSG_IN      = 0x02,
+        DEV_DEP_MSG_IN              = 0x02,
+        VENDOR_SPECIFIC_OUT         = 0x7E,
+        REQUEST_VENDOR_SPECIFIC_IN  = 0x7F,
+        VENDOR_SPECIFIC_IN          = 0x7F
+    };
+
+    enum bmTransferAttributes : uint16_t {
+        EOM = 0x01,
+        TERM_CHAR = 0x02
+    };
+
+    usb_interface m_usb;
     uint8_t m_cur_tag, m_term_char;
 
     // Creates a USBTMC header

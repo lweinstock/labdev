@@ -29,9 +29,9 @@ public:
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override;
 
-    std::string get_info() const override { return m_visa_id; }
+    std::string get_info() const noexcept override { return m_visa_id; }
 
-    Interface_type type() const override { return visa; }
+    Interface_type type() const noexcept override { return VISA; }
 
     // Clear I/O buffers
     void flush_buffer(uint16_t flag = VI_READ_BUF | VI_WRITE_BUF);
@@ -71,9 +71,9 @@ public:
     int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override
         { return -1; }
 
-    std::string get_info() const override { return ""; }
+    std::string get_info() const noexcept override { return ""; }
 
-    Interface_type type() const override { return visa; }
+    Interface_type type() const noexcept override { return VISA; }
 
     // Clear I/O buffers
     void flush_buffer() {};

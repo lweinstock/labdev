@@ -30,7 +30,7 @@ public:
         unsigned timeout_ms = s_dflt_timeout_ms) override;
 
     // Returns human readable info string
-    std::string get_info() const override;
+    std::string get_info() const noexcept override;
 
     // Set/get ip address
     void set_ip(std::string ip_addr);

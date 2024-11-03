@@ -90,7 +90,7 @@ int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
     while (bytes_received < transfer_size) {
         int nbytes = m_usb.read_bulk(rbuf, sizeof(rbuf), timeout_ms);
         if (bytes_received > static_cast<int>(max_len))
-            throw bad_io("Buffer size too small");
+            throw bad_io(this->get_info() + " - Buffer size too small");
         std::copy(rbuf, rbuf + nbytes, data + bytes_received);
         bytes_received += nbytes;
     }
@@ -223,7 +223,7 @@ int usbtmc_interface::check_usbtmc_header(uint8_t* message, uint8_t message_id)
     if ( message_id != message[0] ) {
         debug_print("Wrong MsgID returned : expected 0x%02X, received 0x%02X\n",
             message_id, message[0]);
-        throw bad_protocol("Wrong MsgID received");
+        throw bad_protocol(this->get_info() + " - Wrong MsgID received");
     }
 
     // Check bTag and ~bTag fields
@@ -232,7 +232,7 @@ int usbtmc_interface::check_usbtmc_header(uint8_t* message, uint8_t message_id)
         debug_print("Wrong bTag/~bTag returned : expected 0x%02X/0x%02X, "
             "received 0x%02X/0x%02X\n", m_cur_tag, inv_cur_tag, message[1], 
             message[2]);
-        throw bad_protocol("Wrong bTag/~bTag received");
+        throw bad_protocol(this->get_info() + " - Wrong bTag/~bTag received");
     }
 
     // Check transfer size
