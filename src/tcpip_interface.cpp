@@ -28,7 +28,8 @@ tcpip_interface::tcpip_interface(std::string ip_addr, unsigned port)
 
 tcpip_interface::~tcpip_interface()
 {
-    this->close();
+    if (this->good())
+        this->close();
     return;
 }
 
@@ -117,7 +118,7 @@ int tcpip_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms
     int stat = select(m_socket_fd + 1, &rfd_set, NULL, NULL, &m_timeout);
     check_and_throw(stat, "No data available");
     if (stat ==  0)
-        throw timeout("Read timeout occurred", errno);
+        throw timeout(this->get_info() + " - Read timeout occurred", errno);
 
     ssize_t nbytes = recv(m_socket_fd, data, max_len, 0);
     check_and_throw(nbytes, "Failed to read from device");

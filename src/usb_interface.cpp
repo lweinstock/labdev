@@ -35,7 +35,8 @@ usb_interface::usb_interface(uint16_t vid, uint16_t pid, string serno)
 
 usb_interface::~usb_interface()
 {
-    this->close();
+    if (this->good())
+        this->close();
     return;
 }
 
@@ -149,7 +150,7 @@ string usb_interface::get_info() const noexcept
 {
     stringstream info("");
     info << std::uppercase << setfill('0') << setw(4) << std::hex;
-    info << "usb;0x" << m_vid << m_pid << m_serno;
+    info << "usb;" << m_vid << ":" << m_pid << m_serno;
     return info.str();
 }
 
