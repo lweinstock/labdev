@@ -1,9 +1,8 @@
-#ifndef DS1000Z_H
-#define DS1000Z_H
+#ifndef DS01000A_H
+#define DS01000A_H
 
 #include <labdev/devices/osci.hh>
 #include <labdev/protocols/scpi.hh>
-#include <labdev/tcpip_interface.hh>
 #include <labdev/usbtmc_interface.hh>
 #include <labdev/visa_interface.hh>
 #include <memory>
@@ -11,68 +10,29 @@
 namespace labdev {
 
 /*
- *  Rigol DS1000Z series oscilloscope
+ *  Keysight 1000 series oscilloscope
  */
 
-class ds1000z : public osci {
+class dso1000a : public osci {
 public:
-    ds1000z();
-    ds1000z(tcpip_interface* tcpip);
-    ds1000z(usbtmc_interface* usbtmc);
-    ds1000z(visa_interface* visa);
-    ~ds1000z();
+    dso1000a();
+    dso1000a(usbtmc_interface* usbtmc);
+    dso1000a(visa_interface* visa);
+    ~dso1000a();
 
-    void connect(tcpip_interface* tcpip);
     void connect(usbtmc_interface* usbtmc);
     void connect(visa_interface* visa);
 
     void disconnect() override;
 
-    static constexpr uint16_t DS1104_VID = 0x1AB1;
-    static constexpr uint16_t DS1104_PID = 0x04CE;
-    static constexpr uint16_t PORT = 5555;
-
-    enum measurement_item : unsigned {
-        MEAS_VMAX,
-        MEAS_VMIN,
-        MEAS_VPP,
-        MEAS_VTOP,
-        MEAS_VBAS,
-        MEAS_VAMP,
-        MEAS_VAVG,
-        MEAS_VRMS,
-        MEAS_OVER,
-        MEAS_PRES,
-        MEAS_MAR,
-        MEAS_MPAR,
-        MEAS_PER,
-        MEAS_FREQ,
-        MEAS_RTIM,
-        MEAS_FTIM,
-        MEAS_PWID,
-        MEAS_NWID,
-        MEAS_PDUT,
-        MEAS_NDUT,
-        MEAS_RDEL,
-        MEAS_FDEL,
-        MEAS_RPH,
-        MEAS_FPH
-    };
-
-    enum measurement_type : unsigned {
-        MEAS_MAX,
-        MEAS_MIN,
-        MEAS_CUR,
-        MEAS_AVG,
-        MEAS_STD
-    };
+    static constexpr uint16_t DSO1024A_VID = 0x0957;
+    static constexpr uint16_t DSO1024A_PID = 0x0588;
 
     /* Definition of generic oscilloscope functions */
 
     // Turn channel on/off
     void enable_channel(unsigned channel, bool enable = true) override;
     bool channel_enabled(unsigned channel) override;
-
 
     // Attenuation settings
     void set_atten(unsigned channel, double att) override;
@@ -111,27 +71,12 @@ public:
 
     /* Definition of DS1000Z series specific functions */
 
-    // Statistics measurement setup and readout
-    void set_measurement(unsigned channel, unsigned item);
-    void set_measurement(unsigned channel1, unsigned channel2,
-        unsigned item);
-    double get_measurement(unsigned channel, unsigned item,
-        unsigned type);
-    double get_measurement(unsigned channel1, unsigned channel2,
-        unsigned item, unsigned type);
-    void clear_measurements();
-    void reset_measurements();
-
 private:
     void init();
     void check_channel(unsigned channel);
-    void set_mem_range(unsigned sta, unsigned sto);
     std::vector<uint8_t> read_mem_data();
 
     scpi* m_scpi;
-
-    static const std::string s_meas_item_string[];
-    static const std::string s_meas_type_string[];
 };
 
 }

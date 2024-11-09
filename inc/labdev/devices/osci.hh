@@ -31,6 +31,7 @@ public:
     // Turn channel on/off
     virtual void enable_channel(unsigned channel, bool enable = true) = 0;
     void disable_channel(unsigned channel) { enable_channel(channel, false); }
+    virtual bool channel_enabled(unsigned channel) = 0;
 
     // Attenuation settings
     virtual void set_atten(unsigned channel, double att) = 0;
@@ -39,10 +40,14 @@ public:
     // Vertical settings
     virtual void set_vert_base(unsigned channel, double volts_per_div) = 0;
     virtual double get_vert_base(unsigned channel) = 0;
+    virtual void set_vert_offs(unsigned channel, double offset_v) = 0;
+    virtual double get_vert_offs(unsigned channel) = 0;
 
     // Horizontal settings
     virtual void set_horz_base(double sec_per_div) = 0;
     virtual double get_horz_base() = 0;
+    virtual void set_horz_offs(double offset_s) = 0;
+    virtual double get_horz_offs() = 0;
 
     // Acquisition settings
     virtual void start_acquisition() = 0;
