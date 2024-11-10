@@ -190,26 +190,121 @@ double ds1000z::get_horz_offs()
 
 void ds1000z::set_meas(unsigned ch, meas_item meas)
 {
+    this->check_channel(ch);
+    // Single source measurement?
+    switch (meas) {
+        case VMAX: 
+        case VMIN:
+        case VPP:
+        case VTOP:
+        case VBASE:
+        case VAMP:
+        case VAVG:
+        case VRMS:
+        case OVERSHOOT:
+        case PRESHOOT:
+        case FREQ:
+        case RISETIME:
+        case FALLTIME:
+        case POS_WIDTH:
+        case NEG_WIDTH:
+        case POS_DUTY:
+        case NEG_DUTY:
+        break;
+
+        default:
+        fprintf(stderr, "Invalid single source measurement (%i)\n", meas);
+        abort();
+    }
+    stringstream msg("");
+    msg << ":MEAS:ITEM " << this->meas_to_str(meas) << ",CHAN" << ch << "\n";
+    get_comm()->write(msg.str());
     return;
 }
 
 double ds1000z::get_meas(unsigned ch, meas_item meas)
 {
-    return 0;
+    this->check_channel(ch);
+    // Single source measurement?
+    switch (meas) {
+        case VMAX:
+        case VMIN:
+        case VPP:
+        case VTOP:
+        case VBASE:
+        case VAMP:
+        case VAVG:
+        case VRMS:
+        case OVERSHOOT:
+        case PRESHOOT:
+        case FREQ:
+        case RISETIME:
+        case FALLTIME:
+        case POS_WIDTH:
+        case NEG_WIDTH:
+        case POS_DUTY:
+        case NEG_DUTY:
+        break;
+
+        default:
+        fprintf(stderr, "Invalid single source measurement (%i)\n", meas);
+        abort();
+    }
+    stringstream msg("");
+    msg << ":MEAS:ITEM? " << this->meas_to_str(meas) << ",CHAN" << ch << "\n";
+    string resp = get_comm()->query(msg.str());
+    return stof(resp);
 }
 
 void ds1000z::set_meas(unsigned ch1, unsigned ch2, meas_item meas)
 {
+    this->check_channel(ch1);
+    this->check_channel(ch2);
+    // Dual source measurement?
+    switch (meas) {
+        case POS_DELAY:
+        case NEG_DELAY:
+        case POS_PHASE:
+        case NEG_PHASE:
+        break;
+
+        default:
+        fprintf(stderr, "Invalid dual source measurement (%i)\n", meas);
+        abort();
+    }
+    stringstream msg("");
+    msg << ":MEAS:ITEM " << this->meas_to_str(meas) << ",CHAN" << ch1;
+    msg << ",CHAN" << ch2 << "\n";
+    get_comm()->write(msg.str());
     return;
 }
 
 double ds1000z::get_meas(unsigned ch1, unsigned ch2, meas_item meas)
 {
-    return 0;
+    this->check_channel(ch1);
+    this->check_channel(ch2);
+    // Dual source measurement?
+    switch (meas) {
+        case POS_DELAY:
+        case NEG_DELAY:
+        case POS_PHASE:
+        case NEG_PHASE:
+        break;
+
+        default:
+        fprintf(stderr, "Invalid dual source measurement (%i)\n", meas);
+        abort();
+    }
+    stringstream msg("");
+    msg << ":MEAS:ITEM? " << this->meas_to_str(meas) << ",CHAN" << ch1;
+    msg << ",CHAN" << ch2 << "\n";
+    string resp = get_comm()->query(msg.str());
+    return stof(resp);
 }
 
 void ds1000z::clear_meas()
 {
+    get_comm()->write(":MEAS:CLE\n");
     return;
 }
 
@@ -357,67 +452,8 @@ void ds1000z::read_sample_data(unsigned channel, vector<double> &horz_data,
 }
 
 /*
-void ds1000z::set_measurement(unsigned channel, unsigned item) 
-{
-    this->set_measurement(channel, channel, item);
-    return;
-}
-
-void ds1000z::set_measurement(unsigned channel1, unsigned channel2, 
-    unsigned item) 
-{
-    this->check_channel(channel1);
-    this->check_channel(channel2);
-    stringstream msg("");
-    msg << ":MEAS:STAT:ITEM " << s_meas_item_string[item]
-        << ",CHAN" << channel1 << ",CHAN" << channel2 << "\n";
-    get_comm()->write(msg.str());
-    return;
-}
-
-double ds1000z::get_measurement(unsigned channel1, unsigned channel2, 
-    unsigned item, unsigned type) 
-{
-    this->check_channel(channel1);
-    stringstream msg("");
-    msg << ":MEAS:STAT:ITEM? "
-        << s_meas_type_string[type] << ","
-        << s_meas_item_string[item] << ",CHAN"
-        << channel1 << ",CHAN"
-        << channel2 << "\n";
-    string resp = get_comm()->query(msg.str());
-    return stod(resp);
-}
-
-double ds1000z::get_measurement(unsigned channel, unsigned item, unsigned type) 
-{
-    return this->get_measurement(channel, channel, item, type);
-}
-
-void ds1000z::clear_measurements() 
-{
-    get_comm()->write(":MEAS:CLE ALL\n");
-    return;
-}
-
-void ds1000z::reset_measurements() 
-{
-    get_comm()->write(":MEAS:STAT:RES\n");
-    return;
-}
-*/
-
-/*
  *      P R I V A T E   M E T H O D S
  */
-
-const string ds1000z::s_meas_item_string[] = {"VMAX", "VMIN", "VPP",
-    "VTOP", "VBAS", "VAMP", "VAVG", "VRMS", "OVER", "PRES", "MAR", "MPAR",
-    "PER", "FREQ", "RTIM", "FTIM", "PWID", "NWID", "PDUT", "NDUT", "RDEL",
-    "FDEL", "RPH", "FPH"};
-
-const string ds1000z::s_meas_type_string[] = {"MAX", "MIN", "CURR",
-    "AVER", "DEV"};
 
 void ds1000z::init() 
 {

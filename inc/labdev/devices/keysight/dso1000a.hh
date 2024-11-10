@@ -77,8 +77,8 @@ public:
     void read_sample_data(unsigned channel,  
         std::vector<double> &horz_data, std::vector<double> &vert_data) override;
 
-    /* Definition of DS1000Z series specific functions */
-
+    /* Definition of DSO1000A series specific functions */
+    
 private:
     void init();
     void check_channel(unsigned channel);

@@ -7,6 +7,7 @@
 #include <labdev/usbtmc_interface.hh>
 #include <labdev/visa_interface.hh>
 #include <memory>
+#include <map>
 
 namespace labdev {
 
@@ -83,18 +84,24 @@ public:
 
     /* Definition of DS1000Z series specific functions */
 
-    // TODO!
-
 private:
     void init();
     void check_channel(unsigned channel);
     void set_mem_range(unsigned sta, unsigned sto);
     std::vector<uint8_t> read_mem_data();
 
-    scpi* m_scpi;
+    std::map<meas_item, std::string> m_meas_string {
+        {VMAX, "VMAX"}, {VMIN, "VMIN"}, {VPP, "VPP"}, {VTOP, "VTOP"},
+        {VBASE, "VBAS"}, {VAMP, "VAMP"}, {VAVG, "VAVG"}, {VRMS, "VRMS"}, 
+        {OVERSHOOT, "OVER"}, {PRESHOOT, "PRES"}, {FREQ, "FREQ"}, 
+        {RISETIME, "RTIM"}, {FALLTIME, "FTIM"}, {POS_WIDTH, "PWID"}, 
+        {NEG_WIDTH, "NWID"}, {POS_DUTY, "PDUT"}, {NEG_DUTY, "NDUT"}, 
+        {POS_DELAY, "RDEL"}, {NEG_DELAY, "FDEL"}, {POS_PHASE, "RPH"}, 
+        {NEG_PHASE, "FPH"}
+    };
+    std::string meas_to_str(meas_item item) { return m_meas_string[item]; }
 
-    static const std::string s_meas_item_string[];
-    static const std::string s_meas_type_string[];
+    scpi* m_scpi;
 };
 
 }

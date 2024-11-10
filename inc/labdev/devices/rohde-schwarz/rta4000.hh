@@ -8,8 +8,8 @@
 #include <labdev/usbtmc_interface.hh>
 #include <labdev/serial_interface.hh>
 
-#include <labdev/devices/oscilloscope.hh>
-#include <labdev/devices/scpi_device.hh>
+#include <labdev/devices/osci.hh>
+#include <labdev/devices/scpi.hh>
 
 namespace labdev{
 
