@@ -6,6 +6,7 @@
 #include <labdev/usbtmc_interface.hh>
 #include <labdev/visa_interface.hh>
 #include <memory>
+#include <map>
 
 namespace labdev {
 
@@ -50,14 +51,21 @@ public:
     void set_horz_offs(double offset_s) override;
     double get_horz_offs() override;
 
+    // Single and dual source measurements
+    void set_meas(unsigned ch, meas_item meas) override;
+    double get_meas(unsigned ch, meas_item meas) override;
+    void set_meas(unsigned ch1, unsigned ch2, meas_item meas) override;
+    double get_meas(unsigned ch1, unsigned ch2, meas_item meas) override;
+    void clear_meas() override;
+
     // Acquisition settings
-    void start_acquisition() override;
-    void stop_acquisition() override;
+    void run() override;
+    void stop() override;
     void single_shot() override;
 
     // Edge trigger settings
     void set_trigger_source(unsigned channel) override;
-    void set_trigger_type(trigger_type trig) override;
+    void set_trigger_type(trig_type trig) override;
     void set_trigger_level(double level) override;
 
     // Returns true if trigger conditions have been met
@@ -75,6 +83,17 @@ private:
     void init();
     void check_channel(unsigned channel);
     std::vector<uint8_t> read_mem_data();
+
+    std::map<meas_item, std::string> m_meas_string {
+        {VMAX, "VMAX"}, {VMIN, "VMIN"}, {VPP, "VPP"}, {VTOP, "VTOP"},
+        {VBASE, "VBAS"}, {VAMP, "VAMP"}, {VAVG, "VAV"}, {VRMS, "VRMS"}, 
+        {OVERSHOOT, "OVER"}, {PRESHOOT, "PRES"}, {FREQ, "FREQ"}, 
+        {RISETIME, "RIS"}, {FALLTIME, "FALL"}, {POS_WIDTH, "PWID"}, 
+        {NEG_WIDTH, "NWID"}, {POS_DUTY, "PDUT"}, {NEG_DUTY, "NDUT"}, 
+        {POS_DELAY, "PDEL"}, {NEG_DELAY, "NDEL"}, {POS_PHASE, "PPHA"}, 
+        {NEG_PHASE, "NPHA"}
+    };
+    std::string meas_to_str(meas_item item) { return m_meas_string[item]; }
 
     scpi* m_scpi;
 };

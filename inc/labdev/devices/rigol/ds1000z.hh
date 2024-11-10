@@ -32,41 +32,6 @@ public:
     static constexpr uint16_t DS1104_PID = 0x04CE;
     static constexpr uint16_t PORT = 5555;
 
-    enum measurement_item : unsigned {
-        MEAS_VMAX,
-        MEAS_VMIN,
-        MEAS_VPP,
-        MEAS_VTOP,
-        MEAS_VBAS,
-        MEAS_VAMP,
-        MEAS_VAVG,
-        MEAS_VRMS,
-        MEAS_OVER,
-        MEAS_PRES,
-        MEAS_MAR,
-        MEAS_MPAR,
-        MEAS_PER,
-        MEAS_FREQ,
-        MEAS_RTIM,
-        MEAS_FTIM,
-        MEAS_PWID,
-        MEAS_NWID,
-        MEAS_PDUT,
-        MEAS_NDUT,
-        MEAS_RDEL,
-        MEAS_FDEL,
-        MEAS_RPH,
-        MEAS_FPH
-    };
-
-    enum measurement_type : unsigned {
-        MEAS_MAX,
-        MEAS_MIN,
-        MEAS_CUR,
-        MEAS_AVG,
-        MEAS_STD
-    };
-
     /* Definition of generic oscilloscope functions */
 
     // Turn channel on/off
@@ -90,14 +55,21 @@ public:
     void set_horz_offs(double offset_s) override;
     double get_horz_offs() override;
 
+    // Single and dual source measurements
+    void set_meas(unsigned ch, meas_item meas) override;
+    double get_meas(unsigned ch, meas_item meas) override;
+    void set_meas(unsigned ch1, unsigned ch2, meas_item meas) override;
+    double get_meas(unsigned ch1, unsigned ch2, meas_item meas) override;
+    void clear_meas() override;
+
     // Acquisition settings
-    void start_acquisition() override;
-    void stop_acquisition() override;
+    void run() override;
+    void stop() override;
     void single_shot() override;
 
     // Edge trigger settings
     void set_trigger_source(unsigned channel) override;
-    void set_trigger_type(trigger_type trig) override;
+    void set_trigger_type(trig_type trig) override;
     void set_trigger_level(double level) override;
 
     // Returns true if trigger conditions have been met
@@ -111,16 +83,7 @@ public:
 
     /* Definition of DS1000Z series specific functions */
 
-    // Statistics measurement setup and readout
-    void set_measurement(unsigned channel, unsigned item);
-    void set_measurement(unsigned channel1, unsigned channel2,
-        unsigned item);
-    double get_measurement(unsigned channel, unsigned item,
-        unsigned type);
-    double get_measurement(unsigned channel1, unsigned channel2,
-        unsigned item, unsigned type);
-    void clear_measurements();
-    void reset_measurements();
+    // TODO!
 
 private:
     void init();

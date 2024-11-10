@@ -18,13 +18,6 @@ public:
     osci(unsigned n_ch, std::string name = "?") : ld_device(name), m_n_ch(n_ch) {};
     virtual ~osci() {};
 
-    // Generic trigger type definitions
-    enum trigger_type : uint16_t {
-        RISE    = 0x00,
-        FALL    = 0x01,
-        BOTH    = 0x02
-    };
-
     // Returns maximum number of channels
     const unsigned get_n_channels() const { return m_n_ch; }
 
@@ -49,13 +42,25 @@ public:
     virtual void set_horz_offs(double offset_s) = 0;
     virtual double get_horz_offs() = 0;
 
+    // Single and dual source measurements
+    enum meas_item : unsigned {VMAX = 0, VMIN, VPP, VTOP, VBASE, VAMP, 
+        VAVG, VRMS, OVERSHOOT, PRESHOOT, FREQ, RISETIME, FALLTIME, POS_WIDTH,
+        NEG_WIDTH, POS_DUTY, NEG_DUTY, POS_DELAY, NEG_DELAY, POS_PHASE, 
+        NEG_PHASE};
+    virtual void set_meas(unsigned ch, meas_item meas) = 0;
+    virtual double get_meas(unsigned ch, meas_item meas) = 0;
+    virtual void set_meas(unsigned ch1, unsigned ch2, meas_item meas) = 0;
+    virtual double get_meas(unsigned ch1, unsigned ch2, meas_item meas) = 0;
+    virtual void clear_meas() = 0;
+
     // Acquisition settings
-    virtual void start_acquisition() = 0;
-    virtual void stop_acquisition() = 0;
+    virtual void run() = 0;
+    virtual void stop() = 0;
     virtual void single_shot() = 0;
 
     // Trigger settings
-    virtual void set_trigger_type(trigger_type trig) = 0;
+    enum trig_type : unsigned {RISE = 0, FALL, BOTH};
+    virtual void set_trigger_type(trig_type trig) = 0;
     virtual void set_trigger_level(double level) = 0;
     virtual void set_trigger_source(unsigned channel) = 0;
 

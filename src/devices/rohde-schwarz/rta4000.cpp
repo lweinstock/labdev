@@ -76,11 +76,11 @@ namespace labdev {
         return -1.;
     };
 
-    void rta4000::start_acquisition() {
+    void rta4000::run() {
         return;
     };
 
-    void rta4000::stop_acquisition() {
+    void rta4000::stop() {
         return;
     };
 
@@ -88,7 +88,7 @@ namespace labdev {
         return;
     };
 
-    void rta4000::set_trigger_type(trigger_type trig) {
+    void rta4000::set_trigger_type(trig_type trig) {
         return;
     };
 

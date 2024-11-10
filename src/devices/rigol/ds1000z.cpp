@@ -188,13 +188,38 @@ double ds1000z::get_horz_offs()
     return stof(msg);
 }
 
-void ds1000z::start_acquisition() 
+void ds1000z::set_meas(unsigned ch, meas_item meas)
+{
+    return;
+}
+
+double ds1000z::get_meas(unsigned ch, meas_item meas)
+{
+    return 0;
+}
+
+void ds1000z::set_meas(unsigned ch1, unsigned ch2, meas_item meas)
+{
+    return;
+}
+
+double ds1000z::get_meas(unsigned ch1, unsigned ch2, meas_item meas)
+{
+    return 0;
+}
+
+void ds1000z::clear_meas()
+{
+    return;
+}
+
+void ds1000z::run() 
 {
     get_comm()->write(":RUN\n");
     return;
 }
 
-void ds1000z::stop_acquisition() 
+void ds1000z::stop() 
 {
     get_comm()->write(":STOP\n");
     return;
@@ -206,7 +231,7 @@ void ds1000z::single_shot()
     return;
 }
 
-void ds1000z::set_trigger_type(trigger_type trig) 
+void ds1000z::set_trigger_type(trig_type trig) 
 {
     stringstream msg("");
     msg << ":TRIG:MODE EDGE\n";
@@ -331,6 +356,7 @@ void ds1000z::read_sample_data(unsigned channel, vector<double> &horz_data,
     return;
 }
 
+/*
 void ds1000z::set_measurement(unsigned channel, unsigned item) 
 {
     this->set_measurement(channel, channel, item);
@@ -379,6 +405,7 @@ void ds1000z::reset_measurements()
     get_comm()->write(":MEAS:STAT:RES\n");
     return;
 }
+*/
 
 /*
  *      P R I V A T E   M E T H O D S

@@ -169,25 +169,148 @@ double dso1000a::get_horz_offs()
     return stof(msg);
 }
 
-void dso1000a::start_acquisition() 
+void dso1000a::set_meas(unsigned ch, meas_item meas)
 {
-    get_comm()->write(":RUN\n");
+    this->check_channel(ch);
+    // Single source measurement?
+    switch (meas) {
+        case VMAX: 
+        case VMIN:
+        case VPP:
+        case VTOP:
+        case VBASE:
+        case VAMP:
+        case VAVG:
+        case VRMS:
+        case OVERSHOOT:
+        case PRESHOOT:
+        case FREQ:
+        case RISETIME:
+        case FALLTIME:
+        case POS_WIDTH:
+        case NEG_WIDTH:
+        case POS_DUTY:
+        case NEG_DUTY:
+        break;
+
+        default:
+        fprintf(stderr, "Invalid single source measurement (%i)\n", meas);
+        abort();
+    }
+    stringstream msg("");
+    msg << ":MEAS:" << this->meas_to_str(meas) << " CHAN" << ch << "\n";
+    get_comm()->write(msg.str());
     return;
 }
 
-void dso1000a::stop_acquisition() 
+double dso1000a::get_meas(unsigned ch, meas_item meas)
+{
+    this->check_channel(ch);
+    // Single source measurement?
+    switch (meas) {
+        case VMAX:
+        case VMIN:
+        case VPP:
+        case VTOP:
+        case VBASE:
+        case VAMP:
+        case VAVG:
+        case VRMS:
+        case OVERSHOOT:
+        case PRESHOOT:
+        case FREQ:
+        case RISETIME:
+        case FALLTIME:
+        case POS_WIDTH:
+        case NEG_WIDTH:
+        case POS_DUTY:
+        case NEG_DUTY:
+        break;
+
+        default:
+        fprintf(stderr, "Invalid single source measurement (%i)\n", meas);
+        abort();
+    }
+    stringstream msg("");
+    msg << ":MEAS:" << this->meas_to_str(meas) << "? CHAN" << ch << "\n";
+    string resp = get_comm()->query(msg.str());
+    return stof(resp);
+}
+
+void dso1000a::set_meas(unsigned ch1, unsigned ch2, meas_item meas)
+{
+    this->check_channel(ch1);
+    this->check_channel(ch2);
+    // Dual source measurement?
+    switch (meas) {
+        case POS_DELAY:
+        case NEG_DELAY:
+        case POS_PHASE:
+        case NEG_PHASE:
+        break;
+
+        default:
+        fprintf(stderr, "Invalid dual source measurement (%i)\n", meas);
+        abort();
+    }
+    stringstream msg("");
+    msg << ":MEAS:" << this->meas_to_str(meas) << " CHAN" << ch1;
+    msg << ",CHAN" << ch2 << "\n";
+    get_comm()->write(msg.str());
+    return;
+}
+
+double dso1000a::get_meas(unsigned ch1, unsigned ch2, meas_item meas)
+{
+    this->check_channel(ch1);
+    this->check_channel(ch2);
+    // Dual source measurement?
+    switch (meas) {
+        case POS_DELAY:
+        case NEG_DELAY:
+        case POS_PHASE:
+        case NEG_PHASE:
+        break;
+
+        default:
+        fprintf(stderr, "Invalid dual source measurement (%i)\n", meas);
+        abort();
+    }
+    stringstream msg("");
+    msg << ":MEAS:" << this->meas_to_str(meas) << "? CHAN" << ch1;
+    msg << ",CHAN" << ch2 << "\n";
+    string resp = get_comm()->query(msg.str());
+    return stof(resp);
+}
+
+void dso1000a::clear_meas()
+{
+    get_comm()->write(":MEAS:CLE\n");
+    return;
+}
+
+void dso1000a::run() 
+{
+    get_comm()->write(":RUN\n");
+    usleep(100e3);
+    return;
+}
+
+void dso1000a::stop() 
 {
     get_comm()->write(":STOP\n");
+    usleep(100e3);
     return;
 }
 
 void dso1000a::single_shot() 
 {
     get_comm()->write(":SINGLE\n");
+    usleep(100e3);
     return;
 }
 
-void dso1000a::set_trigger_type(trigger_type trig) 
+void dso1000a::set_trigger_type(trig_type trig) 
 {
     stringstream msg("");
     msg << ":TRIG:MODE EDGE\n";

@@ -48,11 +48,11 @@ namespace labdev{
 
         // Acquisition settings
         void start_acquisition() override;
-        void stop_acquisition() override;
+        void stop() override;
         void single_shot() override;
 
         // Trigger settings
-        void set_trigger_type(trigger_type trig) override;
+        void set_trigger_type(trig_type trig) override;
         void set_trigger_level(double level) override;
         void set_trigger_source(unsigned channel) override;
 
