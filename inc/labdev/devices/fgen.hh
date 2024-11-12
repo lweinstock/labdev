@@ -29,24 +29,10 @@ public:
     // Get output state of channel (true = on, false = off)
     virtual bool get_state(unsigned channel) = 0;
 
-    // Set and get waveforms
-    virtual void set_sine(unsigned channel, float freq_hz, float ampl_v = 1., 
-        float offset_v = 0., float phase_deg = 0.) = 0;
-    virtual void set_square(unsigned channel, float freq_hz, float ampl_v = 1., 
-        float offset_v = 0., float phase_deg = 0., float duty_cycle = 0.5) = 0;
-    virtual void set_ramp(unsigned channel, float freq_hertz, float ampl_v = 1., 
-        float offset_v = 0., float phase_deg = 0., float symm = 0.5) = 0;
-    virtual void set_pulse(unsigned channel, float period_s, float width_s, 
-        float delay_s = 0., float high_v = .1, float low_v = 0., 
-        float rise_s = 1e-6, float fall_s = 1e-6) = 0;
-    virtual void set_noise(unsigned channel, float mean_v = 0., 
-        float stdev_v = 1.) = 0;
-
-    virtual bool is_sine(unsigned channel) = 0;
-    virtual bool is_square(unsigned channel) = 0;
-    virtual bool is_ramp(unsigned channel) = 0;
-    virtual bool is_pulse(unsigned channel) = 0;
-    virtual bool is_noise(unsigned channel) = 0;
+    // Waveform
+    enum waveform : unsigned {SINE = 0, SQUARE, RAMP, PULSE, NOISE, DC};
+    virtual void set_wvfm(unsigned channel, waveform wvfm) = 0;
+    virtual waveform get_wvfm(unsigned channel) = 0;
 
     // Signal frequency 
     virtual void set_freq(unsigned channel, float freq_hz) = 0;
@@ -67,6 +53,17 @@ public:
     // Signal offset in V
     virtual void set_offset(unsigned channel, float offset_v) = 0;
     virtual float get_offset(unsigned channel) = 0;
+
+    // Rising and falling edges
+    virtual void set_rising(unsigned channel, float rise_s) = 0;
+    virtual float get_rising(unsigned channel) = 0;
+    virtual void set_falling(unsigned channel, float fall_s) = 0;
+    virtual float get_falling(unsigned channel) = 0;
+
+    // Pulse width
+    virtual void set_pulse_width(unsigned channel, float width_s) = 0;
+    virtual float get_pulse_width(unsigned channel) = 0;
+
 
 private:
     const unsigned m_n_ch;

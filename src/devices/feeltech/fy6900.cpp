@@ -74,108 +74,40 @@ bool fy6900::get_state(unsigned channel)
     return (stat == 0) ? false : true;
 }
 
-void fy6900::set_sine(unsigned channel, float freq_hz, float ampl_v, 
-    float offset_v, float phase_deg)
+
+void fy6900::set_wvfm(unsigned channel, waveform wvfm)
 {
-    this->set_waveform(channel, 0);    
-    this->set_freq(channel, freq_hz);
-    this->set_ampl(channel, ampl_v);
-    this->set_offset(channel, offset_v);
-    this->set_phase(channel, phase_deg);
+    stringstream msg;
+    if (channel == 1) {
+        msg << "WMW" << this->wvfm_to_no(wvfm) << "\n";
+    } else if (channel == 2) {
+        msg << "WFW" << this->wvfm_to_no(wvfm) << "\n";
+    } else {
+        fprintf(stderr, "Invalid channel number %i\n", channel);
+        abort();
+    }
+    string ret = get_comm()->query(msg.str());
+    if ( ret.compare("\n") != 0 )
+        throw device_error("Did not receive EOM response\n", -1);
     return;
 }
 
-
-void fy6900::set_square(unsigned channel, float freq_hz, float ampl_v, 
-    float offset_v, float phase_deg, float duty_cycle)
+fgen::waveform fy6900::get_wvfm(unsigned channel)
 {
-    this->set_waveform(channel, 2);
-    this->set_freq(channel, freq_hz);
-    this->set_ampl(channel, ampl_v);
-    this->set_offset(channel, offset_v);
-    this->set_phase(channel, phase_deg);
-    this->set_duty_cycle(channel, duty_cycle);
-    return;
-}
-
-void fy6900::set_ramp(unsigned channel, float freq_hz, float ampl_v, 
-    float offset_v, float phase_deg, float symm)
-{
-    // FY6800 can only do triangle or pos/neg ramp (see manual p.6)
-    if (symm == 0.0) 
-        this->set_waveform(channel, 9);
-    else if (symm == 1.0) 
-        this->set_waveform(channel, 8);
-    else 
-        this->set_waveform(channel, 7);
-    this->set_freq(channel, freq_hz);
-    this->set_ampl(channel, ampl_v);
-    this->set_offset(channel, offset_v);
-    this->set_phase(channel, phase_deg);
-    return;
-}
-
-void fy6900::set_pulse(unsigned channel, float period_s, float width_s, 
-    float delay_s, float high_v, float low_v, float rise_s, float fall_s)
-{
-    // Note: unfortunately there is no option to set rising or falling edges 
-    // for the FY6900...
-    float freq_hz = 1/period_s;
-    float offset_v = low_v;
-    float ampl_v = high_v - low_v;
-    float phase_deg = delay_s/period_s * 360.;
-    this->set_waveform(channel, 5);
-    this->set_freq(channel, freq_hz);
-    this->set_ampl(channel, ampl_v);
-    this->set_offset(channel, offset_v);
-    this->set_phase(channel, phase_deg);
-    this->set_pulse_width(channel, width_s);
-    return;
-}
-
-void fy6900::set_noise(unsigned channel, float mean_v, float stdev_v)
-{
-    this->set_waveform(channel, 27);
-    this->set_offset(channel, mean_v);
-    this->set_ampl(channel, stdev_v);
-    return;
-}
-
-
-bool fy6900::is_sine(unsigned channel)
-{
-    if (this->get_waveform(channel) == 0)
-        return true;
-    return false;
-}
-
-bool fy6900::is_square(unsigned channel)
-{
-    if (this->get_waveform(channel) == 2)
-        return true;
-    return false;
-}
-
-bool fy6900::is_ramp(unsigned channel)
-{
-    unsigned wvfm = this->get_waveform(channel);
-    if ( (wvfm == 7) || (wvfm == 8) || (wvfm == 9) )
-        return true;
-    return false;
-}
-
-bool fy6900::is_pulse(unsigned channel)
-{
-     if (this->get_waveform(channel) == 5)
-        return true;
-    return false;
-}
-
-bool fy6900::is_noise(unsigned channel)
-{
-     if (this->get_waveform(channel) == 27)
-        return true;
-    return false;
+    string msg;
+    if (channel == 1) {
+        msg = "RMW\n";
+    } else if (channel == 2) {
+        msg = "RFW\n";
+    } else {
+        fprintf(stderr, "Invalid channel number %i\n", channel);
+        abort();
+    }
+    string resp = get_comm()->query(msg);
+    if (resp.size() == 0)
+        throw device_error("Received empty response", -1);
+    // TODO: parse response
+    return SINE;
 }
 
 void fy6900::set_freq(unsigned channel, float freq_hz) 
@@ -394,44 +326,24 @@ float fy6900::get_offset(unsigned channel)
     return ret;
 }
 
-
-/*
- *      P R I V A T E   M E T H O D S
- */
-
-void fy6900::set_waveform(unsigned channel, unsigned wvfm)
+void fy6900::set_rising(unsigned channel, float rise_s)
 {
-    stringstream msg;
-    if (channel == 1) {
-        msg << "WMW" << wvfm << "\n";
-    } else if (channel == 2) {
-        msg << "WFW" << wvfm << "\n";
-    } else {
-        fprintf(stderr, "Invalid channel number %i\n", channel);
-        abort();
-    }
-    string ret = get_comm()->query(msg.str());
-    if ( ret.compare("\n") != 0 )
-        throw device_error("Did not receive EOM response\n", -1);
     return;
 }
 
-unsigned fy6900::get_waveform(unsigned channel)
+float fy6900::get_rising(unsigned channel)
 {
-    string msg;
-    if (channel == 1) {
-        msg = "RMW\n";
-    } else if (channel == 2) {
-        msg = "RFW\n";
-    } else {
-        fprintf(stderr, "Invalid channel number %i\n", channel);
-        abort();
-    }
-    string resp = get_comm()->query(msg);
-    if (resp.size() == 0)
-        throw device_error("Received empty response", -1);
-        
-    return stoi(resp);
+    return 0;
+}
+
+void fy6900::set_falling(unsigned channel, float fall_s)
+{
+    return;
+}
+
+float fy6900::get_falling(unsigned channel)
+{
+    return 0;
 }
 
 void fy6900::set_pulse_width(unsigned channel, float width_s)
@@ -452,5 +364,15 @@ void fy6900::set_pulse_width(unsigned channel, float width_s)
         throw device_error("Did not receive EOM response\n", -1);
     return;
 }
+
+float fy6900::get_pulse_width(unsigned channel)
+{
+    return 0;
+}
+
+
+/*
+ *      P R I V A T E   M E T H O D S
+ */
 
 }

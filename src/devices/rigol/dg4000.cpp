@@ -91,83 +91,47 @@ void dg4000::enable_channel(unsigned channel, bool enable)
 
 bool dg4000::get_state(unsigned channel)
 {
+    this->check_channel(channel);
+    string resp = get_comm()->query(":OUTP" + to_string(channel) + ":STAT?\n");
+    if ( resp.find("ON") != string::npos )
+        return true;
     return false;
 }
 
-void dg4000::set_sine(unsigned channel,float freq_hz, float ampl_v, 
-    float offset_v, float phase_deg)
+void dg4000::set_wvfm(unsigned channel, waveform wvfm)
 {
     this->check_channel(channel);
-    stringstream msg;
-    msg << ":SOUR" << channel << ":APPL:SIN ";
-    msg << freq_hz << ",";
-    msg << ampl_v << ","; 
-    msg << offset_v << ",";
-    msg << phase_deg << "\n";
-    //get_comm()->write_at_least(msg.str(), 10);
+    switch (wvfm) {
+        case SINE:
+        case SQUARE:
+        case RAMP:
+        case PULSE:
+        case NOISE:
+        case DC:
+        break;
+
+        default:
+        string msg = this->get_info() + " - Invalid waveform\n";
+        fprintf(stderr, "%s\n", msg.c_str());
+        abort();
+    }
+    stringstream msg("");
+    msg << ":SOUR" << channel << ":APPL:" << wvfm_to_str(wvfm) << "\n";
     get_comm()->write(msg.str());
-    m_scpi->wait_to_complete();
     return;
 }
 
-void dg4000::set_square(unsigned channel,float freq_hz, float ampl_v, 
-    float offset_v, float phase_deg, float duty_cycle)
+fgen::waveform dg4000::get_wvfm(unsigned channel)
 {
-    return;
-}
-
-void dg4000::set_ramp(unsigned channel,float freq_hz, float ampl_v, 
-    float offset_v, float phase_deg, float symm)
-{
-    return;
-}
-
-void dg4000::set_pulse(unsigned channel,float period_s, float width_s, 
-    float delay_s, float high_v, float low_v, float rise_s, float fall_s)
-{
-    return;
-}
-
-void dg4000::set_noise(unsigned channel,float mean_v, float stdev_v)
-{
-    return;
-}
-
-// TODO: test get waveform mehtods
-
-bool dg4000::is_sine(unsigned channel)
-{
-    if (this->get_waveform_str(channel) == "SINUSOID")
-        return true;
-    return false;
-}
-
-bool dg4000::is_square(unsigned channel)
-{
-    if (this->get_waveform_str(channel) == "SQUARE")
-        return true;
-    return false;
-}
-
-bool dg4000::is_ramp(unsigned channel)
-{
-    if (this->get_waveform_str(channel) == "RAMP")
-        return true;
-    return false;
-}
-
-bool dg4000::is_pulse(unsigned channel)
-{
-    if (this->get_waveform_str(channel) == "PULSE")
-        return true;
-    return false;
-}
-
-bool dg4000::is_noise(unsigned channel)
-{
-    if (this->get_waveform_str(channel) == "NOISE")
-        return true;
-    return false;
+    this->check_channel(channel);
+    stringstream msg("");
+    msg << ":SOUR" << channel << ":APPL?\n";
+    string resp = get_comm()->query(msg.str());
+    for (auto m : m_wvfm_string) {
+        if (resp.find(m.second) != string::npos)
+            return m.first;
+    }
+    return SINE;
 }
 
 void dg4000::set_freq(unsigned channel, float freq_hz)
@@ -276,6 +240,60 @@ float dg4000::get_offset(unsigned channel)
     return stof(resp);
 }
 
+void dg4000::set_rising(unsigned channel, float rise_s)
+{
+    this->check_channel(channel);
+    stringstream msg("");
+    msg << ":SOUR" << channel << ":PULS:TRAN:LEAD " << rise_s << "\n";
+    get_comm()->write(msg.str());
+    return;
+}
+
+float dg4000::get_rising(unsigned channel)
+{
+    this->check_channel(channel);
+    stringstream msg("");
+    msg << ":SOUR" << channel << ":PULS:TRAN:LEAD?\n";
+    string resp = get_comm()->query(msg.str());
+    return stof(resp);
+}
+
+void dg4000::set_falling(unsigned channel, float fall_s)
+{
+    this->check_channel(channel);
+    stringstream msg("");
+    msg << ":SOUR" << channel << ":PULS:TRAN:TRA " << fall_s << "\n";
+    get_comm()->write(msg.str());
+    return;
+}
+
+float dg4000::get_falling(unsigned channel)
+{
+    this->check_channel(channel);
+    stringstream msg("");
+    msg << ":SOUR" << channel << ":PULS:TRAN:TRA?\n";
+    string resp = get_comm()->query(msg.str());
+    return stof(resp);
+}
+
+void dg4000::set_pulse_width(unsigned channel, float width_s)
+{
+    this->check_channel(channel);
+    stringstream msg("");
+    msg << ":SOUR" << channel << ":PULS:WIDT " << width_s << "\n";
+    get_comm()->write(msg.str());
+    return;
+}
+
+float dg4000::get_pulse_width(unsigned channel)
+{
+    this->check_channel(channel);
+    stringstream msg("");
+    msg << ":SOUR" << channel << ":PULS:WIDT?\n";
+    string resp = get_comm()->query(msg.str());
+    return stof(resp);
+}
+
 /*
  *      P R I V A T E   M E T H O D S
  */
@@ -293,12 +311,14 @@ void dg4000::init()
 void dg4000::check_channel(unsigned channel) 
 {
     if ( (channel == 0) || (channel > this->get_n_channels()) ) {
-        fprintf(stderr, "Invalid channel %i\n", channel);
+        stringstream msg("");
+        msg << this->get_info() << " - invalid channel " << channel << "\n"; 
+        fprintf(stderr, "%s\n", msg.str().c_str());
         abort();
     }
     return;
 }
-
+/*
 std::string dg4000::get_waveform_str(unsigned channel)
 {
     this->check_channel(channel);
@@ -306,7 +326,7 @@ std::string dg4000::get_waveform_str(unsigned channel)
     string waveform = resp.substr(resp.find_first_of(','));
     return waveform;
 }
-
+*/
 void dg4000::write_at_least(string msg, unsigned time_ms) {
 
     /*

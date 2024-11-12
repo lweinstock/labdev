@@ -9,7 +9,7 @@
 #include <labdev/serial_interface.hh>
 
 #include <labdev/devices/osci.hh>
-#include <labdev/devices/scpi.hh>
+#include <labdev/protocols/scpi.hh>
 
 namespace labdev{
 
@@ -17,7 +17,7 @@ namespace labdev{
      *      Rohde & Schwarz RTA4000 series oscilloscope
      */
 
-    class rta4000 : public oscilloscope, public scpi_device {
+    class rta4000 : public osci {
     public:
         rta4000();
         rta4000(tcpip_interface* tcpip);
@@ -47,7 +47,7 @@ namespace labdev{
         double get_horz_base() override;
 
         // Acquisition settings
-        void start_acquisition() override;
+        void run() override;
         void stop() override;
         void single_shot() override;
 
@@ -70,10 +70,6 @@ namespace labdev{
     private:
         void init();
         void check_channel(unsigned channel);
-
-        unsigned m_npts;
-        double m_xincr, m_xorg, m_xref, m_yinc;
-        int m_yorg, m_yref;
 
     };
 }

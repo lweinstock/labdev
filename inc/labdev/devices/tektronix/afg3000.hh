@@ -1,5 +1,5 @@
-#ifndef SDG1000X_HH
-#define SDG1000X_HH
+#ifndef AFG3000_HH
+#define AFG3000_HH
 
 #include <labdev/devices/fgen.hh>
 #include <labdev/tcpip_interface.hh>
@@ -10,13 +10,13 @@
 
 namespace labdev {
 
-class sdg1000x: public fgen {
+class afg3000: public fgen {
 public:
-    sdg1000x();
-    sdg1000x(tcpip_interface* tcpip);
-    sdg1000x(usbtmc_interface* usbtmc);
-    sdg1000x(visa_interface* visa);
-    ~sdg1000x();
+    afg3000();
+    afg3000(tcpip_interface* tcpip);
+    afg3000(usbtmc_interface* usbtmc);
+    afg3000(visa_interface* visa);
+    ~afg3000();
 
     void connect(tcpip_interface* tcpip);
     void connect(usbtmc_interface* tmc);
@@ -24,8 +24,8 @@ public:
     void disconnect() override;
 
     static constexpr unsigned PORT = 5025;
-    static constexpr uint16_t SDG1032X_VID = 0xF4EC;
-    static constexpr uint16_t SDG1032X_PID = 0x1103;
+    static constexpr uint16_t AFG3021B_VID = 0x0699;
+    static constexpr uint16_t AFG3021B_PID = 0x0346;
 
     // Turn channel on/off
     void enable_channel(unsigned channel, bool ena = true) override;
@@ -67,20 +67,18 @@ public:
     float get_pulse_width(unsigned channel) override;
 
 private:
+    scpi* m_scpi;
+
     void init();
     // Allowed channels = 1 or 2!
     void check_channel(unsigned channel);
-
-    scpi* m_scpi;
-
-    // Get value from basic wave command (manual p. 27)
-    std::string get_bswv_val(std::string bswv, std::string par);
 
     std::map<waveform, std::string> m_wvfm_string {
         {SINE, "SIN"}, {SQUARE, "SQU"}, {RAMP, "RAMP"}, {PULSE, "PULS"}, 
         {NOISE, "NOIS"}, {DC, "DC"}
     };
     std::string wvfm_to_str(waveform item) { return m_wvfm_string[item]; }
+
 };
 
 }
