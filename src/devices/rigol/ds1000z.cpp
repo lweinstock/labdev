@@ -102,7 +102,7 @@ bool ds1000z::channel_enabled(unsigned channel)
 {
     this->check_channel(channel);
     stringstream msg("");
-    msg << ":CHAN" << channel << ":DISP?";
+    msg << ":CHAN" << channel << ":DISP?\n";
     string resp = get_comm()->query(msg.str());
     return (stoi(resp) == 1) ? true : false;
 }
@@ -460,6 +460,7 @@ void ds1000z::init()
     // Setup SCPI
     m_scpi = new scpi( this->get_comm() );
     m_scpi->clear_status();
+    m_scpi->wait_to_complete();
     m_dev_name = m_scpi->get_identifier();
 
     // Set waveform format
