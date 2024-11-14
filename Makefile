@@ -105,8 +105,10 @@ export PKG_CONF_FILE
 
 # pkg-config .pc file path
 PC_PATH=
-ifeq ($(PC_PATH),)
-  PC_PATH:=$(PREFIX)/lib/pkgconfig
+ifeq ($(PC_PATH),)	# if no path is defined, take the first from pkg-config
+#  PC_PATH:=$(PREFIX)/lib/pkgconfig
+  PC_PATHS=$(shell pkg-config --variable pc_path pkg-config)
+  PC_PATH=$(firstword $(subst :, ,$(PC_PATHS)))
 endif
 
 .PHONY: all clean install uninstall $(LIBNAME).pc
@@ -140,3 +142,6 @@ clean:
 	rm -f $(OBJ)
 	rm -f $(LIBNAME).a
 	rm -f $(LIBNAME).pc
+
+test:
+	@echo $(PC_PATH)
