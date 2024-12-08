@@ -39,13 +39,15 @@ void scpi::wait_to_complete(unsigned timeout_ms) {
 
     // Check status event status register for OPC-flag
     m_comm->write("*OPC\n");
-    while ( (this->get_event_status_register(timeout_ms) & OPC) == 0) {
+    //while ( (this->get_event_status_register(timeout_ms) & OPC) == 0) {
+    while ( !this->operation_complete() ) {
         // Check for timeout
         gettimeofday(&tsto, NULL);
         tdiff = (tsto.tv_sec - tsta.tv_sec) * 1000.
             + (tsto.tv_usec - tsta.tv_usec)/1000.;
         if (tdiff > timeout_ms)
             throw timeout("*OPC timeout occurred");
+        usleep(100e3);  // 100ms delay to prevent excessive queries
     }
     debug_print("%s\n", "operation complete (OPC)");
     return;

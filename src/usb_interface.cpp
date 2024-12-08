@@ -1,4 +1,4 @@
-#include <labdev/libusb_raw.hh>
+#include <labdev/usb_interface.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/ld_debug.hh>
 
@@ -11,11 +11,11 @@ using namespace std;
 
 namespace labdev {
 
-libusb_context* libusb_raw::s_default_ctx = NULL;
-int libusb_raw::s_dev_count = 0;
+libusb_context* usb_interface::s_default_ctx = NULL;
+int usb_interface::s_dev_count = 0;
 
 
-libusb_raw::libusb_raw(): m_usb_dev(NULL), m_usb_handle(NULL),
+usb_interface::usb_interface(): m_usb_dev(NULL), m_usb_handle(NULL),
     m_cur_cfg(0), m_cur_alt_setting(0), m_cur_interface_no(-1),
     m_ep_in_addr(0), m_ep_out_addr(0), m_max_pkt_size_in(64), 
     m_max_pkt_size_out(64), m_vid(0x0000), m_pid(0x0000), m_serno(""), 
@@ -26,36 +26,37 @@ libusb_raw::libusb_raw(): m_usb_dev(NULL), m_usb_handle(NULL),
     return;
 }
 
-libusb_raw::libusb_raw(uint16_t vid, uint16_t pid, string serno) 
-    : libusb_raw() 
+usb_interface::usb_interface(uint16_t vid, uint16_t pid, string serno) 
+    : usb_interface() 
 {
     this->open(vid, pid, serno);
     return;
 }
 
-libusb_raw::~libusb_raw()
+usb_interface::~usb_interface()
 {
-    this->close();
+    if (this->good())
+        this->close();
     return;
 }
 
-int libusb_raw::write_raw(const uint8_t* data, size_t len)
+int usb_interface::write_raw(const uint8_t* data, size_t len)
 {
     return this->write_bulk(data, len);
 }
 
-int libusb_raw::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
+int usb_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
 {
     return this->read_bulk(data, max_len, timeout_ms);
 }
 
-void libusb_raw::open()
+void usb_interface::open()
 {
     this->open(m_vid, m_pid, m_serno);
     return;
 }
 
-void libusb_raw::open(uint16_t vid, uint16_t pid, string serno)
+void usb_interface::open(uint16_t vid, uint16_t pid, string serno)
 {
     int stat;
     // If first device, start new libusb session
@@ -125,7 +126,7 @@ void libusb_raw::open(uint16_t vid, uint16_t pid, string serno)
     return;
 }
 
-void libusb_raw::close()
+void usb_interface::close()
 {
     // Release claimed interfaces and device
     if (m_cur_interface_no != s_no_interface)
@@ -145,22 +146,22 @@ void libusb_raw::close()
     return;
 }
 
-string libusb_raw::get_info() const
+string usb_interface::get_info() const noexcept
 {
     stringstream info("");
     info << std::uppercase << setfill('0') << setw(4) << std::hex;
-    info << "usb;0x" << m_vid << m_pid << m_serno;
+    info << "usb;" << m_vid << ":" << m_pid << m_serno;
     return info.str();
 }
 
-void libusb_raw::clear()
+void usb_interface::clear()
 {
     libusb_clear_halt(m_usb_handle, m_ep_in_addr);
     libusb_clear_halt(m_usb_handle, m_ep_out_addr);
     return;
 }
 
-int libusb_raw::write_control(uint8_t request_type, uint8_t request,
+int usb_interface::write_control(uint8_t request_type, uint8_t request,
     uint16_t value, uint16_t index, const uint8_t* data, int len) 
 {
     this->check_interface();
@@ -186,7 +187,7 @@ int libusb_raw::write_control(uint8_t request_type, uint8_t request,
     return nbytes;
 }
 
-int libusb_raw::read_control(uint8_t request_type, uint8_t request, 
+int usb_interface::read_control(uint8_t request_type, uint8_t request, 
     uint16_t value, uint16_t index, const uint8_t* data, int len) 
 {
     this->check_interface();
@@ -213,7 +214,7 @@ int libusb_raw::read_control(uint8_t request_type, uint8_t request,
 }
 
 
-int libusb_raw::write_bulk(const uint8_t* data, int len) 
+int usb_interface::write_bulk(const uint8_t* data, int len) 
 {
     this->check_interface();
     int stat, nbytes = 0;
@@ -237,7 +238,7 @@ int libusb_raw::write_bulk(const uint8_t* data, int len)
     return nbytes;
 }
 
-int libusb_raw::read_bulk(uint8_t* data, int max_len, int timeout_ms) 
+int usb_interface::read_bulk(uint8_t* data, int max_len, int timeout_ms) 
 {
     this->check_interface();
     int nbytes = 0;
@@ -253,20 +254,20 @@ int libusb_raw::read_bulk(uint8_t* data, int max_len, int timeout_ms)
     return nbytes;
 }
 
-int libusb_raw::write_interrupt(const uint8_t* data, int len) 
+int usb_interface::write_interrupt(const uint8_t* data, int len) 
 {
     // TODO
     return 0;
 }
 
-int libusb_raw::read_interrupt(uint8_t* data, int max_len,
+int usb_interface::read_interrupt(uint8_t* data, int max_len,
     int timeout_ms) 
 {
     // TODO
     return 0;
 }
 
-void libusb_raw::claim_interface(int interface_no, int alt_setting) 
+void usb_interface::claim_interface(int interface_no, int alt_setting) 
 {
     int stat;
     string msg("");
@@ -304,7 +305,7 @@ void libusb_raw::claim_interface(int interface_no, int alt_setting)
     return;
 }
 
-void libusb_raw::set_endpoint_in(unsigned ep_no) 
+void usb_interface::set_endpoint_in(unsigned ep_no) 
 {
     this->check_interface();
 
@@ -323,13 +324,13 @@ void libusb_raw::set_endpoint_in(unsigned ep_no)
     if (ep_no < n_eps)
         ep_desc = &int_desc->endpoint[ep_no];
     else 
-        throw bad_io("Invalid endpoint number", ep_no);
+        throw bad_io(this->get_info() + " - Invalid endpoint number", ep_no);
     // Get endpoint address
     uint8_t ep_addr = ep_desc->bEndpointAddress;
     if (ep_addr & LIBUSB_ENDPOINT_IN)
         m_ep_in_addr = ep_addr;
     else
-        throw bad_io("Wrong endpoint direction", ep_no);
+        throw bad_io(this->get_info() + " - Wrong endpoint direction", ep_no);
     // Get max packet size
     m_max_pkt_size_in = ep_desc->wMaxPacketSize;
     debug_print("Endpoint%u (IN):\taddr 0x%02X, wMaxPacketSize %lu\n", ep_no, 
@@ -337,7 +338,7 @@ void libusb_raw::set_endpoint_in(unsigned ep_no)
     return;
 }
 
-void libusb_raw::set_endpoint_out(unsigned ep_no) 
+void usb_interface::set_endpoint_out(unsigned ep_no) 
 {
     this->check_interface();
 
@@ -356,13 +357,13 @@ void libusb_raw::set_endpoint_out(unsigned ep_no)
     if (ep_no < n_eps)
         ep_desc = &int_desc->endpoint[ep_no];
     else 
-        throw bad_io("Invalid endpoint number", ep_no);
+        throw bad_io(this->get_info() + " - Invalid endpoint number", ep_no);
     // Get endpoint address
     uint8_t ep_addr = ep_desc->bEndpointAddress;
     if ( !(ep_addr & LIBUSB_ENDPOINT_IN) )
         m_ep_out_addr = ep_addr;
     else 
-        throw bad_io("Wrong endpoint direction", ep_no);
+        throw bad_io(this->get_info() + " - Wrong endpoint direction", ep_no);
     // Get max packet size
     m_max_pkt_size_out = ep_desc->wMaxPacketSize;
     debug_print("Endpoint%u (OUT):\taddr 0x%02X, wMaxPacketSize %lu\n", ep_no, 
@@ -374,7 +375,7 @@ void libusb_raw::set_endpoint_out(unsigned ep_no)
  *      P R I V A T E   M E T H O D S
  */
 
-void libusb_raw::gather_device_information() 
+void usb_interface::gather_device_information() 
 {
     if (!m_usb_dev)
         return;
@@ -414,7 +415,7 @@ void libusb_raw::gather_device_information()
     return;
 }
 
-void libusb_raw::gather_interface_information() 
+void usb_interface::gather_interface_information() 
 {
     this->check_interface();
 
@@ -440,11 +441,12 @@ void libusb_raw::gather_interface_information()
     return;
 }
 
-void libusb_raw::check_and_throw(int stat, const string& msg) const 
+void usb_interface::check_and_throw(int stat, const string& msg) const 
 {
     if (stat < 0) {
         stringstream err_msg;
-        err_msg << msg << " (" << libusb_error_name(stat) << ", " << stat << ")";
+        err_msg << this->get_info() << " - " << msg;
+        err_msg << " (" << libusb_error_name(stat) << ", " << stat << ")";
         debug_print("%s\n", err_msg.str().c_str());
 
         switch (stat) {
@@ -475,10 +477,10 @@ void libusb_raw::check_and_throw(int stat, const string& msg) const
     return;
 }
 
-void libusb_raw::check_interface() 
+void usb_interface::check_interface() 
 {
     if (m_cur_interface_no == s_no_interface)
-        throw bad_io("No USB interface claimed");
+        throw bad_io(this->get_info() + " - No USB interface claimed");
     return;
 }
 

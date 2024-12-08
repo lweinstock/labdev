@@ -27,7 +27,7 @@ public:
         unsigned timeout_ms = s_dflt_timeout_ms) override;
 
     // Returns human readable info string
-    std::string get_info() const override;
+    std::string get_info() const noexcept override;
 
     // Returns path to device file
     std::string get_path() { return m_path; }

@@ -104,146 +104,40 @@ bool sdg1000x::get_state(unsigned channel)
     return false;
 }
 
-void sdg1000x::set_sine(unsigned channel, float freq_hz, float ampl_v, 
-    float offset_v, float phase_deg)
+void sdg1000x::set_wvfm(unsigned channel, waveform wvfm)
 {
     this->check_channel(channel);
-    stringstream msg;
-    msg << "C" << channel << ":BSWV WVTP,SINE,";
-    msg << setprecision(3) << fixed;
-    msg << "FRQ,"   << freq_hz << ",";
-    msg << "AMP,"   << ampl_v << ",";
-    msg << "OFST,"  << offset_v << ",";
-    msg << "PHSE,"  << phase_deg << "\n";
-    get_comm()->write(msg.str());
-    m_scpi->wait_to_complete();
+    switch (wvfm) {
+        case SINE:
+        case SQUARE:
+        case RAMP:
+        case PULSE:
+        case NOISE:
+        case DC:
+        break;
+
+        default:
+        string msg = this->get_info() + " - Invalid waveform\n";
+        fprintf(stderr, "%s\n", msg.c_str());
+        abort();
+    }
+    stringstream msg("");
+    msg << ":SOUR" << channel << ":APPL:" << wvfm_to_str(wvfm) << "\n";
     return;
 }
 
-
-void sdg1000x::set_square(unsigned channel, float freq_hz, float ampl_v, 
-    float offset_v, float phase_deg, float duty_cycle)
+fgen::waveform sdg1000x::get_wvfm(unsigned channel)
 {
     this->check_channel(channel);
-    stringstream msg;
-    msg << "C" << channel << ":BSWV WVTP,SQUARE,";
-    msg << setprecision(3) << fixed;
-    msg << "FRQ,"   << freq_hz << ",";
-    msg << "AMP,"   << ampl_v << ",";
-    msg << "OFST,"  << offset_v << ",";
-    msg << "PHSE,"  << phase_deg << ",";
-    msg << "DUTY,"  << 100*duty_cycle << "\n";
-    get_comm()->write(msg.str());
-    m_scpi->wait_to_complete();
-    return;
+    stringstream msg("");
+    msg << ":SOUR" << channel << ":APPL?\n";
+    string resp = get_comm()->query(msg.str());
+    for (auto m : m_wvfm_string) {
+        if (resp.find(m.second) != string::npos)
+            return m.first;
+    }
+    return SINE;
 }
-
-void sdg1000x::set_ramp(unsigned channel, float freq_hz, float ampl_v, 
-    float offset_v, float phase_deg, float symm)
-{
-    this->check_channel(channel);
-    stringstream msg;
-    msg << "C" << channel << ":BSWV WVTP,RAMP,";
-    msg << setprecision(3) << fixed;
-    msg << "FRQ,"   << freq_hz << ",";
-    msg << "AMP,"   << ampl_v << ",";
-    msg << "OFST,"  << offset_v << ",";
-    msg << "PHSE,"  << phase_deg << ",";
-    msg << "SYM,"  << 100*symm << "\n";
-    get_comm()->write(msg.str());
-    m_scpi->wait_to_complete();
-    return;
-}
-
-void sdg1000x::set_pulse(unsigned channel, float period_s, float width_s, 
-    float delay_s, float high_v, float low_v, float rise_s, float fall_s)
-{
-    this->check_channel(channel);
-    stringstream msg;
-    msg << "C" << channel << ":BSWV WVTP,PULSE,";
-    msg << setprecision(10) << fixed;
-    msg << "PERI,"  << period_s << ",";
-    msg << "WIDTH," << width_s << ",";
-    msg << "DLY,"   << delay_s << ",";
-    msg << "HLEV,"  << high_v << ",";
-    msg << "LLEV,"  << low_v << ",";
-    msg << "RISE,"  << rise_s << ",";
-    msg << "FALL,"  << fall_s << "\n";
-    get_comm()->write(msg.str());
-    m_scpi->wait_to_complete();
-    return;
-}
-
-void sdg1000x::set_noise(unsigned channel, float mean_v, float stdev_v)
-{
-    this->check_channel(channel);
-    stringstream msg;
-    msg << "C" << channel << ":BSWV WVTP,NOISE,";
-    msg << setprecision(4) << fixed;
-    msg << "MEAN,"  << mean_v << ",";
-    msg << "STDEV,"  << stdev_v << "\n";
-    get_comm()->write(msg.str());
-    m_scpi->wait_to_complete();
-    return;
-}
-
-
-bool sdg1000x::is_sine(unsigned channel)
-{
-    this->check_channel(channel);
-    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
-    string waveform = this->get_bswv_val(bswv, "WVTP");
-    debug_print("Received waveform %s\n", waveform.c_str());
-    if ( waveform.compare("SINE") == 0)
-        return true;
-    return false;
-}
-
-bool sdg1000x::is_square(unsigned channel)
-{
-    this->check_channel(channel);
-    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
-    string waveform = this->get_bswv_val(bswv, "WVTP");
-    debug_print("Received waveform %s\n", waveform.c_str());
-    if ( waveform.compare("SQUARE") == 0)
-        return true;
-
-    return false;
-}
-
-bool sdg1000x::is_ramp(unsigned channel)
-{
-    this->check_channel(channel);
-    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
-    string waveform = this->get_bswv_val(bswv, "WVTP");
-    debug_print("Received waveform %s\n", waveform.c_str());
-    if ( waveform.compare("RAMP") == 0)
-        return true;
-    return false;
-}
-
-bool sdg1000x::is_pulse(unsigned channel)
-{
-    this->check_channel(channel);
-    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
-    string waveform = this->get_bswv_val(bswv, "WVTP");
-    debug_print("Received waveform %s\n", waveform.c_str());
-    if ( waveform.compare("PULSE") == 0)
-        return true;
-    return false;
-}
-
-bool sdg1000x::is_noise(unsigned channel)
-{
-    this->check_channel(channel);
-    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
-    string waveform = this->get_bswv_val(bswv, "WVTP");
-    debug_print("Received waveform %s\n", waveform.c_str());
-    if ( waveform.compare("NOISE") == 0)
-        return true;
-    return false;
-}
-
 
 void sdg1000x::set_freq(unsigned channel, float freq_hz)
 {
@@ -348,6 +242,36 @@ float sdg1000x::get_offset(unsigned channel)
         return 0.;
     debug_print("Received amplitude %s\n", offset.c_str());
     return stof(offset);
+}
+
+void sdg1000x::set_rising(unsigned channel, float rise_s)
+{
+    return;
+}
+
+float sdg1000x::get_rising(unsigned channel)
+{
+    return 0;
+}
+
+void sdg1000x::set_falling(unsigned channel, float fall_s)
+{
+    return;
+}
+
+float sdg1000x::get_falling(unsigned channel)
+{
+    return 0;
+}
+
+void sdg1000x::set_pulse_width(unsigned channel, float width_s)
+{
+    return;
+}
+
+float sdg1000x::get_pulse_width(unsigned channel)
+{
+    return 0;
 }
 
 /*

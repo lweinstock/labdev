@@ -37,10 +37,10 @@ public:
     void set_timeout(unsigned timeout_ms);
 
     // Returns interface type
-    Interface_type type() const override { return tcpip; }
+    Interface_type type() const noexcept override { return TCPIP; }
 
     // Returns human readable info string
-    std::string get_info() const override;
+    std::string get_info() const noexcept override;
 
 private:
     int m_socket_fd;

@@ -24,14 +24,13 @@ void ld_device::set_comm(ld_interface* comm)
 
     // Only connect if not already connected
     if ( this->connected() ) {
-        string err = m_dev_name + ": device is already connected";
-        throw device_error(err);
+        throw device_error(this->get_info() + ": device is already connected");
         return;
     }
 
     // Check if pointer is valid
     if (comm == nullptr) {
-        cerr << m_dev_name << ": received nullptr interface" << endl;
+        cerr << this->get_info() << ": received nullptr interface" << endl;
         abort();
     }
 
@@ -49,8 +48,7 @@ void ld_device::set_comm(ld_interface* comm)
 ld_interface* ld_device::get_comm() const
 {
     if ( !this->connected() ) {
-        std::string err = this->get_info() + ": device is not connected";
-        throw bad_connection(err);
+        throw bad_connection(this->get_info() + ": device is not connected");
         return nullptr;
     }
     return m_comm;

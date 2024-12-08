@@ -12,7 +12,7 @@ namespace labdev{
  *  Interface types
  */
 
-enum Interface_type {none, rs232, tcpip, usb, usbtmc, visa};
+enum Interface_type {NONE, SERIAL, TCPIP, USB, USBTMC, VISA};
 
 /*
  *  Abstract base class for all interfaces
@@ -79,10 +79,10 @@ public:
     virtual bool good() const { return m_good; }
 
     // Returns human readable string with information
-    virtual std::string get_info() const = 0;
+    virtual std::string get_info() const noexcept = 0;
 
     // Returns interface type; can be used to break abstraction
-    virtual Interface_type type() const = 0;
+    virtual Interface_type type() const noexcept = 0;
 
 protected:
     // Can be set by derived classes if the interface is valid and usable

@@ -80,7 +80,7 @@ int eth_to_ser::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
     return m_tcpip_ser.read_raw(data, max_len, timeout_ms);
 }
 
-std::string eth_to_ser::get_info() const
+std::string eth_to_ser::get_info() const noexcept
 {
     // Format example: serial;192.168.1.100:5555;9600;8N1
     stringstream ret("");

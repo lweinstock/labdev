@@ -8,7 +8,7 @@
 CC=g++
 CFLAGS=-Wall --std=c++14 -fPIC
 # Debugging
-CFLAGS+=-g #-D LD_DEBUG
+CFLAGS+=-g -D LD_DEBUG
 
 # Library name and objects
 LIBNAME=liblabdev
@@ -27,7 +27,7 @@ OBJ+=$(SRC)/ld_interface.o
 OBJ+=$(SRC)/serial_port.o
 OBJ+=$(SRC)/eth_to_ser.o
 OBJ+=$(SRC)/tcpip_interface.o
-OBJ+=$(SRC)/libusb_raw.o
+OBJ+=$(SRC)/usb_interface.o
 OBJ+=$(SRC)/usbtmc_interface.o
 
 # Protocols
@@ -45,10 +45,9 @@ OBJ+=$(SRC)/devices/siglent/sdg1000x.o
 OBJ+=$(SRC)/devices/uni-t/ut61b.o
 OBJ+=$(SRC)/devices/rigol/ds1000z.o
 OBJ+=$(SRC)/devices/rigol/dg4000.o
-#OBJ+=$(SRC)/devices/hantek/dso5000p.o
+OBJ+=$(SRC)/devices/keysight/dso1000a.o
 OBJ+=$(SRC)/devices/rohde-schwarz/hmp4000.o
-#OBJ+=$(SRC)/devices/rohde-schwarz/rta4000.o
-#OBJ+=$(SRC)/devices/tektronix/dpo5000b.o
+OBJ+=$(SRC)/devices/tektronix/afg3000.o
 OBJ+=$(SRC)/devices/baumer/om70_l.o
 OBJ+=$(SRC)/devices/jenny-science/xenax_xvi.o
 OBJ+=$(SRC)/devices/musashi/ml_808gx.o
@@ -106,8 +105,10 @@ export PKG_CONF_FILE
 
 # pkg-config .pc file path
 PC_PATH=
-ifeq ($(PC_PATH),)
-  PC_PATH:=$(PREFIX)/lib/pkgconfig
+ifeq ($(PC_PATH),)	# if no path is defined, take the first from pkg-config
+#  PC_PATH:=$(PREFIX)/lib/pkgconfig
+  PC_PATHS=$(shell pkg-config --variable pc_path pkg-config)
+  PC_PATH=$(firstword $(subst :, ,$(PC_PATHS)))
 endif
 
 .PHONY: all clean install uninstall $(LIBNAME).pc
@@ -141,3 +142,6 @@ clean:
 	rm -f $(OBJ)
 	rm -f $(LIBNAME).a
 	rm -f $(LIBNAME).pc
+
+test:
+	@echo $(PC_PATH)

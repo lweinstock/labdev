@@ -6,16 +6,15 @@ using namespace std;
 
 namespace labdev {
 
-usbtmc_interface::usbtmc_interface() : ld_interface(), m_cur_tag(0x01) 
+usbtmc_interface::usbtmc_interface() : usb_interface(), m_cur_tag(0x01) 
 {
-    m_usb.open();
+    this->open();
     return;
 }
 
 usbtmc_interface::usbtmc_interface(uint16_t vid, uint16_t pid, std::string serno) 
-    : ld_interface(), m_cur_tag(0x01) 
+    : usb_interface(vid, pid, serno), m_cur_tag(0x01) 
 {
-    m_usb.open(vid, pid, serno);
     return;
 }
 
@@ -52,7 +51,7 @@ int usbtmc_interface::write_dev_dep_msg(const uint8_t* msg, size_t len,
             usbtmc_message[i] = 0x00;   // zero padding
     }
     debug_print("%s\n", "Sending device dependent message");
-    int nbytes = m_usb.write_bulk((const uint8_t*)usbtmc_message, tot_len);
+    int nbytes = this->write_bulk((const uint8_t*)usbtmc_message, tot_len);
     debug_print_byte_data(usbtmc_message, nbytes, "Written %zu bytes: ", nbytes);
 
     // cleanup
@@ -71,11 +70,11 @@ int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
     debug_print("%s\n", "Sending read request");
     this->create_usbtmc_header(read_request, REQUEST_DEV_DEP_MSG_IN,
         transfer_attr, sizeof(rbuf), term_char);
-    m_usb.write_bulk((const uint8_t*)read_request, s_header_len);
+    this->write_bulk((const uint8_t*)read_request, s_header_len);
 
     // Read from bulk endpoint
     debug_print("%s\n", "Reading device dependent message");
-    int len = m_usb.read_bulk(rbuf, sizeof(rbuf), timeout_ms);
+    int len = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
 
     // If an empty message was received, return immediatly
     if (len == 0)
@@ -88,9 +87,9 @@ int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
     std::copy(rbuf + s_header_len, rbuf + len, data);
     int bytes_received = len - s_header_len;
     while (bytes_received < transfer_size) {
-        int nbytes = m_usb.read_bulk(rbuf, sizeof(rbuf), timeout_ms);
+        int nbytes = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
         if (bytes_received > static_cast<int>(max_len))
-            throw bad_io("Buffer size too small");
+            throw bad_io(this->get_info() + " - Buffer size too small");
         std::copy(rbuf, rbuf + nbytes, data + bytes_received);
         bytes_received += nbytes;
     }
@@ -118,7 +117,7 @@ int usbtmc_interface::write_vendor_specific(string msg)
             usbtmc_message[i] = 0x00;   // zero padding
     }
 
-    int nbytes = m_usb.write_bulk((const uint8_t*)usbtmc_message, tot_len);
+    int nbytes = this->write_bulk((const uint8_t*)usbtmc_message, tot_len);
     // cleanup
     delete[] usbtmc_message;
 
@@ -132,11 +131,11 @@ string usbtmc_interface::read_vendor_specific(int timeout_ms)
     debug_print("%s\n", "Sending vendor specific read request\n");
     this->create_usbtmc_header(read_request, REQUEST_VENDOR_SPECIFIC_IN,
         0x00, sizeof(rbuf), 0x00);
-    m_usb.write_bulk((const uint8_t*)read_request, s_header_len);
+    this->write_bulk((const uint8_t*)read_request, s_header_len);
 
     // Read from bulk endpoint
     debug_print("%s\n", "Reading...\n");
-    int len = m_usb.read_bulk(rbuf, sizeof(rbuf), timeout_ms);
+    int len = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
 
     // If an empty message was received, return immediatly
     if (len == 0)
@@ -151,7 +150,7 @@ string usbtmc_interface::read_vendor_specific(int timeout_ms)
     // If more data than received was anounced in the header, keep reading
     int bytes_left = transfer_size - len;
     while (bytes_left > 0) {
-        int nbytes = m_usb.read_bulk(rbuf, sizeof(rbuf), timeout_ms);
+        int nbytes = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
         ret.append((char*)rbuf, min(bytes_left, nbytes));
         bytes_left -= nbytes;
     }
@@ -223,7 +222,7 @@ int usbtmc_interface::check_usbtmc_header(uint8_t* message, uint8_t message_id)
     if ( message_id != message[0] ) {
         debug_print("Wrong MsgID returned : expected 0x%02X, received 0x%02X\n",
             message_id, message[0]);
-        throw bad_protocol("Wrong MsgID received");
+        throw bad_protocol(this->get_info() + " - Wrong MsgID received");
     }
 
     // Check bTag and ~bTag fields
@@ -232,7 +231,7 @@ int usbtmc_interface::check_usbtmc_header(uint8_t* message, uint8_t message_id)
         debug_print("Wrong bTag/~bTag returned : expected 0x%02X/0x%02X, "
             "received 0x%02X/0x%02X\n", m_cur_tag, inv_cur_tag, message[1], 
             message[2]);
-        throw bad_protocol("Wrong bTag/~bTag received");
+        throw bad_protocol(this->get_info() + " - Wrong bTag/~bTag received");
     }
 
     // Check transfer size

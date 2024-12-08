@@ -1,9 +1,8 @@
-#ifndef DS1000Z_H
-#define DS1000Z_H
+#ifndef DS01000A_H
+#define DS01000A_H
 
 #include <labdev/devices/osci.hh>
 #include <labdev/protocols/scpi.hh>
-#include <labdev/tcpip_interface.hh>
 #include <labdev/usbtmc_interface.hh>
 #include <labdev/visa_interface.hh>
 #include <memory>
@@ -12,33 +11,29 @@
 namespace labdev {
 
 /*
- *  Rigol DS1000Z series oscilloscope
+ *  Keysight 1000 series oscilloscope
  */
 
-class ds1000z : public osci {
+class dso1000a : public osci {
 public:
-    ds1000z();
-    ds1000z(tcpip_interface* tcpip);
-    ds1000z(usbtmc_interface* usbtmc);
-    ds1000z(visa_interface* visa);
-    ~ds1000z();
+    dso1000a();
+    dso1000a(usbtmc_interface* usbtmc);
+    dso1000a(visa_interface* visa);
+    ~dso1000a();
 
-    void connect(tcpip_interface* tcpip);
     void connect(usbtmc_interface* usbtmc);
     void connect(visa_interface* visa);
 
     void disconnect() override;
 
-    static constexpr uint16_t DS1104_VID = 0x1AB1;
-    static constexpr uint16_t DS1104_PID = 0x04CE;
-    static constexpr uint16_t PORT = 5555;
+    static constexpr uint16_t DSO1024A_VID = 0x0957;
+    static constexpr uint16_t DSO1024A_PID = 0x0588;
 
     /* Definition of generic oscilloscope functions */
 
     // Turn channel on/off
     void enable_channel(unsigned channel, bool enable = true) override;
     bool channel_enabled(unsigned channel) override;
-
 
     // Attenuation settings
     void set_atten(unsigned channel, double att) override;
@@ -82,22 +77,21 @@ public:
     void read_sample_data(unsigned channel,  
         std::vector<double> &horz_data, std::vector<double> &vert_data) override;
 
-    /* Definition of DS1000Z series specific functions */
-
+    /* Definition of DSO1000A series specific functions */
+    
 private:
     void init();
     void check_channel(unsigned channel);
-    void set_mem_range(unsigned sta, unsigned sto);
     std::vector<uint8_t> read_mem_data();
 
     std::map<meas_item, std::string> m_meas_string {
         {VMAX, "VMAX"}, {VMIN, "VMIN"}, {VPP, "VPP"}, {VTOP, "VTOP"},
-        {VBASE, "VBAS"}, {VAMP, "VAMP"}, {VAVG, "VAVG"}, {VRMS, "VRMS"}, 
+        {VBASE, "VBAS"}, {VAMP, "VAMP"}, {VAVG, "VAV"}, {VRMS, "VRMS"}, 
         {OVERSHOOT, "OVER"}, {PRESHOOT, "PRES"}, {FREQ, "FREQ"}, 
-        {RISETIME, "RTIM"}, {FALLTIME, "FTIM"}, {POS_WIDTH, "PWID"}, 
+        {RISETIME, "RIS"}, {FALLTIME, "FALL"}, {POS_WIDTH, "PWID"}, 
         {NEG_WIDTH, "NWID"}, {POS_DUTY, "PDUT"}, {NEG_DUTY, "NDUT"}, 
-        {POS_DELAY, "RDEL"}, {NEG_DELAY, "FDEL"}, {POS_PHASE, "RPH"}, 
-        {NEG_PHASE, "FPH"}
+        {POS_DELAY, "PDEL"}, {NEG_DELAY, "NDEL"}, {POS_PHASE, "PPHA"}, 
+        {NEG_PHASE, "NPHA"}
     };
     std::string meas_to_str(meas_item item) { return m_meas_string[item]; }
 

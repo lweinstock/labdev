@@ -6,11 +6,11 @@
 
 namespace labdev{
 
-class libusb_raw : public ld_interface {
+class usb_interface : public ld_interface {
 public:
-    libusb_raw();
-    libusb_raw(uint16_t vid, uint16_t pid, std::string serno = "");
-    virtual ~libusb_raw();
+    usb_interface();
+    usb_interface(uint16_t vid, uint16_t pid, std::string serno = "");
+    virtual ~usb_interface();
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, 
@@ -20,8 +20,8 @@ public:
     void open(uint16_t vid, uint16_t pid, std::string serno = "");
     void close() override;
 
-    std::string get_info() const override;
-    Interface_type type() const override { return usb; }
+    std::string get_info() const noexcept override;
+    Interface_type type() const noexcept override { return USB; }
 
     // libusb-style data transfer to control endpoint (ep0)
     int write_control(uint8_t request_type, uint8_t request, uint16_t value,
