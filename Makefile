@@ -24,7 +24,7 @@ OBJ+=$(SRC)/ld_debug.o
 
 # Interfaces
 OBJ+=$(SRC)/ld_interface.o
-OBJ+=$(SRC)/serial_interface.o
+OBJ+=$(SRC)/serial_port.o
 OBJ+=$(SRC)/eth_to_ser.o
 OBJ+=$(SRC)/tcpip_interface.o
 OBJ+=$(SRC)/usb_interface.o

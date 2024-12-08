@@ -483,6 +483,7 @@ void ds1000z::set_mem_range(unsigned sta, unsigned sto)
     // Set start and stop address
     get_comm()->write(":WAV:STAR " + to_string(sta) + "\n");
     get_comm()->write(":WAV:STOP " + to_string(sto) + "\n");
+    m_scpi->wait_to_complete();
     return;
 }
 

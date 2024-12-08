@@ -163,7 +163,7 @@ void eth_to_ser::apply_settings()
     m_tcpip_cfg.write(head + body);
     string ret = m_tcpip_cfg.read_until("</SCRIPT>");   // End of message
     if ( ret.find("OK") == string::npos )
-        throw bad_protocol(this->get_info() + "Did not receive 'HTTP/1.1 200 OK'");
+        throw bad_protocol("Did not receive 'HTTP/1.1 200 OK'");
     m_tcpip_cfg.close();
 
     // Reconnect to server
@@ -198,29 +198,25 @@ void eth_to_ser::disable_hw_flow_ctrl()
 
 void eth_to_ser::set_dtr()
 {
-    throw exception(this->get_info() + "Setting DTR is currently not supported"
-        " by eth_to_ser");
+    throw exception("Setting DTR is currently not supported by eth_to_ser");
     return;
 }
 
 void eth_to_ser::clear_dtr()
 {
-    throw exception(this->get_info() + "Clearing DTR is currently not supported"
-        " by eth_to_ser");
+    throw exception("Clearing DTR is currently not supported by eth_to_ser");
     return;
 }
 
 void eth_to_ser::set_rts()
 {
-    throw exception(this->get_info() + "Setting RTS is currently not supported"
-        " by eth_to_ser");
+    throw exception("Setting RTS is currently not supported by eth_to_ser");
     return;
 }
 
 void eth_to_ser::clear_rts()
 {
-    throw exception(this->get_info() + "Clearing RTS is currently not supported"
-        " by eth_to_ser");
+    throw exception("Clearing RTS is currently not supported by eth_to_ser");
     return;
 }
 
