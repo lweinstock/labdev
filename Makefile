@@ -18,6 +18,11 @@ OBJ=
 
 # libusb compiler flags
 CFLAGS+=$(shell pkg-config libusb-1.0 --cflags)
+LDFLAGS+=$(shell pkg-config libusb-1.0 --libs)
+
+# FFTW stuff
+CFLAGS+=$(shell pkg-config fftw3 --cflags)
+LDFLAGS+=$(shell pkg-config fftw3 --libs)
 
 # Debugging
 OBJ+=$(SRC)/ld_debug.o
@@ -37,6 +42,7 @@ OBJ+=$(SRC)/protocols/modbus_tcp.o
 # Utilies
 OBJ+=$(SRC)/utils/utils.o
 OBJ+=$(SRC)/utils/config.o
+OBJ+=$(SRC)/utils/waveform.o
 
 # Vendor specific devices
 OBJ+=$(SRC)/devices/ld_device.o
@@ -99,14 +105,13 @@ Description: Library for remote control and operation of lab devices
 Version: 0.0.1
 Cflags: $(PC_CFLAGS)
 Libs: $(PC_LDFLAGS)
-Requires: libusb-1.0 >= 0.29.2
+Requires: libusb-1.0 fftw3
 endef
 export PKG_CONF_FILE
 
 # pkg-config .pc file path
 PC_PATH=
-ifeq ($(PC_PATH),)	# if no path is defined, take the first from pkg-config
-#  PC_PATH:=$(PREFIX)/lib/pkgconfig
+ifeq ($(PC_PATH),)	# if no path is defined, take the first entry from pkg-config
   PC_PATHS=$(shell pkg-config --variable pc_path pkg-config)
   PC_PATH=$(firstword $(subst :, ,$(PC_PATHS)))
 endif
