@@ -18,9 +18,7 @@ public:
     afg3000(std::unique_ptr<visa_interface> visa);
     ~afg3000();
 
-    void connect(std::unique_ptr<tcpip_interface> tcpip);
-    void connect(std::unique_ptr<usbtmc_interface> usbtmc);
-    void connect(std::unique_ptr<visa_interface> visa);
+    void connect(std::unique_ptr<ld_interface> comm) override;
     void disconnect() override;
 
     static constexpr unsigned PORT = 5025;

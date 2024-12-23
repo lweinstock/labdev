@@ -5,6 +5,8 @@
 #include <sstream>
 #include <unistd.h>
 
+using namespace std;
+
 namespace labdev {
 
 hmp4000::hmp4000() 
@@ -35,27 +37,45 @@ hmp4000::~hmp4000()
     return;
 }
 
-void hmp4000::connect(std::unique_ptr<tcpip_interface> tcpip) 
+void hmp4000::connect(std::unique_ptr<ld_interface> comm)
 {
-    // Check and assign interface
-    m_comm = std::move(tcpip);
-
-    if (tcpip->get_port() != hmp4000::PORT)
-    {
-        fprintf(stderr, "HMP4000 only supports port %i\n", hmp4000::PORT);
-        abort();
+    if ( this->connected() ) {
+        string err = this->get_info() + " : device is already connected";
+        throw device_error(err);
+        return;
     }
 
-    this->init();
-    return;
-}
+    Interface_type type = comm->type();
+    if (type == TCPIP) {
+        // Convert to tcpip interface
+        unique_ptr<tcpip_interface> tcpip(
+            dynamic_cast<tcpip_interface*>(comm.release()));
+        
+        // Default port 5025
+        if (tcpip->get_port() != hmp4000::PORT) {
+            fprintf(stderr, "HMP4000 only supports port %i\n", hmp4000::PORT);
+            abort();
+        }
 
-void hmp4000::connect(std::unique_ptr<serial_interface> ser) 
-{
-    // Check and assign interface
-    m_comm = std::move(ser);
+        // Everything seems to be in order
+        m_comm = std::move(tcpip);
+    } else if (type == SERIAL) {
+        // Convert to usbtmc interface
+        unique_ptr<serial_interface> ser(
+            dynamic_cast<serial_interface*>(comm.release()));
 
-    // TODO: check serial port settings!
+        // Everything seems to be in order
+        m_comm = std::move(ser);
+    } else if (type == VISA) {
+        // Convert to usbtmc interface
+        unique_ptr<visa_interface> visa(
+            dynamic_cast<visa_interface*>(comm.release()));
+
+        m_comm = std::move(visa);
+    } else {
+        string err = this->get_info() + " : interface is not supported";
+        throw device_error(err); 
+    } 
 
     this->init();
     return;

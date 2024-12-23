@@ -23,9 +23,7 @@ public:
     ds1000z(std::unique_ptr<visa_interface> visa);
     ~ds1000z();
 
-    void connect(std::unique_ptr<tcpip_interface> tcpip);
-    void connect(std::unique_ptr<usbtmc_interface> usbtmc);
-    void connect(std::unique_ptr<visa_interface> visa);
+    void connect(std::unique_ptr<ld_interface> comm) override;
 
     void disconnect() override;
 

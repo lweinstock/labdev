@@ -17,7 +17,7 @@ public:
     fy6900(std::unique_ptr<serial_interface> ser);
     ~fy6900();
 
-    void connect(std::unique_ptr<serial_interface> ser);
+    void connect(std::unique_ptr<ld_interface> comm) override;
     void disconnect() override { m_comm.reset(); }
 
     static constexpr unsigned BAUD = 115200;

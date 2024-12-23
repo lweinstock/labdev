@@ -14,8 +14,7 @@ public:
     xenax_xvi(std::unique_ptr<tcpip_interface> tcpip);
     ~xenax_xvi();
 
-    void connect(std::unique_ptr<serial_interface> ser);
-    void connect(std::unique_ptr<tcpip_interface> tcpip);
+    void connect(std::unique_ptr<ld_interface> comm) override;
     void disconnect() override;
 
     // XENAX default port 10001

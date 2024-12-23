@@ -13,6 +13,8 @@ public:
       : tcpip_interface(ip_addr, port), m_tid(0x0000) {};
     ~modbus_tcp_interface() {};
 
+    Interface_type type() const noexcept override { return MODBUS_TCP; }
+
     // Function Code 01; read coils -> returns true = on, false = off
     std::vector<bool> read_coils(uint8_t uid, uint16_t addr, uint16_t len);
 

@@ -34,37 +34,50 @@ dg4000::~dg4000()
     return;
 }
 
-void dg4000::connect(std::unique_ptr<tcpip_interface> tcpip)
+void dg4000::connect(std::unique_ptr<ld_interface> comm)
 {
-    // Check and set comm interface
-    m_comm = std::move(tcpip);
-
-    if ( tcpip->get_port() != dg4000::PORT ) {
-        fprintf(stderr, "DG4000 only supports port %i\n", dg4000::PORT);
-        abort();
+    if ( this->connected() ) {
+        string err = this->get_info() + " : device is already connected";
+        throw device_error(err);
+        return;
     }
-    this->init();
-    return;
-}
 
-void dg4000::connect(std::unique_ptr<usbtmc_interface> usbtmc)
-{
-    // Check and set comm interface
-    m_comm = std::move(usbtmc);
+    Interface_type type = comm->type();
+    if (type == TCPIP) {
+        // Convert to tcpip interface
+        unique_ptr<tcpip_interface> tcpip(
+            dynamic_cast<tcpip_interface*>(comm.release()));
+        
+        if ( tcpip->get_port() != dg4000::PORT ) {
+            fprintf(stderr, "DG4000 only supports port %i\n", dg4000::PORT);
+            abort();
+        }
 
-    // USB initialization
-    usbtmc->claim_interface(0);
-    usbtmc->set_endpoint_out(1);
-    usbtmc->set_endpoint_in(2);
+        // Everything seems to be in order
+        m_comm = std::move(tcpip);
+    } else if (type == USBTMC) {
+        // Convert to usbtmc interface
+        unique_ptr<usbtmc_interface> usbtmc(
+            dynamic_cast<usbtmc_interface*>(comm.release()));
 
-    this->init();
-    return;
-}
+        // USB initialization
+        usbtmc->claim_interface(0);
+        usbtmc->set_endpoint_out(1);
+        usbtmc->set_endpoint_in(2);
 
-void dg4000::connect(std::unique_ptr<visa_interface> visa)
-{
-    // Check and set comm interface
-    m_comm = std::move(visa);
+        // Everything seems to be in order
+        m_comm = std::move(usbtmc);
+    } else if (type == VISA) {
+        // Convert to usbtmc interface
+        unique_ptr<visa_interface> visa(
+            dynamic_cast<visa_interface*>(comm.release()));
+
+        m_comm = std::move(visa);
+    } else {
+        string err = this->get_info() + " : interface is not supported";
+        throw device_error(err); 
+    } 
+
     this->init();
     return;
 }

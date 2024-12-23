@@ -12,7 +12,7 @@ namespace labdev{
  *  Interface types
  */
 
-enum Interface_type {NONE, SERIAL, TCPIP, USB, USBTMC, VISA};
+enum Interface_type {NONE, SERIAL, TCPIP, USB, USBTMC, VISA, MODBUS_TCP};
 
 /*
  *  Abstract base class for all interfaces

@@ -24,15 +24,33 @@ fy6900::~fy6900()
     return;
 }
 
-void fy6900::connect(std::unique_ptr<serial_interface> ser)
+void fy6900::connect(std::unique_ptr<ld_interface> comm)
 {
-    // Check and assign interface
-    m_comm = std::move(ser);
-
-    if ( ser->get_baud() != fy6900::BAUD ) {
-        fprintf(stderr, "FY6900 only supports %i baud 8N1\n", fy6900::BAUD);
-        abort();
+    if ( this->connected() ) {
+        string err = this->get_info() + " : device is already connected";
+        throw device_error(err);
+        return;
     }
+
+    Interface_type type = comm->type();
+    if ( type == SERIAL ) {
+        // Convert to serial interface
+        unique_ptr<serial_interface> ser(
+            dynamic_cast<serial_interface*>(comm.release()));
+        
+        // Check baud -> 115200 baud
+        if ( ser->get_baud() != fy6900::BAUD ) {
+            fprintf(stderr, "FY6900 only supports %i baud 8N1\n", fy6900::BAUD);
+            abort();
+        }
+
+        // Everything seems to be in order
+        m_comm = std::move(ser);
+
+    } else {
+        string err = this->get_info() + " : interface is not supported";
+        throw device_error(err); 
+    } 
 
     return;
 }

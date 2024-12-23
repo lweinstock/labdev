@@ -11,7 +11,7 @@ namespace labdev {
 ViSession visa_interface::s_default_rm;
 int visa_interface::s_interface_ctr = 0;
 
-visa_interface::visa_interface(const visa_identifier visa_id) : visa_interface()
+visa_interface::visa_interface(const string visa_id) : visa_interface()
 {
     ViStatus stat;
     debug_print("Opening instrument '%s'\n", visa_id.c_str());

@@ -21,9 +21,7 @@ public:
     dso1000a(std::unique_ptr<visa_interface> visa);
     ~dso1000a();
 
-    void connect(std::unique_ptr<usbtmc_interface> usbtmc);
-    void connect(std::unique_ptr<visa_interface> visa);
-
+    void connect(std::unique_ptr<ld_interface> comm) override;
     void disconnect() override;
 
     static constexpr uint16_t DSO1024A_VID = 0x0957;

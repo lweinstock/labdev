@@ -1,11 +1,20 @@
 #include <labdev/devices/ld_device.hh>
 #include <labdev/exceptions.hh>
 
-#include <iostream>
+#include <unistd.h>
 
 namespace labdev{
 
 using namespace std;
+
+void ld_device::reconnect()
+{
+    m_comm->close();
+    usleep(100e3);
+    m_comm->open();
+    return;
+}
+
 
 std::string ld_device::get_info() const 
 {

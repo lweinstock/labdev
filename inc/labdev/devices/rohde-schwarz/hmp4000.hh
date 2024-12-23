@@ -3,6 +3,7 @@
 
 #include <labdev/tcpip_interface.hh>
 #include <labdev/serial_interface.hh>
+#include <labdev/visa_interface.hh>
 #include <labdev/devices/ld_device.hh>
 #include <labdev/protocols/scpi.hh>
 
@@ -17,12 +18,12 @@ public:
     hmp4000();
     hmp4000(std::unique_ptr<tcpip_interface> tcpip);
     hmp4000(std::unique_ptr<serial_interface> ser);
+    hmp4000(std::unique_ptr<visa_interface> visa);
     ~hmp4000();
 
     static constexpr unsigned PORT = 5025;
 
-    void connect(std::unique_ptr<tcpip_interface> tcpip);
-    void connect(std::unique_ptr<serial_interface> ser);
+    void connect(std::unique_ptr<ld_interface> comm) override;
     void disconnect() override;
 
     // En-/disable channel for output switching

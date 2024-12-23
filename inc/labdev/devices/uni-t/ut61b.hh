@@ -17,8 +17,8 @@ public:
     ut61b(std::unique_ptr<serial_interface> ser);
     ~ut61b() {};
 
-    void connect(std::unique_ptr<serial_interface> ser);
-    void disconnect() override {};
+    void connect(std::unique_ptr<ld_interface> comm) override;
+    void disconnect() override { m_serial.reset(); }
 
     static constexpr unsigned BAUD = 2400;
 

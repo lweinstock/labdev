@@ -13,65 +13,68 @@
 
 namespace labdev{
 
-    /*
-     *      Rohde & Schwarz RTA4000 series oscilloscope
-     */
+/*
+    *      Rohde & Schwarz RTA4000 series oscilloscope
+    */
 
-    class rta4000 : public osci {
-    public:
-        rta4000();
-        rta4000(std::unique_ptr<tcpip_interface> tcpip);
-        rta4000(std::unique_ptr<visa_interface> visa);
-        rta4000(std::unique_ptr<usbtmc_interface> usbtmc);
-        rta4000(serial_interface* serial);
-        ~rta4000() {};
+class rta4000 : public osci {
+public:
+    rta4000();
+    rta4000(std::unique_ptr<tcpip_interface> tcpip);
+    rta4000(std::unique_ptr<usbtmc_interface> usbtmc);
+    rta4000(std::unique_ptr<serial_interface> serial);
+    rta4000(std::unique_ptr<visa_interface> visa);
+    ~rta4000() {};
 
-        static constexpr uint16_t RTA4004_VID = 0x0AAD;
-        static constexpr uint16_t RTA4004_PID = 0x01D6;
+    void connect(std::unique_ptr<ld_interface> comm) override;
 
-        /* Definition of generic oscilloscope functions */
+    static constexpr uint16_t RTA4004_VID = 0x0AAD;
+    static constexpr uint16_t RTA4004_PID = 0x01D6;
 
-        // Turn channel on/off
-        void enable_channel(unsigned channel, bool enable = true) override;
+    /* Definition of generic oscilloscope functions */
 
-        // Attenuation settings
-        void set_atten(unsigned channel, double att) override;
-        double get_atten(unsigned channel) override;
+    // Turn channel on/off
+    void enable_channel(unsigned channel, bool enable = true) override;
 
-        // Vertical settings
-        void set_vert_base(unsigned channel, double volts_per_div) override;
-        double get_vert_base(unsigned channel) override;
+    // Attenuation settings
+    void set_atten(unsigned channel, double att) override;
+    double get_atten(unsigned channel) override;
 
-        // Horizontal settings
-        void set_horz_base(double sec_per_div) override;
-        double get_horz_base() override;
+    // Vertical settings
+    void set_vert_base(unsigned channel, double volts_per_div) override;
+    double get_vert_base(unsigned channel) override;
 
-        // Acquisition settings
-        void run() override;
-        void stop() override;
-        void single_shot() override;
+    // Horizontal settings
+    void set_horz_base(double sec_per_div) override;
+    double get_horz_base() override;
 
-        // Trigger settings
-        void set_trigger_type(trig_type trig) override;
-        void set_trigger_level(double level) override;
-        void set_trigger_source(unsigned channel) override;
+    // Acquisition settings
+    void run() override;
+    void stop() override;
+    void single_shot() override;
 
-        // Returns true if trigger conditions have been met
-        bool triggered() override;
-        // Returns true if data acquisition has stopped
-        bool stopped() override;
+    // Trigger settings
+    void set_trigger_type(trig_type trig) override;
+    void set_trigger_level(double level) override;
+    void set_trigger_source(unsigned channel) override;
 
-        // Read sample data
-        void read_sample_data(unsigned channel, std::vector<double> &horz_data, 
-            std::vector<double> &vert_data) override;
+    // Returns true if trigger conditions have been met
+    bool triggered() override;
+    // Returns true if data acquisition has stopped
+    bool stopped() override;
 
-        /* Definition of RTA4000 series specific functions */
+    // Read sample data
+    void read_sample_data(unsigned channel, std::vector<double> &horz_data, 
+        std::vector<double> &vert_data) override;
 
-    private:
-        void init();
-        void check_channel(unsigned channel);
+    /* Definition of RTA4000 series specific functions */
 
-    };
+private:
+    void init();
+    void check_channel(unsigned channel);
+
+};
+
 }
 
 #endif

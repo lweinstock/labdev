@@ -34,7 +34,7 @@ ml_808gx::~ml_808gx()
     return;
 }
 
-void ml_808gx::connect(std::unique_ptr<serial_interface> ser)
+void ml_808gx::connect(std::unique_ptr<ld_interface> comm)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -42,32 +42,41 @@ void ml_808gx::connect(std::unique_ptr<serial_interface> ser)
         return;
     }
 
-    // Check and assign interface
-    m_comm = std::move(ser);
+    Interface_type type = comm->type();
+    if (type == SERIAL) {
+        // Convert to serial interface
+        unique_ptr<serial_interface> ser(
+            dynamic_cast<serial_interface*>(comm.release()));
 
-    // 8N1, supported baud = 9600/19200/38400 (see manual p. 24)
-    unsigned baud = ser->get_baud();
-    if ( baud != 9600  && baud != 19200 && baud != 38400) {
-        fprintf(stderr, "Baud %i is not supported by ML-808GX\n", baud);
-        abort();
-    }
-    if (ser->get_nbits() != 8) {
-        fprintf(stderr, "Invalid number of bits %u (8N1 required)\n", 
-            ser->get_nbits());
-        abort();
-    }
-    if (ser->get_parity() != false) {
-        fprintf(stderr, "Invalid parity (8N1 required)\n");
-        abort();
-    }
-    if (ser->get_stop_bits() != 1) {
-        fprintf(stderr, "Invalid number of stop bits %u (8N1 required)\n", 
-            ser->get_stop_bits());
-        abort();
-    }
+        // 8N1, supported baud = 9600/19200/38400 (see manual p. 24)
+        unsigned baud = ser->get_baud();
+        if ( baud != 9600  && baud != 19200 && baud != 38400) {
+            fprintf(stderr, "Baud %i is not supported by ML-808GX\n", baud);
+            abort();
+        }
+        if (ser->get_nbits() != 8) {
+            fprintf(stderr, "Invalid number of bits %u (8N1 required)\n", 
+                ser->get_nbits());
+            abort();
+        }
+        if (ser->get_parity() != false) {
+            fprintf(stderr, "Invalid parity (8N1 required)\n");
+            abort();
+        }
+        if (ser->get_stop_bits() != 1) {
+            fprintf(stderr, "Invalid number of stop bits %u (8N1 required)\n", 
+                ser->get_stop_bits());
+            abort();
+        }
 
-    // Everything seems to be in order...
-    this->init();
+        // Everything seems to be in order
+        m_comm = std::move(ser);
+    } else {
+        string err = this->get_info() + " : interface is not supported";
+        throw device_error(err); 
+    } 
+
+    this->init(); 
     return;
 }
 

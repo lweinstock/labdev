@@ -16,35 +16,49 @@ ut61b::ut61b(std::unique_ptr<serial_interface> ser): ut61b()
     return;
 }
 
-void ut61b::connect(std::unique_ptr<serial_interface> ser)
+void ut61b::connect(std::unique_ptr<ld_interface> comm)
 {
-    // Check and assign communication interface
-    m_comm = std::move(ser);
-
-    // Check correct serial setup => 2400 8N1 (manual p. 28)
-    if (ser->get_baud() != ut61b::BAUD) {
-        fprintf(stderr, "Invalid baud rate %u BAUD (2400 8N1 required)\n", 
-            ser->get_baud());
-        abort();
-    }
-    if (ser->get_nbits() != 8) {
-        fprintf(stderr, "Invalid number of bits %u (2400 8N1 required)\n", 
-            ser->get_nbits());
-        abort();
-    }
-    if (ser->get_parity() != false) {
-        fprintf(stderr, "Invalid parity (2400 8N1 required)\n");
-        abort();
-    }
-    if (ser->get_stop_bits() != 1) {
-        fprintf(stderr, "Invalid number of stop bits %u (2400 8N1 required)\n", 
-            ser->get_stop_bits());
-        abort();
+    if ( this->connected() ) {
+        string err = this->get_info() + " : device is already connected";
+        throw device_error(err);
+        return;
     }
 
+    Interface_type type = comm->type();
+    if (type == SERIAL) {
+        // Convert to tcpip interface
+        unique_ptr<serial_interface> ser(
+            dynamic_cast<serial_interface*>(comm.release()));
+
+        // Check correct serial setup => 2400 8N1 (manual p. 28)
+        if (ser->get_baud() != ut61b::BAUD) {
+            fprintf(stderr, "Invalid baud rate %u BAUD (2400 8N1 required)\n", 
+                ser->get_baud());
+            abort();
+        }
+        if (ser->get_nbits() != 8) {
+            fprintf(stderr, "Invalid number of bits %u (2400 8N1 required)\n", 
+                ser->get_nbits());
+            abort();
+        }
+        if (ser->get_parity() != false) {
+            fprintf(stderr, "Invalid parity (2400 8N1 required)\n");
+            abort();
+        }
+        if (ser->get_stop_bits() != 1) {
+            fprintf(stderr, "Invalid number of stop bits %u (2400 8N1 required)\n", 
+                ser->get_stop_bits());
+            abort();
+        }
+
+        // Everything seems to be in order
+        m_comm = std::move(ser);
+    } else {
+        string err = this->get_info() + " : interface is not supported";
+        throw device_error(err); 
+    } 
     return;
 }
-
 
 double ut61b::get_value() {
     // with dtr+ and rts- the multimeter starts sending values

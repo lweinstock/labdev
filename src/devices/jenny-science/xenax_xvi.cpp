@@ -46,48 +46,62 @@ xenax_xvi::~xenax_xvi()
     return;
 }
 
-void xenax_xvi::connect(std::unique_ptr<serial_interface> ser)
+void xenax_xvi::connect(std::unique_ptr<ld_interface> comm)
 {
-    // Check and assign interface
-    m_comm = std::move(ser);
-
-    // Check for correct serial setup => 115200 8N1 (manual p. 28)
-    if (ser->get_baud() != 115200) {
-        fprintf(stderr, "Invalid baud rate %u BAUD; 115200 8N1 required\n", 
-            ser->get_baud());
-        abort();
-    }
-    if (ser->get_nbits() != 8) {
-        fprintf(stderr, "Invalid number of bits %u; 115200 8N1 required\n", 
-            ser->get_nbits());
-        abort();
-    }
-    if (ser->get_parity() != false) {
-        fprintf(stderr, "Invalid parity; 115200 8N1 required\n");
-        abort();
-    }
-    if (ser->get_stop_bits() != 1) {
-        fprintf(stderr, "Invalid number of stop bits %u; 115200 8N1 required\n", 
-            ser->get_stop_bits());
-        abort();
+    if ( this->connected() ) {
+        string err = this->get_info() + " : device is already connected";
+        throw device_error(err);
+        return;
     }
 
-    this->init();
-    return;
-}
+    Interface_type type = comm->type();
+    if (type == SERIAL) {
+        // Convert to serial interface
+        unique_ptr<serial_interface> ser(
+            dynamic_cast<serial_interface*>(comm.release()));
+        
+        // Check for correct serial setup => 115200 8N1 (manual p. 28)
+        if (ser->get_baud() != 115200) {
+            fprintf(stderr, "Invalid baud rate %u BAUD; 115200 8N1 required\n", 
+                ser->get_baud());
+            abort();
+        }
+        if (ser->get_nbits() != 8) {
+            fprintf(stderr, "Invalid number of bits %u; 115200 8N1 required\n", 
+                ser->get_nbits());
+            abort();
+        }
+        if (ser->get_parity() != false) {
+            fprintf(stderr, "Invalid parity; 115200 8N1 required\n");
+            abort();
+        }
+        if (ser->get_stop_bits() != 1) {
+            fprintf(stderr, "Invalid number of stop bits %u; 115200 8N1 required\n", 
+                ser->get_stop_bits());
+            abort();
+        }
 
-void xenax_xvi::connect(std::unique_ptr<tcpip_interface> tcpip)
-{
-    // Check and assign interface
-    m_comm = std::move(tcpip);
+        // Everything seems to be in order
+        m_comm = std::move(ser);
+    } else if (type == TCPIP) {
+        // Convert to tcpip interface
+        unique_ptr<tcpip_interface> tcpip(
+            dynamic_cast<tcpip_interface*>(comm.release()));
 
-    // Check port => 10001
-    if (tcpip->get_port() != xenax_xvi::PORT) {
-        fprintf(stderr, "Invalid port %u (port 10001 required).\n", 
-            tcpip->get_port());
-        abort();
-    }
-    this->init();
+        // Check port => 10001
+        if (tcpip->get_port() != xenax_xvi::PORT) {
+            fprintf(stderr, "Invalid port %u (port 10001 required).\n", tcpip->get_port());
+            abort();
+        }
+
+        // Everything seems to be in order
+        m_comm = std::move(tcpip);
+    } else {
+        string err = this->get_info() + " : interface is not supported";
+        throw device_error(err); 
+    } 
+
+    this->init();    
     return;
 }
 

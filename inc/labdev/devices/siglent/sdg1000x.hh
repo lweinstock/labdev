@@ -18,9 +18,7 @@ public:
     sdg1000x(std::unique_ptr<visa_interface> visa);
     ~sdg1000x();
 
-    void connect(std::unique_ptr<tcpip_interface> tcpip);
-    void connect(std::unique_ptr<usbtmc_interface> usbtmc);
-    void connect(std::unique_ptr<visa_interface> visa);
+    void connect(std::unique_ptr<ld_interface> comm) override;
     void disconnect() override;
 
     static constexpr unsigned PORT = 5025;

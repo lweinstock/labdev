@@ -14,7 +14,7 @@ public:
     ml_808gx(std::unique_ptr<serial_interface> ser);
     ~ml_808gx();
 
-    void connect(std::unique_ptr<serial_interface> ser);
+    void connect(std::unique_ptr<ld_interface> comm) override;
     void disconnect() override;
 
     // Dispense glue using parameters from current channel

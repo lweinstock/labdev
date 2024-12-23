@@ -17,8 +17,14 @@ public:
     ld_device(const ld_device&) = delete;
     ld_device& operator=(const ld_device&) = delete;
 
+    // Connect to provided communication interface
+    virtual void connect(std::unique_ptr<ld_interface> comm) = 0;
+
     // Disconnect device from communication interface
     virtual void disconnect() = 0;
+
+    // Re-establish connection
+    void reconnect();
 
     // Returns true if the device has a valid connection
     bool connected() const { return (m_comm ? m_comm->good() : false); }

@@ -9,14 +9,14 @@ using namespace std;
 namespace labdev {
 
 om70_l::om70_l() 
-    : ld_device("Baumer,OM70-L"), m_modbus(nullptr), m_quality(0),  m_dist(0),
-      m_sr(0), m_exp(0), m_quality_vec(), m_dist_vec(), m_sr_vec(), m_exp_vec(),
-      m_config_mode(false)
+  : ld_device("Baumer,OM70-L"), m_modbus(nullptr), m_quality(0),  m_dist(0),
+    m_sr(0), m_exp(0), m_quality_vec(), m_dist_vec(), m_sr_vec(), m_exp_vec(),
+    m_config_mode(false)
 {
     return;
 }
 
-om70_l::om70_l(std::unique_ptr<modbus_tcp_interface> tcpip) : om70_l() 
+om70_l::om70_l(unique_ptr<modbus_tcp_interface> tcpip) : om70_l() 
 {
     this->connect(std::move(tcpip));
     return;
@@ -24,12 +24,12 @@ om70_l::om70_l(std::unique_ptr<modbus_tcp_interface> tcpip) : om70_l()
 
 om70_l::~om70_l()
 {
-    if (this->connected())
+    if (this->connected()) 
         this->disconnect();
     return;
 }
 
-void om70_l::connect(std::unique_ptr<modbus_tcp_interface> tcpip)
+void om70_l::connect(unique_ptr<ld_interface> comm)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -37,16 +37,26 @@ void om70_l::connect(std::unique_ptr<modbus_tcp_interface> tcpip)
         return;
     }
 
-    // Check and assign interface
-    m_comm = std::move(tcpip);  // TODO: not sure if this is actually needed..?
+    Interface_type type = comm->type();
+    if ( type == MODBUS_TCP ) {
+        // Convert to MODBUS TCP interface
+        unique_ptr<modbus_tcp_interface> modbus_tcp(
+            dynamic_cast<modbus_tcp_interface*>(comm.release()));
 
-    // Check port -> 502
-    if (tcpip->get_port() != om70_l::PORT) {
-        fprintf(stderr, "OM70-L only supports port %u.\n", om70_l::PORT);
-        abort();
-    }
+        // Check port -> 502
+        if (modbus_tcp->get_port() != om70_l::PORT) {
+            fprintf(stderr, "OM70-L only supports port %u.\n", om70_l::PORT);
+            abort();
+        }
 
-    // Create modbus interface (TODO)
+        // Everything seems to be in order
+        m_modbus = std::move(modbus_tcp);
+
+    } else {
+        string err = this->get_info() + " : interface is not supported";
+        throw device_error(err); 
+    } 
+
     this->enable_laser();
     return;
 }
@@ -164,7 +174,7 @@ vector<float> om70_l::get_measurement_mem()
  *      P R I V A T E   M E T H O D S
  */
 
-void om70_l::extract_mem_meas(std::vector<uint16_t> data, float &dist, 
+void om70_l::extract_mem_meas(vector<uint16_t> data, float &dist, 
     int &quality, float &sample_rate, float &exposure)
 {
     if (data.size() != 16) {

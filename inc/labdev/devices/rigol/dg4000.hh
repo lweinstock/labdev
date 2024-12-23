@@ -23,9 +23,7 @@ public:
     dg4000(std::unique_ptr<visa_interface> visa);
     ~dg4000();
 
-    void connect(std::unique_ptr<tcpip_interface> tcpip);
-    void connect(std::unique_ptr<usbtmc_interface> usbtmc);
-    void connect(std::unique_ptr<visa_interface> visa);
+    void connect(std::unique_ptr<ld_interface> comm) override;
     void disconnect() override;
 
     static constexpr uint16_t DG4162_VID = 0x1AB1;

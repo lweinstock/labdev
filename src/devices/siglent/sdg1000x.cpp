@@ -38,30 +38,49 @@ sdg1000x::~sdg1000x()
     return;
 }
 
-
-void sdg1000x::connect(std::unique_ptr<tcpip_interface> tcpip)
+void sdg1000x::connect(std::unique_ptr<ld_interface> comm)
 {
-    // Check and assign interface
-    m_comm = std::move(tcpip);
-
-    if (tcpip->get_port() != sdg1000x::PORT)
-    {
-        fprintf(stderr, "SDG1000X only supports port %i\n", sdg1000x::PORT);
-        abort();
+    if ( this->connected() ) {
+        string err = this->get_info() + " : device is already connected";
+        throw device_error(err);
+        return;
     }
 
-    this->init();
-    return;
-}
+    Interface_type type = comm->type();
+    if (type == TCPIP) {
+        // Convert to tcpip interface
+        unique_ptr<tcpip_interface> tcpip(
+            dynamic_cast<tcpip_interface*>(comm.release()));
+        
+        if (tcpip->get_port() != sdg1000x::PORT) {
+            fprintf(stderr, "SDG1000X only supports port %i\n", sdg1000x::PORT);
+            abort();
+        }
 
-void sdg1000x::connect(std::unique_ptr<usbtmc_interface> usbtmc)
-{
-    // Check and assign interface
-    m_comm = std::move(usbtmc);
+        // Everything seems to be in order
+        m_comm = std::move(tcpip);
+    } else if (type == USBTMC) {
+        // Convert to usbtmc interface
+        unique_ptr<usbtmc_interface> usbtmc(
+            dynamic_cast<usbtmc_interface*>(comm.release()));
 
-    usbtmc->claim_interface(0);
-    usbtmc->set_endpoint_in(0);
-    usbtmc->set_endpoint_out(1);
+        // USB initialization
+        usbtmc->claim_interface(0);
+        usbtmc->set_endpoint_in(0);
+        usbtmc->set_endpoint_out(1);
+
+        // Everything seems to be in order
+        m_comm = std::move(usbtmc);
+    } else if (type == VISA) {
+        // Convert to visa interface
+        unique_ptr<visa_interface> visa(
+            dynamic_cast<visa_interface*>(comm.release()));
+
+        m_comm = std::move(visa);
+    } else {
+        string err = this->get_info() + " : interface is not supported";
+        throw device_error(err); 
+    } 
 
     this->init();
     return;
@@ -70,15 +89,6 @@ void sdg1000x::connect(std::unique_ptr<usbtmc_interface> usbtmc)
 void sdg1000x::disconnect()
 {
     m_comm.reset();
-    return;
-}
-
-void sdg1000x::connect(std::unique_ptr<visa_interface> visa)
-{
-    // Check and assign interface
-    m_comm = std::move(visa);
-
-    this->init();
     return;
 }
 

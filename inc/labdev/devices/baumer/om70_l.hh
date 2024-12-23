@@ -13,7 +13,7 @@ public:
     om70_l(std::unique_ptr<modbus_tcp_interface> modbus);
     ~om70_l();
 
-    void connect(std::unique_ptr<modbus_tcp_interface> modbus);
+    void connect(std::unique_ptr<ld_interface> comm) override;
     void disconnect() override;
 
     // OM70 default port 502
