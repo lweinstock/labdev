@@ -18,14 +18,14 @@ enum Interface_type {NONE, SERIAL, TCPIP, USB, USBTMC, VISA, MODBUS_TCP, MODBUS_
  *  Abstract base class for all interfaces
  */
 
-class ld_interface {
+class ld_iface {
 public:
-    ld_interface() : m_good(false) {};
-    virtual ~ld_interface() {};
+    ld_iface() : m_good(false) {};
+    virtual ~ld_iface() {};
 
     // No copy ctor or assignment; interfaces are unique physical entities
-    ld_interface(const ld_interface&) = delete;
-    ld_interface& operator=(const ld_interface&) = delete;
+    ld_iface(const ld_iface&) = delete;
+    ld_iface& operator=(const ld_iface&) = delete;
 
     /*
      *      Default values

@@ -2,9 +2,9 @@
 #define SDG1000X_HH
 
 #include <labdev/devices/fgen.hh>
-#include <labdev/tcpip_interface.hh>
-#include <labdev/usbtmc_interface.hh>
-#include <labdev/visa_interface.hh>
+#include <labdev/tcpip_iface.hh>
+#include <labdev/usbtmc_iface.hh>
+#include <labdev/visa_iface.hh>
 #include <labdev/protocols/scpi.hh>
 #include <map>
 
@@ -13,12 +13,12 @@ namespace labdev {
 class sdg1000x: public fgen {
 public:
     sdg1000x();
-    sdg1000x(std::unique_ptr<tcpip_interface> tcpip);
-    sdg1000x(std::unique_ptr<usbtmc_interface> usbtmc);
-    sdg1000x(std::unique_ptr<visa_interface> visa);
+    sdg1000x(std::unique_ptr<tcpip_iface> tcpip);
+    sdg1000x(std::unique_ptr<usbtmc_iface> usbtmc);
+    sdg1000x(std::unique_ptr<visa_iface> visa);
     ~sdg1000x();
 
-    void connect(std::unique_ptr<ld_interface> comm) override;
+    void connect(std::unique_ptr<ld_iface> comm) override;
     void disconnect() override;
 
     static constexpr unsigned PORT = 5025;

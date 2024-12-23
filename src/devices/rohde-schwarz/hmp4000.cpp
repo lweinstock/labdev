@@ -16,14 +16,14 @@ hmp4000::hmp4000()
 }
 
 
-hmp4000::hmp4000(std::unique_ptr<tcpip_interface> tcpip) : hmp4000() 
+hmp4000::hmp4000(std::unique_ptr<tcpip_iface> tcpip) : hmp4000() 
 {
     this->connect(std::move(tcpip));
     this->init();
     return;
 }
 
-hmp4000::hmp4000(std::unique_ptr<serial_interface> ser) : hmp4000() 
+hmp4000::hmp4000(std::unique_ptr<serial_iface> ser) : hmp4000() 
 {
     this->connect(std::move(ser));
     this->init();
@@ -37,7 +37,7 @@ hmp4000::~hmp4000()
     return;
 }
 
-void hmp4000::connect(std::unique_ptr<ld_interface> comm)
+void hmp4000::connect(std::unique_ptr<ld_iface> comm)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -48,8 +48,8 @@ void hmp4000::connect(std::unique_ptr<ld_interface> comm)
     Interface_type type = comm->type();
     if (type == TCPIP) {
         // Convert to tcpip interface
-        unique_ptr<tcpip_interface> tcpip(
-            dynamic_cast<tcpip_interface*>(comm.release()));
+        unique_ptr<tcpip_iface> tcpip(
+            dynamic_cast<tcpip_iface*>(comm.release()));
         
         // Default port 5025
         if (tcpip->get_port() != hmp4000::PORT) {
@@ -61,15 +61,15 @@ void hmp4000::connect(std::unique_ptr<ld_interface> comm)
         m_comm = std::move(tcpip);
     } else if (type == SERIAL) {
         // Convert to usbtmc interface
-        unique_ptr<serial_interface> ser(
-            dynamic_cast<serial_interface*>(comm.release()));
+        unique_ptr<serial_iface> ser(
+            dynamic_cast<serial_iface*>(comm.release()));
 
         // Everything seems to be in order
         m_comm = std::move(ser);
     } else if (type == VISA) {
         // Convert to usbtmc interface
-        unique_ptr<visa_interface> visa(
-            dynamic_cast<visa_interface*>(comm.release()));
+        unique_ptr<visa_iface> visa(
+            dynamic_cast<visa_iface*>(comm.release()));
 
         m_comm = std::move(visa);
     } else {

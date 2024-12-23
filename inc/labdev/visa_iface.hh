@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include <labdev/ld_interface.hh>
+#include <labdev/ld_iface.hh>
 #include <labdev/exceptions.hh>
 
 #ifdef LDVISA
@@ -17,10 +17,10 @@
 
 namespace labdev {
 
-class visa_interface : public ld_interface {
+class visa_iface : public ld_iface {
 public:
-    visa_interface(std::string visa_id);
-    virtual ~visa_interface();
+    visa_iface(std::string visa_id);
+    virtual ~visa_iface();
 
     // Find all available VISA resource, returns list of VISA IDs
     std::vector<std::string> find_resources(std::string regex = "?*INSTR");
@@ -39,10 +39,10 @@ public:
 
 private:   
     // Private default ctor
-    visa_interface();
+    visa_iface();
 
     static ViSession s_default_rm;
-    static int s_interface_ctr;
+    static int s_iface_ctr;
     ViSession m_instr;
     std::string m_visa_id;
     unsigned m_timeout;
@@ -61,11 +61,11 @@ private:
 
 namespace labdev {
 
-class visa_interface : public ld_interface {
+class visa_iface : public ld_iface {
 public:
 
-    visa_interface(std::string visa_id) : visa_interface() {};
-    virtual ~visa_interface() {};
+    visa_iface(std::string visa_id) : visa_iface() {};
+    virtual ~visa_iface() {};
 
     int write_raw(const uint8_t* data, size_t len) override { return -1; }
     int read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) override
@@ -80,7 +80,7 @@ public:
     void clear_device() {};
 
 private:
-    visa_interface() {
+    visa_iface() {
         fprintf(stderr, "labdev compiled without VISA support. To enable recompile using 'make VISA=1'.\n");
         abort();
     }

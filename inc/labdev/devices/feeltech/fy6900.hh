@@ -1,7 +1,7 @@
 #ifndef FY6900_HH
 #define FY6900_HH
 
-#include <labdev/serial_interface.hh>
+#include <labdev/serial_iface.hh>
 #include <labdev/devices/fgen.hh>
 #include <map>
 
@@ -14,10 +14,10 @@ namespace labdev {
 class fy6900 : public fgen {
 public:
     fy6900() : fgen(2, "FeelTech,FY6900") {};
-    fy6900(std::unique_ptr<serial_interface> ser);
+    fy6900(std::unique_ptr<serial_iface> ser);
     ~fy6900();
 
-    void connect(std::unique_ptr<ld_interface> comm) override;
+    void connect(std::unique_ptr<ld_iface> comm) override;
     void disconnect() override { m_comm.reset(); }
 
     static constexpr unsigned BAUD = 115200;

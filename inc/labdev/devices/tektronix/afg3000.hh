@@ -2,9 +2,9 @@
 #define AFG3000_HH
 
 #include <labdev/devices/fgen.hh>
-#include <labdev/tcpip_interface.hh>
-#include <labdev/usbtmc_interface.hh>
-#include <labdev/visa_interface.hh>
+#include <labdev/tcpip_iface.hh>
+#include <labdev/usbtmc_iface.hh>
+#include <labdev/visa_iface.hh>
 #include <labdev/protocols/scpi.hh>
 #include <map>
 
@@ -13,12 +13,12 @@ namespace labdev {
 class afg3000: public fgen {
 public:
     afg3000();
-    afg3000(std::unique_ptr<tcpip_interface> tcpip);
-    afg3000(std::unique_ptr<usbtmc_interface> usbtmc);
-    afg3000(std::unique_ptr<visa_interface> visa);
+    afg3000(std::unique_ptr<tcpip_iface> tcpip);
+    afg3000(std::unique_ptr<usbtmc_iface> usbtmc);
+    afg3000(std::unique_ptr<visa_iface> visa);
     ~afg3000();
 
-    void connect(std::unique_ptr<ld_interface> comm) override;
+    void connect(std::unique_ptr<ld_iface> comm) override;
     void disconnect() override;
 
     static constexpr unsigned PORT = 5025;

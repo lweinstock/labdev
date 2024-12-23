@@ -1,9 +1,9 @@
 #ifndef DG4000_H
 #define DG4000_H
 
-#include <labdev/tcpip_interface.hh>
-#include <labdev/visa_interface.hh>
-#include <labdev/usbtmc_interface.hh>
+#include <labdev/tcpip_iface.hh>
+#include <labdev/visa_iface.hh>
+#include <labdev/usbtmc_iface.hh>
 #include <labdev/devices/fgen.hh>
 #include <labdev/protocols/scpi.hh>
 #include <memory>
@@ -18,12 +18,12 @@ namespace labdev {
 class dg4000 : public fgen {
 public:
     dg4000() : fgen(2, "Rigol,DG4000") {};
-    dg4000(std::unique_ptr<tcpip_interface> tcpip);
-    dg4000(std::unique_ptr<usbtmc_interface> usbtmc);
-    dg4000(std::unique_ptr<visa_interface> visa);
+    dg4000(std::unique_ptr<tcpip_iface> tcpip);
+    dg4000(std::unique_ptr<usbtmc_iface> usbtmc);
+    dg4000(std::unique_ptr<visa_iface> visa);
     ~dg4000();
 
-    void connect(std::unique_ptr<ld_interface> comm) override;
+    void connect(std::unique_ptr<ld_iface> comm) override;
     void disconnect() override;
 
     static constexpr uint16_t DG4162_VID = 0x1AB1;

@@ -3,11 +3,11 @@
 
 #include <vector>
 
-class modbus_interface 
+class modbus_iface 
 {
 public:
-    modbus_interface() {};
-    virtual ~modbus_interface() {};
+    modbus_iface() {};
+    virtual ~modbus_iface() {};
 
     // Function Code 01; read coils -> returns true = on, false = off
     virtual std::vector<bool> read_coils(uint8_t uid, uint16_t addr, 

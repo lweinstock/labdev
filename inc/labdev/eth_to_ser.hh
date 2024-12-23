@@ -1,8 +1,8 @@
 #ifndef LD_ETH_TO_SER_HH
 #define LD_ETH_TO_SER_HH
 
-#include <labdev/serial_interface.hh>
-#include <labdev/tcpip_interface.hh>
+#include <labdev/serial_iface.hh>
+#include <labdev/tcpip_iface.hh>
 
 namespace labdev{
 
@@ -11,7 +11,7 @@ namespace labdev{
  *      ethernet to serial converter
  */
 
-class eth_to_ser : public serial_interface {
+class eth_to_ser : public serial_iface {
 public:
     eth_to_ser();
     eth_to_ser(std::string ip_addr, unsigned port, unsigned baud = 9600, 
@@ -69,7 +69,7 @@ public:
     void clear_rts() override;
 
 private:
-    tcpip_interface m_tcpip_cfg, m_tcpip_ser;
+    tcpip_iface m_tcpip_cfg, m_tcpip_ser;
     std::string m_ip_addr;
     unsigned m_port;
     unsigned m_flc;

@@ -9,19 +9,19 @@ using namespace std;
 
 namespace labdev {
 
-dg4000::dg4000(std::unique_ptr<tcpip_interface> tcpip): dg4000()
+dg4000::dg4000(std::unique_ptr<tcpip_iface> tcpip): dg4000()
 {
     this->connect(std::move(tcpip));
     return;
 }
 
-dg4000::dg4000(std::unique_ptr<visa_interface> visa): dg4000()
+dg4000::dg4000(std::unique_ptr<visa_iface> visa): dg4000()
 {
     this->connect(std::move(visa));
     return;
 }
 
-dg4000::dg4000(std::unique_ptr<usbtmc_interface> usbtmc): dg4000()
+dg4000::dg4000(std::unique_ptr<usbtmc_iface> usbtmc): dg4000()
 {
     this->connect(std::move(usbtmc));
     return;
@@ -34,7 +34,7 @@ dg4000::~dg4000()
     return;
 }
 
-void dg4000::connect(std::unique_ptr<ld_interface> comm)
+void dg4000::connect(std::unique_ptr<ld_iface> comm)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -45,8 +45,8 @@ void dg4000::connect(std::unique_ptr<ld_interface> comm)
     Interface_type type = comm->type();
     if (type == TCPIP) {
         // Convert to tcpip interface
-        unique_ptr<tcpip_interface> tcpip(
-            dynamic_cast<tcpip_interface*>(comm.release()));
+        unique_ptr<tcpip_iface> tcpip(
+            dynamic_cast<tcpip_iface*>(comm.release()));
         
         if ( tcpip->get_port() != dg4000::PORT ) {
             fprintf(stderr, "DG4000 only supports port %i\n", dg4000::PORT);
@@ -57,11 +57,11 @@ void dg4000::connect(std::unique_ptr<ld_interface> comm)
         m_comm = std::move(tcpip);
     } else if (type == USBTMC) {
         // Convert to usbtmc interface
-        unique_ptr<usbtmc_interface> usbtmc(
-            dynamic_cast<usbtmc_interface*>(comm.release()));
+        unique_ptr<usbtmc_iface> usbtmc(
+            dynamic_cast<usbtmc_iface*>(comm.release()));
 
         // USB initialization
-        usbtmc->claim_interface(0);
+        usbtmc->claim_iface(0);
         usbtmc->set_endpoint_out(1);
         usbtmc->set_endpoint_in(2);
 
@@ -69,8 +69,8 @@ void dg4000::connect(std::unique_ptr<ld_interface> comm)
         m_comm = std::move(usbtmc);
     } else if (type == VISA) {
         // Convert to usbtmc interface
-        unique_ptr<visa_interface> visa(
-            dynamic_cast<visa_interface*>(comm.release()));
+        unique_ptr<visa_iface> visa(
+            dynamic_cast<visa_iface*>(comm.release()));
 
         m_comm = std::move(visa);
     } else {

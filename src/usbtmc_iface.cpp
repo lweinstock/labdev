@@ -1,4 +1,4 @@
-#include <labdev/usbtmc_interface.hh>
+#include <labdev/usbtmc_iface.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/ld_debug.hh>
 
@@ -6,34 +6,34 @@ using namespace std;
 
 namespace labdev {
 
-usbtmc_interface::usbtmc_interface() : usb_interface(), m_cur_tag(0x01) 
+usbtmc_iface::usbtmc_iface() : usb_iface(), m_cur_tag(0x01) 
 {
     this->open();
     return;
 }
 
-usbtmc_interface::usbtmc_interface(uint16_t vid, uint16_t pid, std::string serno) 
-    : usb_interface(vid, pid, serno), m_cur_tag(0x01) 
+usbtmc_iface::usbtmc_iface(uint16_t vid, uint16_t pid, std::string serno) 
+    : usb_iface(vid, pid, serno), m_cur_tag(0x01) 
 {
     return;
 }
 
-usbtmc_interface::~usbtmc_interface()
+usbtmc_iface::~usbtmc_iface()
 {
     return;
 }
 
-int usbtmc_interface::write_raw(const uint8_t* data, size_t len) 
+int usbtmc_iface::write_raw(const uint8_t* data, size_t len) 
 {
     return this->write_dev_dep_msg(data, len);
 }
 
-int usbtmc_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
+int usbtmc_iface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
 {
     return this->read_dev_dep_msg(data, max_len, timeout_ms);
 }
 
-int usbtmc_interface::write_dev_dep_msg(const uint8_t* msg, size_t len,
+int usbtmc_iface::write_dev_dep_msg(const uint8_t* msg, size_t len,
     uint8_t transfer_attr) 
 {
     // add space for header + total length must be multiple of 4
@@ -60,7 +60,7 @@ int usbtmc_interface::write_dev_dep_msg(const uint8_t* msg, size_t len,
     return nbytes;
 }
 
-int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
+int usbtmc_iface::read_dev_dep_msg(uint8_t* data, size_t max_len,
     int timeout_ms, uint8_t transfer_attr, uint8_t term_char) 
 {
     uint8_t read_request[HEADER_LEN];
@@ -101,7 +101,7 @@ int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
     return bytes_received;
 }
 
-int usbtmc_interface::write_vendor_specific(string msg) 
+int usbtmc_iface::write_vendor_specific(string msg) 
 {
     // add space for header + total length must be multiple of 4
     size_t tot_len = HEADER_LEN + msg.size() + 4 - msg.size()%4;
@@ -124,7 +124,7 @@ int usbtmc_interface::write_vendor_specific(string msg)
     return nbytes;
 }
 
-string usbtmc_interface::read_vendor_specific(int timeout_ms) 
+string usbtmc_iface::read_vendor_specific(int timeout_ms) 
 {
     uint8_t read_request[HEADER_LEN], rbuf[BUF_SIZE];
     // Send read request
@@ -162,7 +162,7 @@ string usbtmc_interface::read_vendor_specific(int timeout_ms)
     return ret;
 }
 
-void usbtmc_interface::clear_buffer() 
+void usbtmc_iface::clear_buffer() 
 {
     uint8_t buf[1] {0};
     m_usb.write_control(LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
@@ -175,7 +175,7 @@ void usbtmc_interface::clear_buffer()
  *      P R I V A T E   M E T H O D S
  */
 
-void usbtmc_interface::create_usbtmc_header(uint8_t* header, uint8_t message_id, 
+void usbtmc_iface::create_usbtmc_header(uint8_t* header, uint8_t message_id, 
     uint8_t transfer_attr, uint32_t transfer_size, uint8_t term_char) 
 {
     // Create USBTMC header
@@ -216,7 +216,7 @@ void usbtmc_interface::create_usbtmc_header(uint8_t* header, uint8_t message_id,
     return;
 }
 
-int usbtmc_interface::check_usbtmc_header(uint8_t* message, uint8_t message_id) 
+int usbtmc_iface::check_usbtmc_header(uint8_t* message, uint8_t message_id) 
 {
     // Check MsgID field
     if ( message_id != message[0] ) {

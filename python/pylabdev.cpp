@@ -2,8 +2,8 @@
 #include <pybind11/stl.h>
 #include <tuple>
 
-#include <labdev/ld_interface.hh>
-#include <labdev/tcpip_interface.hh>
+#include <labdev/ld_iface.hh>
+#include <labdev/tcpip_iface.hh>
 
 #include <labdev/devices/ld_device.hh>
 #include <labdev/devices/jenny-science/xenax_xvi.hh>
@@ -15,8 +15,8 @@ namespace py = pybind11;
 using std::string;
 using std::tuple;
 
-using labdev::ld_interface;
-using labdev::tcpip_interface;
+using labdev::ld_iface;
+using labdev::tcpip_iface;
 
 using labdev::ld_device;
 using labdev::xenax_xvi;
@@ -29,27 +29,27 @@ PYBIND11_MODULE(pylabdev, m) {
     /*   I N T E R F A C E S   */
 
     // Interface base class
-    py::class_<ld_interface>(m, "ld_interface")
+    py::class_<ld_iface>(m, "ld_iface")
         .def("write",
-            &ld_interface::write,
+            &ld_iface::write,
             "Write string",
             py::arg("msg"))
         .def("read",
-            &ld_interface::read,
+            &ld_iface::read,
             "Read string",
             py::arg("timeout_ms") = 2000)
         .def("query",
-            &ld_interface::query,
+            &ld_iface::query,
             "Send a query and return the resulting string",
             py::arg("msg"),
             py::arg("timeout_ms") = 2000)
         .def("good",
-            &ld_interface::good,
+            &ld_iface::good,
             "Returns true if the interface is operable")
     ;
 
     // TCP/IP interface
-    py::class_<tcpip_interface, ld_interface>(m, "tcpip_interface")
+    py::class_<tcpip_iface, ld_iface>(m, "tcpip_iface")
         .def(py::init<>(),
             "Create unconnected, empty TCP/IP interface")
         .def(py::init<string, unsigned>(),
@@ -57,40 +57,40 @@ PYBIND11_MODULE(pylabdev, m) {
             py::arg("port"),
             "Create TCP/IP interface to specified IP address and port")
         .def("open",
-            static_cast<void (tcpip_interface::*)()>(&tcpip_interface::open),
+            static_cast<void (tcpip_iface::*)()>(&tcpip_iface::open),
             "Open TCP/IP socket with stored IP address and port")
         .def("open",
-            static_cast<void (tcpip_interface::*)(std::string, unsigned)>
-                (&tcpip_interface::open),
+            static_cast<void (tcpip_iface::*)(std::string, unsigned)>
+                (&tcpip_iface::open),
             "Open TCP/IP socket with specified IP address and port")
         .def("close",
-            &tcpip_interface::close,
+            &tcpip_iface::close,
             "Close current TCP/IP socket")
         .def("write_raw",
-            &tcpip_interface::write_raw,
+            &tcpip_iface::write_raw,
             "Write array of bytes",
             py::arg("data"),
             py::arg("len"))
         .def("read_raw",
-            &tcpip_interface::read_raw,
+            &tcpip_iface::read_raw,
             "Read array of bytes",
             py::arg("data"),
             py::arg("max_len"),
             py::arg("timeout_ms") = 2000)
         .def("set_ip",
-            &tcpip_interface::set_ip,
+            &tcpip_iface::set_ip,
             "Store specified IP address")
         .def("get_ip",
-            &tcpip_interface::get_ip,
+            &tcpip_iface::get_ip,
             "Returns stored IP address")
         .def("set_port",
-            &tcpip_interface::set_port,
+            &tcpip_iface::set_port,
             "Store specified port")
         .def("get_port",
-            &tcpip_interface::get_port,
+            &tcpip_iface::get_port,
             "Returns stored port")
         .def("set_timeout",
-            &tcpip_interface::set_timeout,
+            &tcpip_iface::set_timeout,
             "Set the read/write timeout in ms")
     ;
 
@@ -107,7 +107,7 @@ PYBIND11_MODULE(pylabdev, m) {
     py::class_<xenax_xvi, ld_device> xenax_xvi(m, "xenax_xvi");
         xenax_xvi.def_property_readonly_static("dflt_port", 
             [](py::object) { return xenax_xvi::PORT; })
-        .def(py::init<tcpip_interface*>(),
+        .def(py::init<tcpip_iface*>(),
             py::arg("tcpip"))
         .def("__repr__", 
             [](const class xenax_xvi &self) {
@@ -247,7 +247,7 @@ PYBIND11_MODULE(pylabdev, m) {
     py::class_<om70_l, ld_device>(m, "om70_l")
         .def_property_readonly_static("dflt_port", 
             [](py::object) { return om70_l::PORT; })
-        .def(py::init<tcpip_interface*>())
+        .def(py::init<tcpip_iface*>())
         .def("__repr__", 
             [](const om70_l &self) {
                 return self.get_info();
@@ -290,7 +290,7 @@ PYBIND11_MODULE(pylabdev, m) {
  /*   
     // Musashi time-pressure dispenser ML-808 GX
     py::class_<ml_808gx, ld_device>(m, "ml_808gx")
-        .def(py::init<tcpip_interface>())
+        .def(py::init<tcpip_iface>())
         .def("__repr__", 
             [](const ml_808gx &self) {
                 return "ML-808gx dispenser unit, "

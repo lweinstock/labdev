@@ -3,8 +3,8 @@
 #include <cmath>
 #include <fstream>
 
-#include <labdev/tcpip_interface.hh>
-#include <labdev/usbtmc_interface.hh>
+#include <labdev/tcpip_iface.hh>
+#include <labdev/usbtmc_iface.hh>
 #include <labdev/devices/rigol/dg4000.hh>
 #include <labdev/devices/rigol/ds1000z.hh>
 
@@ -17,10 +17,10 @@ void fgen_setup(dg4000* fgen, bool reset = false);
 int main (int argc, char** argv) {
     // You can get the IP addresses from the menu "Utility->IO Setting"
     // Port 5555 is default for SCPI
-    tcpip_interface comm_dso("192.168.2.10", 5555);
-    tcpip_interface comm_fgen("192.168.2.11", 5555);
-    //usbtmc_interface comm_dso(ds1000z::DS1104_VID, ds1000z::DS1104_PID);
-    //usbtmc_interface comm_fgen(dg4000::DG4162_VID, dg4000::DG4162_PID);
+    tcpip_iface comm_dso("192.168.2.10", 5555);
+    tcpip_iface comm_fgen("192.168.2.11", 5555);
+    //usbtmc_iface comm_dso(ds1000z::DS1104_VID, ds1000z::DS1104_PID);
+    //usbtmc_iface comm_fgen(dg4000::DG4162_VID, dg4000::DG4162_PID);
 
     ds1000z dso(&comm_dso);
     dso_setup(&dso);

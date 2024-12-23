@@ -3,10 +3,10 @@
 
 #include <labdev/exceptions.hh>
 
-#include <labdev/tcpip_interface.hh>
-#include <labdev/visa_interface.hh>
-#include <labdev/usbtmc_interface.hh>
-#include <labdev/serial_interface.hh>
+#include <labdev/tcpip_iface.hh>
+#include <labdev/visa_iface.hh>
+#include <labdev/usbtmc_iface.hh>
+#include <labdev/serial_iface.hh>
 
 #include <labdev/devices/osci.hh>
 #include <labdev/protocols/scpi.hh>
@@ -20,13 +20,13 @@ namespace labdev{
 class rta4000 : public osci {
 public:
     rta4000();
-    rta4000(std::unique_ptr<tcpip_interface> tcpip);
-    rta4000(std::unique_ptr<usbtmc_interface> usbtmc);
-    rta4000(std::unique_ptr<serial_interface> serial);
-    rta4000(std::unique_ptr<visa_interface> visa);
+    rta4000(std::unique_ptr<tcpip_iface> tcpip);
+    rta4000(std::unique_ptr<usbtmc_iface> usbtmc);
+    rta4000(std::unique_ptr<serial_iface> serial);
+    rta4000(std::unique_ptr<visa_iface> visa);
     ~rta4000() {};
 
-    void connect(std::unique_ptr<ld_interface> comm) override;
+    void connect(std::unique_ptr<ld_iface> comm) override;
 
     static constexpr uint16_t RTA4004_VID = 0x0AAD;
     static constexpr uint16_t RTA4004_PID = 0x01D6;

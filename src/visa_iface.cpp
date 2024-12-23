@@ -1,4 +1,4 @@
-#include <labdev/visa_interface.hh>
+#include <labdev/visa_iface.hh>
 #include <labdev/ld_debug.hh>
 
 #include <unistd.h>
@@ -8,10 +8,10 @@ using namespace std;
 
 namespace labdev {
 
-ViSession visa_interface::s_default_rm;
-int visa_interface::s_interface_ctr = 0;
+ViSession visa_iface::s_default_rm;
+int visa_iface::s_iface_ctr = 0;
 
-visa_interface::visa_interface(const string visa_id) : visa_interface()
+visa_iface::visa_iface(const string visa_id) : visa_iface()
 {
     ViStatus stat;
     debug_print("Opening instrument '%s'\n", visa_id.c_str());
@@ -22,14 +22,14 @@ visa_interface::visa_interface(const string visa_id) : visa_interface()
     return;
 }
 
-visa_interface::~visa_interface() 
+visa_iface::~visa_iface() 
 {
     ViStatus stat;
     stat = viClose(m_instr);
     check_and_throw(stat, "Could not close instrument");
-    s_interface_ctr--;
-    debug_print("interface destroyed, %i objects remain.\n", s_interface_ctr);
-    if (s_interface_ctr == 0) {
+    s_iface_ctr--;
+    debug_print("interface destroyed, %i objects remain.\n", s_iface_ctr);
+    if (s_iface_ctr == 0) {
         stat = viClose(s_default_rm);
         check_and_throw(stat, "Could not close default resource manager");
         debug_print("%s\n", "Destroyed default resource manager");
@@ -37,7 +37,7 @@ visa_interface::~visa_interface()
     return;
 }
 
-vector<string> visa_interface::find_resources(string regex) 
+vector<string> visa_iface::find_resources(string regex) 
 {
     ViFindList rlist;
     unsigned nrsrc;
@@ -58,7 +58,7 @@ vector<string> visa_interface::find_resources(string regex)
     return ret;
 }
 
-int visa_interface::write_raw(const uint8_t* data, size_t len) 
+int visa_iface::write_raw(const uint8_t* data, size_t len) 
 {
     size_t bytes_left =len;
     size_t bytes_written = 0;
@@ -79,7 +79,7 @@ int visa_interface::write_raw(const uint8_t* data, size_t len)
     return bytes_written;
 }
 
-int visa_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
+int visa_iface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms) 
 {
     ViStatus stat;
     if (timeout_ms != m_timeout) {
@@ -114,7 +114,7 @@ int visa_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
     return bytes_received;
 }
 
-void visa_interface::flush_buffer(uint16_t flag) 
+void visa_iface::flush_buffer(uint16_t flag) 
 {
     ViStatus stat = viFlush(m_instr, flag);
     check_and_throw(stat, "viFlush failed");
@@ -122,7 +122,7 @@ void visa_interface::flush_buffer(uint16_t flag)
     return;
 };
 
-void visa_interface::clear_device() 
+void visa_iface::clear_device() 
 {
     debug_print("%s", "Clearing device.\n");
     ViStatus stat = viClear(m_instr);
@@ -134,35 +134,35 @@ void visa_interface::clear_device()
  *      P R I V A T E   M E T H O D S
  */
 
-visa_interface::visa_interface()
+visa_iface::visa_iface()
     : m_instr(0), m_visa_id("ASRL1::INSTR"), 
-      m_timeout(ld_interface::TIMEOUT_MS) 
+      m_timeout(ld_iface::TIMEOUT_MS) 
 {
     ViStatus stat;
-    if (s_interface_ctr == 0) {
+    if (s_iface_ctr == 0) {
         stat = viOpenDefaultRM(&s_default_rm);
         check_and_throw(stat, "Could not open default resource manager");
         debug_print("%s", "Created default resource manager.\n");
     }
-    s_interface_ctr++;
-    debug_print("interface constructed, %i objects remain.\n", s_interface_ctr);
+    s_iface_ctr++;
+    debug_print("interface constructed, %i objects remain.\n", s_iface_ctr);
     return;
 }
 
-void visa_interface::init() 
+void visa_iface::init() 
 {
     ViStatus stat;
-    if (s_interface_ctr == 0) {
+    if (s_iface_ctr == 0) {
         stat = viOpenDefaultRM(&s_default_rm);
         check_and_throw(stat, "Could not open default resource manager");
         debug_print("%s", "Created default resource manager.\n");
     }
-    s_interface_ctr++;
-    debug_print("interface constructed, %i objects remain.\n", s_interface_ctr);
+    s_iface_ctr++;
+    debug_print("interface constructed, %i objects remain.\n", s_iface_ctr);
     return;
 }
 
-void visa_interface::check_and_throw(ViStatus status, const string &msg) const 
+void visa_iface::check_and_throw(ViStatus status, const string &msg) const 
 {
     if (status < VI_SUCCESS) {
         char vi_strerror[256] = {'\0'};

@@ -14,7 +14,7 @@ using namespace std;
 namespace labdev {
 
 eth_to_ser::eth_to_ser() 
-    : serial_interface(), m_tcpip_cfg(), m_tcpip_ser(), m_ip_addr("0.0.0.0"), 
+    : serial_iface(), m_tcpip_cfg(), m_tcpip_ser(), m_ip_addr("0.0.0.0"), 
       m_port(0), m_flc(0)
 {
     return;

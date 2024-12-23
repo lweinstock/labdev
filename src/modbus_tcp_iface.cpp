@@ -1,4 +1,4 @@
-#include <labdev/modbus_tcp_interface.hh>
+#include <labdev/modbus_tcp_iface.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/ld_debug.hh>
 
@@ -6,7 +6,7 @@ using namespace std;
 
 namespace labdev {
 
-vector<bool> modbus_tcp_interface::read_coils(uint8_t uid, uint16_t addr, 
+vector<bool> modbus_tcp_iface::read_coils(uint8_t uid, uint16_t addr, 
     uint16_t len)
 {
     vector<bool> ret;
@@ -14,7 +14,7 @@ vector<bool> modbus_tcp_interface::read_coils(uint8_t uid, uint16_t addr,
     return ret;
 }
 
-vector<bool> modbus_tcp_interface::read_discrete_inputs(uint8_t uid, 
+vector<bool> modbus_tcp_iface::read_discrete_inputs(uint8_t uid, 
     uint16_t addr, uint16_t len)
 {
     vector<bool> ret;
@@ -22,26 +22,26 @@ vector<bool> modbus_tcp_interface::read_discrete_inputs(uint8_t uid,
     return ret;
 }
 
-vector<uint16_t> modbus_tcp_interface::read_multiple_holding_regs(uint8_t uid, 
+vector<uint16_t> modbus_tcp_iface::read_multiple_holding_regs(uint8_t uid, 
     uint16_t addr, uint16_t len)
 {
     return this->read_16bit_regs(uid, FC03, addr, len);
 }
 
-vector<uint16_t> modbus_tcp_interface::read_input_regs(uint8_t uid, 
+vector<uint16_t> modbus_tcp_iface::read_input_regs(uint8_t uid, 
     uint16_t addr, uint16_t len)
 {
     return this->read_16bit_regs(uid, FC04, addr, len);
 }
 
-void modbus_tcp_interface::write_single_coil(uint8_t uid, uint16_t addr, 
+void modbus_tcp_iface::write_single_coil(uint8_t uid, uint16_t addr, 
     bool ena)
 {
     // TODO -> need device that actually uses this..
     return;
 }
 
-void modbus_tcp_interface::write_single_holding_reg(uint8_t uid, uint16_t addr, 
+void modbus_tcp_iface::write_single_holding_reg(uint8_t uid, uint16_t addr, 
     uint16_t data)
 {
     vector<uint8_t> payload{};
@@ -69,14 +69,14 @@ void modbus_tcp_interface::write_single_holding_reg(uint8_t uid, uint16_t addr,
     return;
 }
 
-void modbus_tcp_interface::write_multiple_coils(uint8_t uid, uint16_t addr,
+void modbus_tcp_iface::write_multiple_coils(uint8_t uid, uint16_t addr,
     vector<bool> ena)
 {
     // TODO -> need device that actually uses this..
     return;
 }
 
-void modbus_tcp_interface::write_multiple_holding_regs(uint8_t uid, 
+void modbus_tcp_iface::write_multiple_holding_regs(uint8_t uid, 
     uint16_t addr, vector<uint16_t> data)
 {
     uint16_t len = data.size();
@@ -114,7 +114,7 @@ void modbus_tcp_interface::write_multiple_holding_regs(uint8_t uid,
     *      P R I V A T E   M E T H O D S
     */
 
-vector<uint16_t> modbus_tcp_interface::read_16bit_regs(uint8_t uid, uint8_t func,
+vector<uint16_t> modbus_tcp_iface::read_16bit_regs(uint8_t uid, uint8_t func,
     uint16_t addr, uint16_t len)
 {
     vector<uint8_t> payload{};
@@ -150,7 +150,7 @@ vector<uint16_t> modbus_tcp_interface::read_16bit_regs(uint8_t uid, uint8_t func
     return ret;
 }
 
-void modbus_tcp_interface::check_error_code(uint8_t error)
+void modbus_tcp_iface::check_error_code(uint8_t error)
 {
     switch (error) {
     case ERR1:
@@ -171,7 +171,7 @@ void modbus_tcp_interface::check_error_code(uint8_t error)
     return; 
 }
 
-void modbus_tcp_interface::increase_tid_counter()
+void modbus_tcp_iface::increase_tid_counter()
 {
     if (m_tid < 0xFFFF) 
         m_tid++;
@@ -180,7 +180,7 @@ void modbus_tcp_interface::increase_tid_counter()
     return;
 }
 
-modbus_tcp_interface::tcp_frame::tcp_frame(vector<uint8_t> msg)
+modbus_tcp_iface::tcp_frame::tcp_frame(vector<uint8_t> msg)
     : transaction_id(0x0000), protocol_id(0x0000), length(0x0000),
         function_code(0x0000), unit_id(0x00), byte_count(0x00), data()
 {
@@ -194,7 +194,7 @@ modbus_tcp_interface::tcp_frame::tcp_frame(vector<uint8_t> msg)
     return;
 }
 
-modbus_tcp_interface::tcp_frame::tcp_frame(uint16_t trans_id, uint8_t uid, 
+modbus_tcp_iface::tcp_frame::tcp_frame(uint16_t trans_id, uint8_t uid, 
     uint8_t func, std::vector<uint8_t> payload)
     : transaction_id(trans_id), protocol_id(0x0000), length(0x0000),
         function_code(func), unit_id(uid), byte_count(0x00), data(payload)
@@ -202,7 +202,7 @@ modbus_tcp_interface::tcp_frame::tcp_frame(uint16_t trans_id, uint8_t uid,
     return;
 }
 
-vector<uint8_t> modbus_tcp_interface::tcp_frame::get_frame() 
+vector<uint8_t> modbus_tcp_iface::tcp_frame::get_frame() 
 { 
     vector<uint8_t> frame;
     length = 2 + data.size();

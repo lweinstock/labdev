@@ -2,7 +2,7 @@
 #define LD_ML_808_GX_HH
 
 #include <labdev/devices/ld_device.hh>
-#include <labdev/serial_interface.hh>
+#include <labdev/serial_iface.hh>
 
 #include <tuple>
 
@@ -11,10 +11,10 @@ namespace labdev {
 class ml_808gx : public ld_device {
 public:
     ml_808gx() : ld_device("ML-808GX"), m_cur_ch(0) {};
-    ml_808gx(std::unique_ptr<serial_interface> ser);
+    ml_808gx(std::unique_ptr<serial_iface> ser);
     ~ml_808gx();
 
-    void connect(std::unique_ptr<ld_interface> comm) override;
+    void connect(std::unique_ptr<ld_iface> comm) override;
     void disconnect() override;
 
     // Dispense glue using parameters from current channel

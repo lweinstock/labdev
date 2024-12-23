@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-#include <labdev/tcpip_interface.hh>
+#include <labdev/tcpip_iface.hh>
 #include <labdev/devices/rohde-schwarz/hmp4000.hh>
 
 using namespace labdev;
@@ -13,7 +13,7 @@ int main () {
 
     // Turn on TCPIP on the HMP with MENU->Interface->Select Interface->LAN
     // You can get the IP address from MENU->Interface->Settings->IP Settings
-    tcpip_interface comm("10.32.113.221", 5025);
+    tcpip_iface comm("10.32.113.221", 5025);
     hmp4000 psu(&comm);
 
     printf("Done!\n");

@@ -3,8 +3,8 @@
 
 #include <labdev/devices/osci.hh>
 #include <labdev/protocols/scpi.hh>
-#include <labdev/usbtmc_interface.hh>
-#include <labdev/visa_interface.hh>
+#include <labdev/usbtmc_iface.hh>
+#include <labdev/visa_iface.hh>
 #include <memory>
 #include <map>
 
@@ -17,11 +17,11 @@ namespace labdev {
 class dso1000a : public osci {
 public:
     dso1000a();
-    dso1000a(std::unique_ptr<usbtmc_interface> usbtmc);
-    dso1000a(std::unique_ptr<visa_interface> visa);
+    dso1000a(std::unique_ptr<usbtmc_iface> usbtmc);
+    dso1000a(std::unique_ptr<visa_iface> visa);
     ~dso1000a();
 
-    void connect(std::unique_ptr<ld_interface> comm) override;
+    void connect(std::unique_ptr<ld_iface> comm) override;
     void disconnect() override;
 
     static constexpr uint16_t DSO1024A_VID = 0x0957;

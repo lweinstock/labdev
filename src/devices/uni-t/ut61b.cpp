@@ -10,13 +10,13 @@ using namespace std;
 
 namespace labdev {
 
-ut61b::ut61b(std::unique_ptr<serial_interface> ser): ut61b() 
+ut61b::ut61b(std::unique_ptr<serial_iface> ser): ut61b() 
 {
     this->connect(std::move(ser));
     return;
 }
 
-void ut61b::connect(std::unique_ptr<ld_interface> comm)
+void ut61b::connect(std::unique_ptr<ld_iface> comm)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -27,8 +27,8 @@ void ut61b::connect(std::unique_ptr<ld_interface> comm)
     Interface_type type = comm->type();
     if (type == SERIAL) {
         // Convert to tcpip interface
-        unique_ptr<serial_interface> ser(
-            dynamic_cast<serial_interface*>(comm.release()));
+        unique_ptr<serial_iface> ser(
+            dynamic_cast<serial_iface*>(comm.release()));
 
         // Check correct serial setup => 2400 8N1 (manual p. 28)
         if (ser->get_baud() != ut61b::BAUD) {

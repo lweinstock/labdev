@@ -1,7 +1,7 @@
 #ifndef UT61B_H
 #define UT61B_H
 
-#include <labdev/serial_interface.hh>
+#include <labdev/serial_iface.hh>
 #include <labdev/devices/ld_device.hh>
 #include <memory>
 
@@ -14,10 +14,10 @@ namespace labdev {
 class ut61b : public ld_device {
 public:
     ut61b() : ld_device("Uni-T,UT61B"), m_unit("?"), m_serial(nullptr) {};
-    ut61b(std::unique_ptr<serial_interface> ser);
+    ut61b(std::unique_ptr<serial_iface> ser);
     ~ut61b() {};
 
-    void connect(std::unique_ptr<ld_interface> comm) override;
+    void connect(std::unique_ptr<ld_iface> comm) override;
     void disconnect() override { m_serial.reset(); }
 
     static constexpr unsigned BAUD = 2400;
@@ -30,7 +30,7 @@ public:
 
 private:
     std::string m_unit;
-    std::unique_ptr<serial_interface> m_serial;
+    std::unique_ptr<serial_iface> m_serial;
 
     // UT61b end of message character
     static constexpr const char* EOM = "\r\n";

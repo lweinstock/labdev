@@ -1,4 +1,4 @@
-#include <labdev/tcpip_interface.hh>
+#include <labdev/tcpip_iface.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/ld_debug.hh>
 
@@ -12,34 +12,34 @@ using namespace std;
 
 namespace labdev {
 
-tcpip_interface::tcpip_interface() 
-    : ld_interface(), m_socket_fd(-1), m_instr_addr(), m_timeout(), 
+tcpip_iface::tcpip_iface() 
+    : ld_iface(), m_socket_fd(-1), m_instr_addr(), m_timeout(), 
       m_ip_addr("127.0.0.1"), m_port(0)
 {
     return;
 }
 
-tcpip_interface::tcpip_interface(std::string ip_addr, unsigned port) 
-    : tcpip_interface() 
+tcpip_iface::tcpip_iface(std::string ip_addr, unsigned port) 
+    : tcpip_iface() 
 {
     this->open(ip_addr, port);
     return;
 }
 
-tcpip_interface::~tcpip_interface()
+tcpip_iface::~tcpip_iface()
 {
     if (this->good())
         this->close();
     return;
 }
 
-void tcpip_interface::open()
+void tcpip_iface::open()
 {
     this->open(m_ip_addr, m_port);
     return;
 }
 
-void tcpip_interface::open(std::string ip_addr, unsigned port)
+void tcpip_iface::open(std::string ip_addr, unsigned port)
 {
     // Create TCP/IP socket
     m_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -71,7 +71,7 @@ void tcpip_interface::open(std::string ip_addr, unsigned port)
     return;
 }
 
-void tcpip_interface::close()
+void tcpip_iface::close()
 {
     debug_print("Closing connection to %s:%i\n", m_ip_addr.c_str(), m_port);
     //shutdown(m_socket_fd, SHUT_WR);
@@ -86,7 +86,7 @@ void tcpip_interface::close()
     return;
 }
 
-int tcpip_interface::write_raw(const uint8_t* data, size_t len) 
+int tcpip_iface::write_raw(const uint8_t* data, size_t len) 
 {
     size_t bytes_left = len;
     size_t bytes_written = 0;
@@ -105,7 +105,7 @@ int tcpip_interface::write_raw(const uint8_t* data, size_t len)
     return bytes_written;
 }
 
-int tcpip_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
+int tcpip_iface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
 {
     // Wait for I/O
     fd_set rfd_set;
@@ -127,7 +127,7 @@ int tcpip_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms
     return nbytes;
 }
 
-void tcpip_interface::set_buffer_size(size_t size) 
+void tcpip_iface::set_buffer_size(size_t size) 
 {
     // Receive buffer
     int stat = setsockopt(m_socket_fd, SOL_SOCKET, SO_RCVBUF, (char*)&size,
@@ -146,7 +146,7 @@ void tcpip_interface::set_buffer_size(size_t size)
     return;
 }
 
-void tcpip_interface::set_timeout(unsigned timeout_ms) 
+void tcpip_iface::set_timeout(unsigned timeout_ms) 
 {
     struct timeval timeout;
     timeout.tv_sec = timeout_ms / 1000;
@@ -167,7 +167,7 @@ void tcpip_interface::set_timeout(unsigned timeout_ms)
     return;
 }
 
-string tcpip_interface::get_info() const noexcept
+string tcpip_iface::get_info() const noexcept
 {
     // Format example: tcpip;192.168.0.1;10001
     string ret("tcpip;" + m_ip_addr + ";" + to_string(m_port));
@@ -179,7 +179,7 @@ string tcpip_interface::get_info() const noexcept
  */
 
 
-void tcpip_interface::check_and_throw(int status, const string &msg) const 
+void tcpip_iface::check_and_throw(int status, const string &msg) const 
 {
     if (status < 0) {
         int error = errno;

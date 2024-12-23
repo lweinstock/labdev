@@ -13,19 +13,19 @@ afg3000::afg3000() : fgen(2, "Tektronix,AFG3000")
     return;
 }
 
-afg3000::afg3000(std::unique_ptr<tcpip_interface> tcpip) : afg3000()
+afg3000::afg3000(std::unique_ptr<tcpip_iface> tcpip) : afg3000()
 {
     this->connect(std::move(tcpip));
     return;
 }
 
-afg3000::afg3000(std::unique_ptr<usbtmc_interface> usbtmc) : afg3000()
+afg3000::afg3000(std::unique_ptr<usbtmc_iface> usbtmc) : afg3000()
 {
     this->connect(std::move(usbtmc));
     return;
 }
 
-afg3000::afg3000(std::unique_ptr<visa_interface> visa) : afg3000()
+afg3000::afg3000(std::unique_ptr<visa_iface> visa) : afg3000()
 {
     this->connect(std::move(visa));
     return;
@@ -38,7 +38,7 @@ afg3000::~afg3000()
     return;
 }
 
-void afg3000::connect(std::unique_ptr<ld_interface> comm)
+void afg3000::connect(std::unique_ptr<ld_iface> comm)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -49,8 +49,8 @@ void afg3000::connect(std::unique_ptr<ld_interface> comm)
     Interface_type type = comm->type();
     if (type == TCPIP) {
         // Convert to tcpip interface
-        unique_ptr<tcpip_interface> tcpip(
-            dynamic_cast<tcpip_interface*>(comm.release()));
+        unique_ptr<tcpip_iface> tcpip(
+            dynamic_cast<tcpip_iface*>(comm.release()));
         
         if (tcpip->get_port() != afg3000::PORT) {
             fprintf(stderr, "SDG1000X only supports port %i\n", afg3000::PORT);
@@ -61,11 +61,11 @@ void afg3000::connect(std::unique_ptr<ld_interface> comm)
         m_comm = std::move(tcpip);
     } else if (type == USBTMC) {
         // Convert to usbtmc interface
-        unique_ptr<usbtmc_interface> usbtmc(
-            dynamic_cast<usbtmc_interface*>(comm.release()));
+        unique_ptr<usbtmc_iface> usbtmc(
+            dynamic_cast<usbtmc_iface*>(comm.release()));
 
         // USB initialization
-        usbtmc->claim_interface(0);
+        usbtmc->claim_iface(0);
         usbtmc->set_endpoint_out(0);
         usbtmc->set_endpoint_in(1);
 
@@ -73,8 +73,8 @@ void afg3000::connect(std::unique_ptr<ld_interface> comm)
         m_comm = std::move(usbtmc);
     } else if (type == VISA) {
         // Convert to visa interface
-        unique_ptr<visa_interface> visa(
-            dynamic_cast<visa_interface*>(comm.release()));
+        unique_ptr<visa_iface> visa(
+            dynamic_cast<visa_iface*>(comm.release()));
 
         m_comm = std::move(visa);
     } else {

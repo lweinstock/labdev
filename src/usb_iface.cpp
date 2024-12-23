@@ -1,4 +1,4 @@
-#include <labdev/usb_interface.hh>
+#include <labdev/usb_iface.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/ld_debug.hh>
 
@@ -11,52 +11,52 @@ using namespace std;
 
 namespace labdev {
 
-libusb_context* usb_interface::s_default_ctx = NULL;
-int usb_interface::s_dev_count = 0;
+libusb_context* usb_iface::s_default_ctx = NULL;
+int usb_iface::s_dev_count = 0;
 
 
-usb_interface::usb_interface(): m_usb_dev(NULL), m_usb_handle(NULL),
-    m_cur_cfg(0), m_cur_alt_setting(0), m_cur_interface_no(-1),
+usb_iface::usb_iface(): m_usb_dev(NULL), m_usb_handle(NULL),
+    m_cur_cfg(0), m_cur_alt_setting(0), m_cur_iface_no(-1),
     m_ep_in_addr(0), m_ep_out_addr(0), m_max_pkt_size_in(64), 
     m_max_pkt_size_out(64), m_vid(0x0000), m_pid(0x0000), m_serno(""), 
     m_bus(0xFF), m_port(0xFF), m_dev_class(0), m_dev_subclass(0), 
-    m_dev_protocol(0), m_interface_class(0), m_interface_subclass(0), 
-    m_interface_protocol(0) 
+    m_dev_protocol(0), m_iface_class(0), m_iface_subclass(0), 
+    m_iface_protocol(0) 
 {
     return;
 }
 
-usb_interface::usb_interface(uint16_t vid, uint16_t pid, string serno) 
-    : usb_interface() 
+usb_iface::usb_iface(uint16_t vid, uint16_t pid, string serno) 
+    : usb_iface() 
 {
     this->open(vid, pid, serno);
     return;
 }
 
-usb_interface::~usb_interface()
+usb_iface::~usb_iface()
 {
     if (this->good())
         this->close();
     return;
 }
 
-int usb_interface::write_raw(const uint8_t* data, size_t len)
+int usb_iface::write_raw(const uint8_t* data, size_t len)
 {
     return this->write_bulk(data, len);
 }
 
-int usb_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
+int usb_iface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
 {
     return this->read_bulk(data, max_len, timeout_ms);
 }
 
-void usb_interface::open()
+void usb_iface::open()
 {
     this->open(m_vid, m_pid, m_serno);
     return;
 }
 
-void usb_interface::open(uint16_t vid, uint16_t pid, string serno)
+void usb_iface::open(uint16_t vid, uint16_t pid, string serno)
 {
     int stat;
     // If first device, start new libusb session
@@ -126,14 +126,14 @@ void usb_interface::open(uint16_t vid, uint16_t pid, string serno)
     return;
 }
 
-void usb_interface::close()
+void usb_iface::close()
 {
     // Release claimed interfaces and device
-    if (m_cur_interface_no != s_no_interface)
-        libusb_release_interface(m_usb_handle, m_cur_interface_no);
+    if (m_cur_iface_no != s_no_iface)
+        libusb_release_interface(m_usb_handle, m_cur_iface_no);
     if (m_usb_handle)
         libusb_close(m_usb_handle);
-    m_cur_interface_no = s_no_interface;
+    m_cur_iface_no = s_no_iface;
     // Close context if last device released
     s_dev_count--;
     debug_print("Closed device, new device count = %i\n", s_dev_count);
@@ -146,7 +146,7 @@ void usb_interface::close()
     return;
 }
 
-string usb_interface::get_info() const noexcept
+string usb_iface::get_info() const noexcept
 {
     stringstream info("");
     info << std::uppercase << setfill('0') << setw(4) << std::hex;
@@ -154,17 +154,17 @@ string usb_interface::get_info() const noexcept
     return info.str();
 }
 
-void usb_interface::clear()
+void usb_iface::clear()
 {
     libusb_clear_halt(m_usb_handle, m_ep_in_addr);
     libusb_clear_halt(m_usb_handle, m_ep_out_addr);
     return;
 }
 
-int usb_interface::write_control(uint8_t request_type, uint8_t request,
+int usb_iface::write_control(uint8_t request_type, uint8_t request,
     uint16_t value, uint16_t index, const uint8_t* data, int len) 
 {
-    this->check_interface();
+    this->check_iface();
     int nbytes = libusb_control_transfer(
         m_usb_handle,
         LIBUSB_ENDPOINT_OUT | request_type,
@@ -187,10 +187,10 @@ int usb_interface::write_control(uint8_t request_type, uint8_t request,
     return nbytes;
 }
 
-int usb_interface::read_control(uint8_t request_type, uint8_t request, 
+int usb_iface::read_control(uint8_t request_type, uint8_t request, 
     uint16_t value, uint16_t index, const uint8_t* data, int len) 
 {
-    this->check_interface();
+    this->check_iface();
     int nbytes = libusb_control_transfer(
         m_usb_handle,
         LIBUSB_ENDPOINT_IN | request_type,
@@ -214,9 +214,9 @@ int usb_interface::read_control(uint8_t request_type, uint8_t request,
 }
 
 
-int usb_interface::write_bulk(const uint8_t* data, int len) 
+int usb_iface::write_bulk(const uint8_t* data, int len) 
 {
-    this->check_interface();
+    this->check_iface();
     int stat, nbytes = 0;
     size_t bytes_left = len;
     size_t bytes_written = 0;
@@ -238,9 +238,9 @@ int usb_interface::write_bulk(const uint8_t* data, int len)
     return nbytes;
 }
 
-int usb_interface::read_bulk(uint8_t* data, int max_len, int timeout_ms) 
+int usb_iface::read_bulk(uint8_t* data, int max_len, int timeout_ms) 
 {
-    this->check_interface();
+    this->check_iface();
     int nbytes = 0;
     int stat = libusb_bulk_transfer(
         m_usb_handle,
@@ -254,28 +254,28 @@ int usb_interface::read_bulk(uint8_t* data, int max_len, int timeout_ms)
     return nbytes;
 }
 
-int usb_interface::write_interrupt(const uint8_t* data, int len) 
+int usb_iface::write_interrupt(const uint8_t* data, int len) 
 {
     // TODO
     return 0;
 }
 
-int usb_interface::read_interrupt(uint8_t* data, int max_len,
+int usb_iface::read_interrupt(uint8_t* data, int max_len,
     int timeout_ms) 
 {
     // TODO
     return 0;
 }
 
-void usb_interface::claim_interface(int interface_no, int alt_setting) 
+void usb_iface::claim_iface(int interface_no, int alt_setting) 
 {
     int stat;
     string msg("");
     // Release current interface
-    if ( (interface_no != m_cur_interface_no) &&
-            (m_cur_interface_no != s_no_interface) ) {
-        stat = libusb_release_interface(m_usb_handle, m_cur_interface_no);
-        msg = "Failed to release interface " + to_string(m_cur_interface_no);
+    if ( (interface_no != m_cur_iface_no) &&
+            (m_cur_iface_no != s_no_iface) ) {
+        stat = libusb_release_interface(m_usb_handle, m_cur_iface_no);
+        msg = "Failed to release interface " + to_string(m_cur_iface_no);
         check_and_throw(stat, msg);
     }
     // Detach kernel drivers if active
@@ -287,38 +287,38 @@ void usb_interface::claim_interface(int interface_no, int alt_setting)
     stat = libusb_claim_interface(m_usb_handle, interface_no);
     msg = "Failed to claim interface " + to_string(interface_no);
     check_and_throw(stat, msg);
-    m_cur_interface_no = interface_no;
-    debug_print("Successfully claimed interface %i\n", m_cur_interface_no);
+    m_cur_iface_no = interface_no;
+    debug_print("Successfully claimed interface %i\n", m_cur_iface_no);
 
     // Apply alternate settingsm if specified
     // (FYI: most devices dont use alt settings)
     if (alt_setting) {
         stat = libusb_set_interface_alt_setting(m_usb_handle,
-            m_cur_interface_no, alt_setting);
+            m_cur_iface_no, alt_setting);
         msg = "Failed to apply alternate settings " + to_string(alt_setting);
         check_and_throw(stat, msg);
         m_cur_alt_setting = alt_setting;
         debug_print("Applied alternate settings %i\n", m_cur_alt_setting);
     }
 
-    this->gather_interface_information();
+    this->gather_iface_information();
     return;
 }
 
-void usb_interface::set_endpoint_in(unsigned ep_no) 
+void usb_iface::set_endpoint_in(unsigned ep_no) 
 {
-    this->check_interface();
+    this->check_iface();
 
     // Get endpoint descriptor
     libusb_config_descriptor* cfg_desc;
-    const libusb_interface* usb_interface;
+    const libusb_interface* usb_iface;
     const libusb_interface_descriptor* int_desc;
     const libusb_endpoint_descriptor* ep_desc;
 
     int stat = libusb_get_config_descriptor(m_usb_dev, m_cur_cfg, &cfg_desc);
     check_and_throw(stat, "Failed to get config descriptor");
-    usb_interface = &cfg_desc->interface[m_cur_interface_no];
-    int_desc = &usb_interface->altsetting[m_cur_alt_setting];
+    usb_iface = &cfg_desc->interface[m_cur_iface_no];
+    int_desc = &usb_iface->altsetting[m_cur_alt_setting];
 
     unsigned n_eps = static_cast<unsigned>(int_desc->bNumEndpoints);
     if (ep_no < n_eps)
@@ -338,20 +338,20 @@ void usb_interface::set_endpoint_in(unsigned ep_no)
     return;
 }
 
-void usb_interface::set_endpoint_out(unsigned ep_no) 
+void usb_iface::set_endpoint_out(unsigned ep_no) 
 {
-    this->check_interface();
+    this->check_iface();
 
     // Get endpoint descriptor
     libusb_config_descriptor* cfg_desc;
-    const libusb_interface* usb_interface;
+    const libusb_interface* usb_iface;
     const libusb_interface_descriptor* int_desc;
     const libusb_endpoint_descriptor* ep_desc;
 
     int stat = libusb_get_config_descriptor(m_usb_dev, m_cur_cfg, &cfg_desc);
     check_and_throw(stat, "Failed to get config descriptor");
-    usb_interface = &cfg_desc->interface[m_cur_interface_no];
-    int_desc = &usb_interface->altsetting[m_cur_alt_setting];
+    usb_iface = &cfg_desc->interface[m_cur_iface_no];
+    int_desc = &usb_iface->altsetting[m_cur_alt_setting];
 
     unsigned n_eps = static_cast<unsigned>(int_desc->bNumEndpoints);
     if (ep_no < n_eps)
@@ -375,7 +375,7 @@ void usb_interface::set_endpoint_out(unsigned ep_no)
  *      P R I V A T E   M E T H O D S
  */
 
-void usb_interface::gather_device_information() 
+void usb_iface::gather_device_information() 
 {
     if (!m_usb_dev)
         return;
@@ -415,33 +415,33 @@ void usb_interface::gather_device_information()
     return;
 }
 
-void usb_interface::gather_interface_information() 
+void usb_iface::gather_iface_information() 
 {
-    this->check_interface();
+    this->check_iface();
 
     libusb_config_descriptor* cfg_desc;
-    const libusb_interface* usb_interface;
+    const libusb_interface* usb_iface;
     const libusb_interface_descriptor* int_desc;
 
     // Currently only looking at config 0 (TODO)
     // Only very few devices use multiple configs
     int stat = libusb_get_config_descriptor(m_usb_dev, m_cur_cfg, &cfg_desc);
     check_and_throw(stat, "Failed to get config descriptor");
-    usb_interface = &cfg_desc->interface[m_cur_interface_no];
-    int_desc = &usb_interface->altsetting[m_cur_alt_setting];
+    usb_iface = &cfg_desc->interface[m_cur_iface_no];
+    int_desc = &usb_iface->altsetting[m_cur_alt_setting];
 
     // Get info
-    m_interface_class = int_desc->bInterfaceClass;
-    m_interface_subclass = int_desc->bInterfaceSubClass;
-    m_interface_protocol = int_desc->bInterfaceProtocol;
-    debug_print("bInterfaceClass\t0x%02X\n", m_interface_class);
-    debug_print("bInterfaceSubClass\t0x%02X\n", m_interface_subclass);
-    debug_print("bInterfaceProtocol\t0x%02X\n", m_interface_protocol);
+    m_iface_class = int_desc->bInterfaceClass;
+    m_iface_subclass = int_desc->bInterfaceSubClass;
+    m_iface_protocol = int_desc->bInterfaceProtocol;
+    debug_print("bInterfaceClass\t0x%02X\n", m_iface_class);
+    debug_print("bInterfaceSubClass\t0x%02X\n", m_iface_subclass);
+    debug_print("bInterfaceProtocol\t0x%02X\n", m_iface_protocol);
 
     return;
 }
 
-void usb_interface::check_and_throw(int stat, const string& msg) const 
+void usb_iface::check_and_throw(int stat, const string& msg) const 
 {
     if (stat < 0) {
         stringstream err_msg;
@@ -477,9 +477,9 @@ void usb_interface::check_and_throw(int stat, const string& msg) const
     return;
 }
 
-void usb_interface::check_interface() 
+void usb_iface::check_iface() 
 {
-    if (m_cur_interface_no == s_no_interface)
+    if (m_cur_iface_no == s_no_iface)
         throw bad_io(this->get_info() + " - No USB interface claimed");
     return;
 }

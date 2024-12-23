@@ -1,7 +1,7 @@
 #ifndef LD_SERIAL_PORT_HH
 #define LD_SERIAL_PORT_HH
 
-#include <labdev/serial_interface.hh>
+#include <labdev/serial_iface.hh>
 #include <termios.h>
 
 namespace labdev{
@@ -10,7 +10,7 @@ namespace labdev{
  *      RS232 interface based on UNIX serial port
  */
 
-class serial_port : public serial_interface {
+class serial_port : public serial_iface {
 public:
     serial_port();
     serial_port(std::string path, unsigned baud = 9600, unsigned nbits = 8,

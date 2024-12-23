@@ -1,9 +1,9 @@
 #ifndef HMP4000_H
 #define HMP4000_H
 
-#include <labdev/tcpip_interface.hh>
-#include <labdev/serial_interface.hh>
-#include <labdev/visa_interface.hh>
+#include <labdev/tcpip_iface.hh>
+#include <labdev/serial_iface.hh>
+#include <labdev/visa_iface.hh>
 #include <labdev/devices/ld_device.hh>
 #include <labdev/protocols/scpi.hh>
 
@@ -16,14 +16,14 @@ namespace labdev {
 class hmp4000 : public ld_device {
 public:
     hmp4000();
-    hmp4000(std::unique_ptr<tcpip_interface> tcpip);
-    hmp4000(std::unique_ptr<serial_interface> ser);
-    hmp4000(std::unique_ptr<visa_interface> visa);
+    hmp4000(std::unique_ptr<tcpip_iface> tcpip);
+    hmp4000(std::unique_ptr<serial_iface> ser);
+    hmp4000(std::unique_ptr<visa_iface> visa);
     ~hmp4000();
 
     static constexpr unsigned PORT = 5025;
 
-    void connect(std::unique_ptr<ld_interface> comm) override;
+    void connect(std::unique_ptr<ld_iface> comm) override;
     void disconnect() override;
 
     // En-/disable channel for output switching

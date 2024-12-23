@@ -11,7 +11,7 @@ using namespace std;
 
 namespace labdev {
 
-fy6900::fy6900(std::unique_ptr<serial_interface> ser) : fy6900()
+fy6900::fy6900(std::unique_ptr<serial_iface> ser) : fy6900()
 {
     this->connect(std::move(ser));
     return;
@@ -24,7 +24,7 @@ fy6900::~fy6900()
     return;
 }
 
-void fy6900::connect(std::unique_ptr<ld_interface> comm)
+void fy6900::connect(std::unique_ptr<ld_iface> comm)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -35,8 +35,8 @@ void fy6900::connect(std::unique_ptr<ld_interface> comm)
     Interface_type type = comm->type();
     if ( type == SERIAL ) {
         // Convert to serial interface
-        unique_ptr<serial_interface> ser(
-            dynamic_cast<serial_interface*>(comm.release()));
+        unique_ptr<serial_iface> ser(
+            dynamic_cast<serial_iface*>(comm.release()));
         
         // Check baud -> 115200 baud
         if ( ser->get_baud() != fy6900::BAUD ) {

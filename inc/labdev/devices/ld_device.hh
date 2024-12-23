@@ -1,7 +1,7 @@
 #ifndef DEVICE_HH
 #define DEVICE_HH
 
-#include <labdev/ld_interface.hh>
+#include <labdev/ld_iface.hh>
 
 namespace labdev {
 
@@ -18,7 +18,7 @@ public:
     ld_device& operator=(const ld_device&) = delete;
 
     // Connect to provided communication interface
-    virtual void connect(std::unique_ptr<ld_interface> comm) = 0;
+    virtual void connect(std::unique_ptr<ld_iface> comm) = 0;
 
     // Disconnect device from communication interface
     virtual void disconnect() = 0;
@@ -41,7 +41,7 @@ protected:
     ld_device(std::string name) : m_dev_name(name), m_comm(nullptr) {};
 
     // Communication interface
-    std::unique_ptr<ld_interface> m_comm;
+    std::unique_ptr<ld_iface> m_comm;
 };
 
 }

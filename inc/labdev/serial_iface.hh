@@ -1,15 +1,15 @@
 #ifndef LD_SERIAL_INTERFACE_HH
 #define LD_SERIAL_INTERFACE_HH
 
-#include <labdev/ld_interface.hh>
+#include <labdev/ld_iface.hh>
 
 namespace labdev{
 
-class serial_interface : public ld_interface {
+class serial_iface : public ld_iface {
 public:
-    serial_interface() : ld_interface(), m_baud(9600), m_nbits(8), m_sbits(1), 
+    serial_iface() : ld_iface(), m_baud(9600), m_nbits(8), m_sbits(1), 
         m_par_en(false), m_par_even(false) {};
-    ~serial_interface() {};
+    ~serial_iface() {};
 
     // Set baud rate for serial interface
     virtual void set_baud(unsigned baud) { m_baud = baud; }

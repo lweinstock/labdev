@@ -16,7 +16,7 @@ om70_l::om70_l()
     return;
 }
 
-om70_l::om70_l(unique_ptr<modbus_tcp_interface> tcpip) : om70_l() 
+om70_l::om70_l(unique_ptr<modbus_tcp_iface> tcpip) : om70_l() 
 {
     this->connect(std::move(tcpip));
     return;
@@ -29,7 +29,7 @@ om70_l::~om70_l()
     return;
 }
 
-void om70_l::connect(unique_ptr<ld_interface> comm)
+void om70_l::connect(unique_ptr<ld_iface> comm)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -40,8 +40,8 @@ void om70_l::connect(unique_ptr<ld_interface> comm)
     Interface_type type = comm->type();
     if ( type == MODBUS_TCP ) {
         // Convert to MODBUS TCP interface
-        unique_ptr<modbus_tcp_interface> modbus_tcp(
-            dynamic_cast<modbus_tcp_interface*>(comm.release()));
+        unique_ptr<modbus_tcp_iface> modbus_tcp(
+            dynamic_cast<modbus_tcp_iface*>(comm.release()));
 
         // Check port -> 502
         if (modbus_tcp->get_port() != om70_l::PORT) {

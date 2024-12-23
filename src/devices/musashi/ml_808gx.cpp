@@ -3,7 +3,7 @@
 #include <tuple>
 
 #include <labdev/devices/musashi/ml_808gx.hh>
-#include <labdev/serial_interface.hh>
+#include <labdev/serial_iface.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/ld_debug.hh>
 
@@ -21,7 +21,7 @@ const string ml_808gx::A0 = STX + "02A02D" + ETX;
 const string ml_808gx::A2 = STX + "02A22B" + ETX; 
 const string ml_808gx::CAN = STX + "0218186E" + ETX;
 
-ml_808gx::ml_808gx(std::unique_ptr<serial_interface> ser) : ml_808gx()
+ml_808gx::ml_808gx(std::unique_ptr<serial_iface> ser) : ml_808gx()
 {
     this->connect(std::move(ser));
     return;
@@ -34,7 +34,7 @@ ml_808gx::~ml_808gx()
     return;
 }
 
-void ml_808gx::connect(std::unique_ptr<ld_interface> comm)
+void ml_808gx::connect(std::unique_ptr<ld_iface> comm)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -45,8 +45,8 @@ void ml_808gx::connect(std::unique_ptr<ld_interface> comm)
     Interface_type type = comm->type();
     if (type == SERIAL) {
         // Convert to serial interface
-        unique_ptr<serial_interface> ser(
-            dynamic_cast<serial_interface*>(comm.release()));
+        unique_ptr<serial_iface> ser(
+            dynamic_cast<serial_iface*>(comm.release()));
 
         // 8N1, supported baud = 9600/19200/38400 (see manual p. 24)
         unsigned baud = ser->get_baud();

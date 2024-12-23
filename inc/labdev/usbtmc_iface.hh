@@ -1,15 +1,15 @@
 #ifndef LD_USBTMC_INTERFACE_H
 #define LD_USBTMC_INTERFACE_H
 
-#include <labdev/usb_interface.hh>
+#include <labdev/usb_iface.hh>
 
 namespace labdev{
 
-class usbtmc_interface : public usb_interface {
+class usbtmc_iface : public usb_iface {
 public:
-    usbtmc_interface();
-    usbtmc_interface(uint16_t vid, uint16_t pid, std::string serno = "");
-    ~usbtmc_interface();
+    usbtmc_iface();
+    usbtmc_iface(uint16_t vid, uint16_t pid, std::string serno = "");
+    ~usbtmc_iface();
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, 
@@ -61,7 +61,7 @@ private:
         TERM_CHAR = 0x02
     };
 
-    usb_interface m_usb;
+    usb_iface m_usb;
     uint8_t m_cur_tag, m_term_char;
 
     // Creates a USBTMC header

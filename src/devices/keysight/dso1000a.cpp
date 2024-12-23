@@ -15,13 +15,13 @@ dso1000a::dso1000a()
     return;
 }
 
-dso1000a::dso1000a(std::unique_ptr<usbtmc_interface> usbtmc) : dso1000a()
+dso1000a::dso1000a(std::unique_ptr<usbtmc_iface> usbtmc) : dso1000a()
 {
     this->connect(std::move(usbtmc));
     return;
 }
 
-dso1000a::dso1000a(std::unique_ptr<visa_interface> visa) : dso1000a()
+dso1000a::dso1000a(std::unique_ptr<visa_iface> visa) : dso1000a()
 {
     this->connect(std::move(visa));
     return;
@@ -35,7 +35,7 @@ dso1000a::~dso1000a()
     return;
 }
 
-void dso1000a::connect(std::unique_ptr<ld_interface> comm)
+void dso1000a::connect(std::unique_ptr<ld_iface> comm)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -46,11 +46,11 @@ void dso1000a::connect(std::unique_ptr<ld_interface> comm)
     Interface_type type = comm->type();
     if (type == USBTMC) {
         // Convert to usbtmc interface
-        unique_ptr<usbtmc_interface> usbtmc(
-            dynamic_cast<usbtmc_interface*>(comm.release()));
+        unique_ptr<usbtmc_iface> usbtmc(
+            dynamic_cast<usbtmc_iface*>(comm.release()));
         
         // USB initialization
-        usbtmc->claim_interface(0);
+        usbtmc->claim_iface(0);
         usbtmc->set_endpoint_out(0);
         usbtmc->set_endpoint_in(1);
 
@@ -58,8 +58,8 @@ void dso1000a::connect(std::unique_ptr<ld_interface> comm)
         m_comm = std::move(usbtmc);
     } else if (type == VISA) {
         // Convert to visa interface
-        unique_ptr<visa_interface> visa(
-            dynamic_cast<visa_interface*>(comm.release()));
+        unique_ptr<visa_iface> visa(
+            dynamic_cast<visa_iface*>(comm.release()));
         m_comm = std::move(visa);
     } else {
         string err = this->get_info() + " : interface is not supported";

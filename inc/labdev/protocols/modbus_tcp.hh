@@ -1,14 +1,14 @@
 #ifndef MODBUS_TCP_HH
 #define MODBUS_TCP_HH
 
-#include <labdev/tcpip_interface.hh>
+#include <labdev/tcpip_iface.hh>
 #include <vector>
 
 namespace labdev {
 
 class modbus_tcp {
 public:
-    modbus_tcp(std::unique_ptr<tcpip_interface> tcpip) : m_comm(tcpip), m_tid(0x0000) {};
+    modbus_tcp(std::unique_ptr<tcpip_iface> tcpip) : m_comm(tcpip), m_tid(0x0000) {};
     ~modbus_tcp() {};
 
     // Function Code 01; read coils -> returns true = on, false = off
@@ -41,7 +41,7 @@ public:
         std::vector<uint16_t> data);
 
 private:
-    tcpip_interface* m_comm;
+    tcpip_iface* m_comm;
 
     uint16_t m_tid;
 

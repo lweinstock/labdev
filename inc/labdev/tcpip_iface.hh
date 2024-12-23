@@ -1,18 +1,18 @@
 #ifndef LD_TCPIP_INTERFACE_HH
 #define LD_TCPIP_INTERFACE_HH
 
-#include <labdev/ld_interface.hh>
+#include <labdev/ld_iface.hh>
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
 namespace labdev {
 
-class tcpip_interface : public ld_interface {
+class tcpip_iface : public ld_iface {
 public:
-    tcpip_interface();
-    tcpip_interface(std::string ip_addr, unsigned port);
-    virtual ~tcpip_interface();
+    tcpip_iface();
+    tcpip_iface(std::string ip_addr, unsigned port);
+    virtual ~tcpip_iface();
 
     void open() override;
     void open(std::string ip_addr, unsigned port);

@@ -18,7 +18,7 @@ using namespace std;
 namespace labdev {
 
 serial_port::serial_port()
-    : serial_interface(), m_path(""), m_fd(-1), m_term_settings(), m_timeout(),
+    : serial_iface(), m_path(""), m_fd(-1), m_term_settings(), m_timeout(),
       m_update_settings(true)
 {
     return;

@@ -3,9 +3,9 @@
 
 #include <labdev/devices/osci.hh>
 #include <labdev/protocols/scpi.hh>
-#include <labdev/tcpip_interface.hh>
-#include <labdev/usbtmc_interface.hh>
-#include <labdev/visa_interface.hh>
+#include <labdev/tcpip_iface.hh>
+#include <labdev/usbtmc_iface.hh>
+#include <labdev/visa_iface.hh>
 #include <memory>
 #include <map>
 
@@ -18,12 +18,12 @@ namespace labdev {
 class ds1000z : public osci {
 public:
     ds1000z();
-    ds1000z(std::unique_ptr<tcpip_interface> tcpip);
-    ds1000z(std::unique_ptr<usbtmc_interface> usbtmc);
-    ds1000z(std::unique_ptr<visa_interface> visa);
+    ds1000z(std::unique_ptr<tcpip_iface> tcpip);
+    ds1000z(std::unique_ptr<usbtmc_iface> usbtmc);
+    ds1000z(std::unique_ptr<visa_iface> visa);
     ~ds1000z();
 
-    void connect(std::unique_ptr<ld_interface> comm) override;
+    void connect(std::unique_ptr<ld_iface> comm) override;
 
     void disconnect() override;
 

@@ -28,13 +28,13 @@ LDFLAGS+=$(shell pkg-config fftw3 --libs)
 OBJ+=$(SRC)/ld_debug.o
 
 # Interfaces
-OBJ+=$(SRC)/ld_interface.o
+OBJ+=$(SRC)/ld_iface.o
 OBJ+=$(SRC)/serial_port.o
 OBJ+=$(SRC)/eth_to_ser.o
-OBJ+=$(SRC)/tcpip_interface.o
-OBJ+=$(SRC)/usb_interface.o
-OBJ+=$(SRC)/usbtmc_interface.o
-OBJ+=$(SRC)/modbus_tcp_interface.o
+OBJ+=$(SRC)/tcpip_iface.o
+OBJ+=$(SRC)/usb_iface.o
+OBJ+=$(SRC)/usbtmc_iface.o
+OBJ+=$(SRC)/modbus_tcp_iface.o
 
 # Utilies
 OBJ+=$(SRC)/utils/utils.o
@@ -68,7 +68,7 @@ UNAME=$(shell uname)
 # VISA support
 VISA=
 ifeq ($(VISA),1)
-  OBJ+=$(SRC)/visa_interface.o
+  OBJ+=$(SRC)/visa_iface.o
   CFLAGS+=-D LDVISA
 
   ifeq ($(UNAME),Darwin)  # macOS

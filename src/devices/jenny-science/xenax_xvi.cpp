@@ -8,8 +8,8 @@
 #include <sstream>
 #include <iomanip>
 
-#include <labdev/tcpip_interface.hh>
-#include <labdev/serial_interface.hh>
+#include <labdev/tcpip_iface.hh>
+#include <labdev/serial_iface.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/utils/utils.hh>
 #include <labdev/ld_debug.hh>
@@ -27,13 +27,13 @@ xenax_xvi::xenax_xvi()
     return;
 }
 
-xenax_xvi::xenax_xvi(std::unique_ptr<serial_interface> ser) : xenax_xvi()
+xenax_xvi::xenax_xvi(std::unique_ptr<serial_iface> ser) : xenax_xvi()
 {
     this->connect(std::move(ser));
     return;
 }
 
-xenax_xvi::xenax_xvi(std::unique_ptr<tcpip_interface> tcpip) : xenax_xvi()
+xenax_xvi::xenax_xvi(std::unique_ptr<tcpip_iface> tcpip) : xenax_xvi()
 {
     this->connect(std::move(tcpip));
     return;
@@ -46,7 +46,7 @@ xenax_xvi::~xenax_xvi()
     return;
 }
 
-void xenax_xvi::connect(std::unique_ptr<ld_interface> comm)
+void xenax_xvi::connect(std::unique_ptr<ld_iface> comm)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -57,8 +57,8 @@ void xenax_xvi::connect(std::unique_ptr<ld_interface> comm)
     Interface_type type = comm->type();
     if (type == SERIAL) {
         // Convert to serial interface
-        unique_ptr<serial_interface> ser(
-            dynamic_cast<serial_interface*>(comm.release()));
+        unique_ptr<serial_iface> ser(
+            dynamic_cast<serial_iface*>(comm.release()));
         
         // Check for correct serial setup => 115200 8N1 (manual p. 28)
         if (ser->get_baud() != 115200) {
@@ -85,8 +85,8 @@ void xenax_xvi::connect(std::unique_ptr<ld_interface> comm)
         m_comm = std::move(ser);
     } else if (type == TCPIP) {
         // Convert to tcpip interface
-        unique_ptr<tcpip_interface> tcpip(
-            dynamic_cast<tcpip_interface*>(comm.release()));
+        unique_ptr<tcpip_iface> tcpip(
+            dynamic_cast<tcpip_iface*>(comm.release()));
 
         // Check port => 10001
         if (tcpip->get_port() != xenax_xvi::PORT) {
