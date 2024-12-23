@@ -88,7 +88,7 @@ int visa_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
         m_timeout = timeout_ms;
     }
 
-    uint8_t rbuf[s_dflt_buf_size] = {0};
+    uint8_t rbuf[BUF_SIZE] = {0};
     ssize_t nbytes;
     ssize_t bytes_received = 0;
     stat = VI_SUCCESS_MAX_CNT;
@@ -99,8 +99,8 @@ int visa_interface::read_raw(uint8_t* data, size_t max_len, unsigned timeout_ms)
         check_and_throw(stat, "failed to read data from device");
         if (nbytes > 0) {
             // Check for buffer overflow
-            if (bytes_received + nbytes > s_dflt_buf_size)
-                throw bad_protocol(this->get_info() + " - Read buffer too small", s_dflt_buf_size);
+            if (bytes_received + nbytes > BUF_SIZE)
+                throw bad_protocol(this->get_info() + " - Read buffer too small", BUF_SIZE);
 
             debug_print_byte_data(rbuf, nbytes, "Read %zu bytes: ", nbytes);
 
@@ -136,7 +136,7 @@ void visa_interface::clear_device()
 
 visa_interface::visa_interface()
     : m_instr(0), m_visa_id("ASRL1::INSTR"), 
-      m_timeout(ld_interface::s_dflt_timeout_ms) 
+      m_timeout(ld_interface::TIMEOUT_MS) 
 {
     ViStatus stat;
     if (s_interface_ctr == 0) {

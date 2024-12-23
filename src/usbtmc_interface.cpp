@@ -37,7 +37,7 @@ int usbtmc_interface::write_dev_dep_msg(const uint8_t* msg, size_t len,
     uint8_t transfer_attr) 
 {
     // add space for header + total length must be multiple of 4
-    size_t tot_len = s_header_len + len;
+    size_t tot_len = HEADER_LEN + len;
     if (tot_len%4 > 0)
         tot_len += 4 - tot_len%4;
     uint8_t* usbtmc_message = new uint8_t[tot_len];
@@ -45,9 +45,9 @@ int usbtmc_interface::write_dev_dep_msg(const uint8_t* msg, size_t len,
         transfer_attr, len);
 
     // Append data
-    for (size_t i = s_header_len; i < tot_len; i++) {
-        usbtmc_message[i] = msg[i-s_header_len];
-        if (i > len+s_header_len)
+    for (size_t i = HEADER_LEN; i < tot_len; i++) {
+        usbtmc_message[i] = msg[i-HEADER_LEN];
+        if (i > len+HEADER_LEN)
             usbtmc_message[i] = 0x00;   // zero padding
     }
     debug_print("%s\n", "Sending device dependent message");
@@ -63,14 +63,14 @@ int usbtmc_interface::write_dev_dep_msg(const uint8_t* msg, size_t len,
 int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
     int timeout_ms, uint8_t transfer_attr, uint8_t term_char) 
 {
-    uint8_t read_request[s_header_len];
-    uint8_t rbuf[s_dflt_buf_size] = { 0x00 };
+    uint8_t read_request[HEADER_LEN];
+    uint8_t rbuf[BUF_SIZE] = { 0x00 };
 
     // Send read request
     debug_print("%s\n", "Sending read request");
     this->create_usbtmc_header(read_request, REQUEST_DEV_DEP_MSG_IN,
         transfer_attr, sizeof(rbuf), term_char);
-    this->write_bulk((const uint8_t*)read_request, s_header_len);
+    this->write_bulk((const uint8_t*)read_request, HEADER_LEN);
 
     // Read from bulk endpoint
     debug_print("%s\n", "Reading device dependent message");
@@ -84,8 +84,8 @@ int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
     int transfer_size = check_usbtmc_header(rbuf, DEV_DEP_MSG_IN);
 
     // Copy data into output array
-    std::copy(rbuf + s_header_len, rbuf + len, data);
-    int bytes_received = len - s_header_len;
+    std::copy(rbuf + HEADER_LEN, rbuf + len, data);
+    int bytes_received = len - HEADER_LEN;
     while (bytes_received < transfer_size) {
         int nbytes = this->read_bulk(rbuf, sizeof(rbuf), timeout_ms);
         if (bytes_received > static_cast<int>(max_len))
@@ -104,16 +104,16 @@ int usbtmc_interface::read_dev_dep_msg(uint8_t* data, size_t max_len,
 int usbtmc_interface::write_vendor_specific(string msg) 
 {
     // add space for header + total length must be multiple of 4
-    size_t tot_len = s_header_len + msg.size() + 4 - msg.size()%4;
+    size_t tot_len = HEADER_LEN + msg.size() + 4 - msg.size()%4;
     uint8_t* usbtmc_message = new uint8_t[tot_len];
     this->create_usbtmc_header(usbtmc_message, VENDOR_SPECIFIC_OUT, 0x00,
         msg.size());
 
     // Append data
-    for (size_t i = s_header_len; i < tot_len; i++) 
+    for (size_t i = HEADER_LEN; i < tot_len; i++) 
     {
-        usbtmc_message[i] = msg.c_str()[i-s_header_len];
-        if (i > msg.size()+s_header_len)
+        usbtmc_message[i] = msg.c_str()[i-HEADER_LEN];
+        if (i > msg.size()+HEADER_LEN)
             usbtmc_message[i] = 0x00;   // zero padding
     }
 
@@ -126,12 +126,12 @@ int usbtmc_interface::write_vendor_specific(string msg)
 
 string usbtmc_interface::read_vendor_specific(int timeout_ms) 
 {
-    uint8_t read_request[s_header_len], rbuf[s_dflt_buf_size];
+    uint8_t read_request[HEADER_LEN], rbuf[BUF_SIZE];
     // Send read request
     debug_print("%s\n", "Sending vendor specific read request\n");
     this->create_usbtmc_header(read_request, REQUEST_VENDOR_SPECIFIC_IN,
         0x00, sizeof(rbuf), 0x00);
-    this->write_bulk((const uint8_t*)read_request, s_header_len);
+    this->write_bulk((const uint8_t*)read_request, HEADER_LEN);
 
     // Read from bulk endpoint
     debug_print("%s\n", "Reading...\n");
@@ -144,8 +144,8 @@ string usbtmc_interface::read_vendor_specific(int timeout_ms)
     // Check header
     int transfer_size = check_usbtmc_header(rbuf, DEV_DEP_MSG_IN);
     // Remove header from return value
-    len -= s_header_len;
-    string ret((const char*)rbuf + s_header_len, len);
+    len -= HEADER_LEN;
+    string ret((const char*)rbuf + HEADER_LEN, len);
 
     // If more data than received was anounced in the header, keep reading
     int bytes_left = transfer_size - len;

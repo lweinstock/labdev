@@ -12,7 +12,7 @@ namespace labdev{
  *  Interface types
  */
 
-enum Interface_type {NONE, SERIAL, TCPIP, USB, USBTMC, VISA, MODBUS_TCP};
+enum Interface_type {NONE, SERIAL, TCPIP, USB, USBTMC, VISA, MODBUS_TCP, MODBUS_RTU};
 
 /*
  *  Abstract base class for all interfaces
@@ -32,9 +32,9 @@ public:
      */
 
     // 1mb default buffer size
-    static constexpr size_t s_dflt_buf_size = 1024*1024;
+    static constexpr size_t BUF_SIZE = 1024*1024;
     // 2s default timeout
-    static constexpr unsigned s_dflt_timeout_ms = 2000;
+    static constexpr unsigned TIMEOUT_MS = 2000;
 
     /*
      *      Basic read and write methods
@@ -49,21 +49,21 @@ public:
 
     // C-style raw byte read
     virtual int read_raw(uint8_t* data, size_t max_len, 
-        unsigned timeout_ms = s_dflt_timeout_ms) = 0;
+        unsigned timeout_ms = TIMEOUT_MS) = 0;
     // C++-style byte read
-    std::vector<uint8_t> read_byte(unsigned timeout_ms = s_dflt_timeout_ms);
+    std::vector<uint8_t> read_byte(unsigned timeout_ms = TIMEOUT_MS);
     // C++-style string read
-    std::string read(unsigned timeout_ms = s_dflt_timeout_ms);
+    std::string read(unsigned timeout_ms = TIMEOUT_MS);
 
     // Read until specified delimiter is found in the received message
     std::string read_until(const std::string& delim, size_t& pos, 
-        unsigned timeout_ms = s_dflt_timeout_ms);
+        unsigned timeout_ms = TIMEOUT_MS);
     std::string read_until(const std::string& delim, 
-        unsigned timeout_ms = s_dflt_timeout_ms);
+        unsigned timeout_ms = TIMEOUT_MS);
 
     // C++-style string write followed by a read
     std::string query(const std::string& msg, 
-        unsigned timeout_ms = s_dflt_timeout_ms);
+        unsigned timeout_ms = TIMEOUT_MS);
 
     /*
      *      Utility methods

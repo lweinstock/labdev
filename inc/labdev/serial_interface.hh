@@ -45,7 +45,7 @@ public:
     virtual void set_rts() = 0;
     virtual void clear_rts() = 0;
 
-    Interface_type type() const noexcept final { return SERIAL; }
+    Interface_type type() const noexcept { return SERIAL; }
 
 protected:
     unsigned m_baud, m_nbits, m_sbits ;

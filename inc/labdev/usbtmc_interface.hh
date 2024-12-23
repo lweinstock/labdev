@@ -13,7 +13,7 @@ public:
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, 
-        unsigned timeout_ms = s_dflt_timeout_ms) override;
+        unsigned timeout_ms = TIMEOUT_MS) override;
 
     Interface_type type() const noexcept override { return USBTMC; }
 
@@ -21,12 +21,12 @@ public:
     int write_dev_dep_msg(const uint8_t* msg, size_t len,
         uint8_t transfer_attr = EOM);
     int read_dev_dep_msg(uint8_t* data, size_t max_len,
-        int timeout_ms = s_dflt_timeout_ms, uint8_t transfer_attr = TERM_CHAR, 
+        int timeout_ms = TIMEOUT_MS, uint8_t transfer_attr = TERM_CHAR, 
         uint8_t term_char = '\n');
 
     // USBTMC vendor specific data transfer
     int write_vendor_specific(std::string msg);
-    std::string read_vendor_specific(int timeout_ms = s_dflt_timeout_ms);
+    std::string read_vendor_specific(int timeout_ms = TIMEOUT_MS);
 
     // USBTMC clear Bulk-IN/OUT buffers
     void clear_buffer();
@@ -34,7 +34,7 @@ public:
 private:
 
     // USBTMC protocol definitions
-    static constexpr unsigned s_header_len = 12;
+    static constexpr unsigned HEADER_LEN = 12;
     static constexpr uint8_t LIBUSB_SUBCLASS_TMC = 0x03;
     enum bRequest : uint16_t {
         INITIATE_ABORT_BULK_OUT     = 0x01,
