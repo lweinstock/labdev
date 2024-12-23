@@ -17,15 +17,15 @@ namespace labdev {
 
 class dg4000 : public fgen {
 public:
-    dg4000() : fgen(2, "Rigol,DG4000"), m_scpi(nullptr) {};
-    dg4000(tcpip_interface* tcpip);
-    dg4000(usbtmc_interface* usb);
-    dg4000(visa_interface* visa);
+    dg4000() : fgen(2, "Rigol,DG4000") {};
+    dg4000(std::unique_ptr<tcpip_interface> tcpip);
+    dg4000(std::unique_ptr<usbtmc_interface> usbtmc);
+    dg4000(std::unique_ptr<visa_interface> visa);
     ~dg4000();
 
-    void connect(tcpip_interface* tcpip);
-    void connect(usbtmc_interface* usb);
-    void connect(visa_interface* visa);
+    void connect(std::unique_ptr<tcpip_interface> tcpip);
+    void connect(std::unique_ptr<usbtmc_interface> usbtmc);
+    void connect(std::unique_ptr<visa_interface> visa);
     void disconnect() override;
 
     static constexpr uint16_t DG4162_VID = 0x1AB1;
@@ -72,8 +72,6 @@ public:
     float get_pulse_width(unsigned channel) override;
 
 private:
-    scpi* m_scpi;
-
     void init();
 
     // Aborts if channel is invalid

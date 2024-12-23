@@ -15,14 +15,14 @@ namespace labdev {
 class hmp4000 : public ld_device {
 public:
     hmp4000();
-    hmp4000(tcpip_interface* tcpip);
-    hmp4000(serial_interface* ser);
+    hmp4000(std::unique_ptr<tcpip_interface> tcpip);
+    hmp4000(std::unique_ptr<serial_interface> ser);
     ~hmp4000();
 
     static constexpr unsigned PORT = 5025;
 
-    void connect(tcpip_interface* tcpip);
-    void connect(serial_interface* ser);
+    void connect(std::unique_ptr<tcpip_interface> tcpip);
+    void connect(std::unique_ptr<serial_interface> ser);
     void disconnect() override;
 
     // En-/disable channel for output switching
@@ -50,8 +50,7 @@ public:
 private:
     int m_cur_ch;
     void init();
-    scpi* m_scpi;
-
+    
     // Select seperate channel "instrument"
     void select_channel(int ch);
 

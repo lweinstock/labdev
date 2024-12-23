@@ -13,14 +13,14 @@ namespace labdev {
 class sdg1000x: public fgen {
 public:
     sdg1000x();
-    sdg1000x(tcpip_interface* tcpip);
-    sdg1000x(usbtmc_interface* usbtmc);
-    sdg1000x(visa_interface* visa);
+    sdg1000x(std::unique_ptr<tcpip_interface> tcpip);
+    sdg1000x(std::unique_ptr<usbtmc_interface> usbtmc);
+    sdg1000x(std::unique_ptr<visa_interface> visa);
     ~sdg1000x();
 
-    void connect(tcpip_interface* tcpip);
-    void connect(usbtmc_interface* tmc);
-    void connect(visa_interface* visa);
+    void connect(std::unique_ptr<tcpip_interface> tcpip);
+    void connect(std::unique_ptr<usbtmc_interface> usbtmc);
+    void connect(std::unique_ptr<visa_interface> visa);
     void disconnect() override;
 
     static constexpr unsigned PORT = 5025;
@@ -70,8 +70,6 @@ private:
     void init();
     // Allowed channels = 1 or 2!
     void check_channel(unsigned channel);
-
-    scpi* m_scpi;
 
     // Get value from basic wave command (manual p. 27)
     std::string get_bswv_val(std::string bswv, std::string par);

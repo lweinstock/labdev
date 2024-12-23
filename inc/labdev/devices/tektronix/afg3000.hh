@@ -13,14 +13,14 @@ namespace labdev {
 class afg3000: public fgen {
 public:
     afg3000();
-    afg3000(tcpip_interface* tcpip);
-    afg3000(usbtmc_interface* usbtmc);
-    afg3000(visa_interface* visa);
+    afg3000(std::unique_ptr<tcpip_interface> tcpip);
+    afg3000(std::unique_ptr<usbtmc_interface> usbtmc);
+    afg3000(std::unique_ptr<visa_interface> visa);
     ~afg3000();
 
-    void connect(tcpip_interface* tcpip);
-    void connect(usbtmc_interface* tmc);
-    void connect(visa_interface* visa);
+    void connect(std::unique_ptr<tcpip_interface> tcpip);
+    void connect(std::unique_ptr<usbtmc_interface> usbtmc);
+    void connect(std::unique_ptr<visa_interface> visa);
     void disconnect() override;
 
     static constexpr unsigned PORT = 5025;
@@ -67,8 +67,6 @@ public:
     float get_pulse_width(unsigned channel) override;
 
 private:
-    scpi* m_scpi;
-
     void init();
     // Allowed channels = 1 or 2!
     void check_channel(unsigned channel);

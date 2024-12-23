@@ -8,26 +8,26 @@ using namespace std;
 
 namespace labdev {
 
-afg3000::afg3000() : fgen(2, "Tektronix,AFG3000"), m_scpi(nullptr)
+afg3000::afg3000() : fgen(2, "Tektronix,AFG3000")
 {
     return;
 }
 
-afg3000::afg3000(tcpip_interface* tcpip) : afg3000()
+afg3000::afg3000(std::unique_ptr<tcpip_interface> tcpip) : afg3000()
 {
-    this->connect(tcpip);
+    this->connect(std::move(tcpip));
     return;
 }
 
-afg3000::afg3000(usbtmc_interface* usbtmc) : afg3000()
+afg3000::afg3000(std::unique_ptr<usbtmc_interface> usbtmc) : afg3000()
 {
-    this->connect(usbtmc);
+    this->connect(std::move(usbtmc));
     return;
 }
 
-afg3000::afg3000(visa_interface* visa) : afg3000()
+afg3000::afg3000(std::unique_ptr<visa_interface> visa) : afg3000()
 {
-    this->connect(visa);
+    this->connect(std::move(visa));
     return;
 }
 
@@ -39,10 +39,10 @@ afg3000::~afg3000()
 }
 
 
-void afg3000::connect(tcpip_interface* tcpip)
+void afg3000::connect(std::unique_ptr<tcpip_interface> tcpip)
 {
     // Check and assign interface
-    this->set_comm(tcpip);
+    m_comm = std::move(tcpip);
 
     if (tcpip->get_port() != afg3000::PORT)
     {
@@ -54,10 +54,10 @@ void afg3000::connect(tcpip_interface* tcpip)
     return;
 }
 
-void afg3000::connect(usbtmc_interface* usbtmc)
+void afg3000::connect(std::unique_ptr<usbtmc_interface> usbtmc)
 {
     // Check and assign interface
-    this->set_comm(usbtmc);
+    m_comm = std::move(usbtmc);
 
     usbtmc->claim_interface(0);
     usbtmc->set_endpoint_out(0);
@@ -69,18 +69,14 @@ void afg3000::connect(usbtmc_interface* usbtmc)
 
 void afg3000::disconnect()
 {
-    this->reset_comm();
-    if (m_scpi) {
-        delete m_scpi;
-        m_scpi = nullptr;
-    }
+    m_comm.reset();
     return;
 }
 
-void afg3000::connect(visa_interface* visa)
+void afg3000::connect(std::unique_ptr<visa_interface> visa)
 {
     // Check and assign interface
-    this->set_comm(visa);
+    m_comm = std::move(visa);
 
     this->init();
     return;
@@ -91,14 +87,14 @@ void afg3000::enable_channel(unsigned channel, bool ena)
     this->check_channel(channel);
     stringstream msg;
     msg << "OUTP" << channel << " " << (ena ? "ON" : "OFF") << "\n";
-    get_comm()->write(msg.str()); 
+    m_comm->write(msg.str()); 
     return;
 }
 
 bool afg3000::get_state(unsigned channel)
 {
     this->check_channel(channel);
-    string ret = get_comm()->query("OUTP" + to_string(channel) + "?\n");
+    string ret = m_comm->query("OUTP" + to_string(channel) + "?\n");
     if (ret.find("ON") != string::npos)
         return true;
     return false;
@@ -131,7 +127,7 @@ fgen::waveform afg3000::get_wvfm(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":APPL?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     for (auto m : m_wvfm_string) {
         if (resp.find(m.second) != string::npos)
             return m.first;
@@ -226,13 +222,9 @@ float afg3000::get_pulse_width(unsigned channel)
 
 void afg3000::init() 
 {
-    // Setup SCPI
-    if (m_scpi)
-        delete m_scpi;
-    m_scpi = new scpi( get_comm() );
-    m_scpi->clear_status();
-
-    m_dev_name = m_scpi->get_identifier();
+    m_comm->write("*CLS\n");
+    usleep(100e3);
+    m_dev_name = m_comm->query("*IDN?\n");
     return;
 }
 

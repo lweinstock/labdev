@@ -1,5 +1,4 @@
 #include <labdev/devices/baumer/om70_l.hh>
-#include <labdev/tcpip_interface.hh>
 #include <labdev/exceptions.hh>
 #include <labdev/ld_debug.hh>
 
@@ -17,9 +16,9 @@ om70_l::om70_l()
     return;
 }
 
-om70_l::om70_l(tcpip_interface* tcpip) : om70_l() 
+om70_l::om70_l(std::unique_ptr<modbus_tcp_interface> tcpip) : om70_l() 
 {
-    this->connect(tcpip);
+    this->connect(std::move(tcpip));
     return;
 }
 
@@ -30,7 +29,7 @@ om70_l::~om70_l()
     return;
 }
 
-void om70_l::connect(tcpip_interface* tcpip)
+void om70_l::connect(std::unique_ptr<modbus_tcp_interface> tcpip)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -39,7 +38,7 @@ void om70_l::connect(tcpip_interface* tcpip)
     }
 
     // Check and assign interface
-    this->set_comm(tcpip);  // TODO: not sure if this is actually needed..?
+    m_comm = std::move(tcpip);  // TODO: not sure if this is actually needed..?
 
     // Check port -> 502
     if (tcpip->get_port() != om70_l::PORT) {
@@ -47,10 +46,7 @@ void om70_l::connect(tcpip_interface* tcpip)
         abort();
     }
 
-    // Create modbus interface
-    if (m_modbus)
-        delete m_modbus;
-    m_modbus = new modbus_tcp(tcpip);
+    // Create modbus interface (TODO)
     this->enable_laser();
     return;
 }
@@ -58,11 +54,7 @@ void om70_l::connect(tcpip_interface* tcpip)
 void om70_l::disconnect()
 {
     this->disable_laser();
-    if (m_modbus) {
-        delete m_modbus;
-        m_modbus = nullptr;
-    }
-    this->reset_comm();
+    m_modbus.reset();
     return;
 }
 

@@ -6,10 +6,12 @@
 
 namespace labdev {
 
-class modbus_tcp {
+class modbus_tcp_interface : public tcpip_interface {
 public:
-    modbus_tcp(std::unique_ptr<tcpip_interface> tcpip) : m_comm(tcpip), m_tid(0x0000) {};
-    ~modbus_tcp() {};
+    modbus_tcp_interface() : tcpip_interface(), m_tid(0x0000) {};
+    modbus_tcp_interface(std::string ip_addr, unsigned port)
+      : tcpip_interface(ip_addr, port), m_tid(0x0000) {};
+    ~modbus_tcp_interface() {};
 
     // Function Code 01; read coils -> returns true = on, false = off
     std::vector<bool> read_coils(uint8_t uid, uint16_t addr, uint16_t len);
@@ -41,8 +43,7 @@ public:
         std::vector<uint16_t> data);
 
 private:
-    tcpip_interface* m_comm;
-
+    // Transaction id
     uint16_t m_tid;
 
     // Modbus function codes

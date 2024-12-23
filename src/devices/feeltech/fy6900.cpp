@@ -11,9 +11,9 @@ using namespace std;
 
 namespace labdev {
 
-fy6900::fy6900(serial_interface* ser) : fy6900()
+fy6900::fy6900(std::unique_ptr<serial_interface> ser) : fy6900()
 {
-    this->connect(ser);
+    this->connect(std::move(ser));
     return;
 }
 
@@ -24,10 +24,10 @@ fy6900::~fy6900()
     return;
 }
 
-void fy6900::connect(serial_interface* ser)
+void fy6900::connect(std::unique_ptr<serial_interface> ser)
 {
     // Check and assign interface
-    this->set_comm(ser);
+    m_comm = std::move(ser);
 
     if ( ser->get_baud() != fy6900::BAUD ) {
         fprintf(stderr, "FY6900 only supports %i baud 8N1\n", fy6900::BAUD);
@@ -48,7 +48,7 @@ void fy6900::enable_channel(unsigned channel, bool on_off)
         fprintf(stderr, "Invalid channel number %i\n", channel);
         abort();
     }
-    string ret = get_comm()->query(msg.str());
+    string ret = m_comm->query(msg.str());
 
     if ( ret.compare("\n") != 0 )
         throw device_error("Did not receive EOM response\n", -1);
@@ -67,7 +67,7 @@ bool fy6900::get_state(unsigned channel)
         fprintf(stderr, "Invalid channel number %i\n", channel);
         abort();
     }
-    string resp = get_comm()->query(msg);
+    string resp = m_comm->query(msg);
     if (resp.size() == 0)
         throw device_error("Received empty response", -1);
     int stat = stoi(resp);
@@ -86,7 +86,7 @@ void fy6900::set_wvfm(unsigned channel, waveform wvfm)
         fprintf(stderr, "Invalid channel number %i\n", channel);
         abort();
     }
-    string ret = get_comm()->query(msg.str());
+    string ret = m_comm->query(msg.str());
     if ( ret.compare("\n") != 0 )
         throw device_error("Did not receive EOM response\n", -1);
     return;
@@ -103,7 +103,7 @@ fgen::waveform fy6900::get_wvfm(unsigned channel)
         fprintf(stderr, "Invalid channel number %i\n", channel);
         abort();
     }
-    string resp = get_comm()->query(msg);
+    string resp = m_comm->query(msg);
     if (resp.size() == 0)
         throw device_error("Received empty response", -1);
     // TODO: parse response
@@ -128,7 +128,7 @@ void fy6900::set_freq(unsigned channel, float freq_hz)
     // Frequency is set in steps of uHz!
     msg << setw(14) << setfill('0') << fixed << setprecision(0); 
     msg << 1e6*freq_hz << "\n";
-    string ret = get_comm()->query(msg.str());
+    string ret = m_comm->query(msg.str());
     if ( ret.compare("\n") != 0 )
         throw device_error("Did not receive EOM response\n", -1);
 
@@ -153,7 +153,7 @@ void fy6900::set_duty_cycle(unsigned channel, float dcl)
     // duty cycle is given in % (format see manual p. 9)
     msg << setw(8) << setfill('0') << fixed << setprecision(3);
     msg << 100*dcl << "\n";
-    string ret = get_comm()->query(msg.str());
+    string ret = m_comm->query(msg.str());
 
     if ( ret.compare("\n") != 0 )
         throw device_error("Did not receive EOM response\n", -1);
@@ -179,7 +179,7 @@ void fy6900::set_phase(unsigned channel, float phase_deg)
     // Phase is given in degree (format see manual p. 9)
     msg << setw(9) << setfill('0') << fixed << setprecision(3);
     msg << phase_deg << "\n";
-    string ret = get_comm()->query(msg.str());
+    string ret = m_comm->query(msg.str());
 
     if ( ret.compare("\n") != 0 )
         throw device_error("Did not receive EOM response\n", -1);
@@ -205,7 +205,7 @@ void fy6900::set_ampl(unsigned channel, float ampl_v)
     // Amplitude in volts (format see manual p. 8)
     msg << setw(11) << setfill('0') << fixed << setprecision(4);
     msg << ampl_v << "\n";
-    string ret = get_comm()->query(msg.str());
+    string ret = m_comm->query(msg.str());
 
     if ( ret.compare("\n") != 0 )
         throw device_error("Did not receive EOM response\n", -1);
@@ -231,7 +231,7 @@ void fy6900::set_offset(unsigned channel, float offset_v)
     // Offset voltage in volts (format see manual p. 8)
     msg << setw(4) << setfill('0') << fixed << setprecision(2);
     msg << offset_v << "\n";
-    string ret = get_comm()->query(msg.str());
+    string ret = m_comm->query(msg.str());
 
     if ( ret.compare("\n") != 0 )
         throw device_error("Did not receive EOM response\n", -1);
@@ -250,7 +250,7 @@ float fy6900::get_freq(unsigned channel)
         fprintf(stderr, "Invalid channel number %i\n", channel);
         abort();
     }
-    string resp = get_comm()->query(msg);
+    string resp = m_comm->query(msg);
     if (resp.size() == 0)
         throw device_error("Received empty response", -1);
     return stof(resp);
@@ -267,7 +267,7 @@ float fy6900::get_duty_cycle(unsigned channel)
         fprintf(stderr, "Invalid channel number %i\n", channel);
         abort();
     }
-    string resp = get_comm()->query(msg);
+    string resp = m_comm->query(msg);
     if (resp.size() == 0)
         throw device_error("Received empty response", -1);
     float ret = stoi(resp)/10000.;
@@ -285,7 +285,7 @@ float fy6900::get_phase(unsigned channel)
         fprintf(stderr, "Invalid channel number %i\n", channel);
         abort();
     }
-    string resp = get_comm()->query(msg);
+    string resp = m_comm->query(msg);
     if (resp.size() == 0)
         throw device_error("Received empty response", -1);
     return stoi(resp)/1000.;
@@ -302,7 +302,7 @@ float fy6900::get_ampl(unsigned channel)
         fprintf(stderr, "Invalid channel number %i\n", channel);
         abort();
     }
-    string resp = get_comm()->query(msg);
+    string resp = m_comm->query(msg);
     if (resp.size() == 0)
         throw device_error("Received empty response", -1);
     return stoi(resp)/10000.;
@@ -319,7 +319,7 @@ float fy6900::get_offset(unsigned channel)
         fprintf(stderr, "Invalid channel number %i\n", channel);
         abort();
     }
-    string resp = get_comm()->query(msg);
+    string resp = m_comm->query(msg);
     if (resp.size() == 0)
         throw device_error("Received empty response", -1);
     float ret = (int32_t)stol(resp)/1000.;
@@ -359,7 +359,7 @@ void fy6900::set_pulse_width(unsigned channel, float width_s)
     }
     msg << setw(10) << setfill('0') << setprecision(0) << fixed;
     msg << 1e9*width_s << "\n"; // Pulse width in ns (manual p.9)
-    string ret = get_comm()->query(msg.str());
+    string ret = m_comm->query(msg.str());
     if ( ret.compare("\n") != 0 )
         throw device_error("Did not receive EOM response\n", -1);
     return;

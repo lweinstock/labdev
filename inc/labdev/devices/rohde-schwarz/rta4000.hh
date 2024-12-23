@@ -20,9 +20,9 @@ namespace labdev{
     class rta4000 : public osci {
     public:
         rta4000();
-        rta4000(tcpip_interface* tcpip);
-        rta4000(visa_interface* visa);
-        rta4000(usbtmc_interface* usbtmc);
+        rta4000(std::unique_ptr<tcpip_interface> tcpip);
+        rta4000(std::unique_ptr<visa_interface> visa);
+        rta4000(std::unique_ptr<usbtmc_interface> usbtmc);
         rta4000(serial_interface* serial);
         ~rta4000() {};
 

@@ -21,9 +21,9 @@ const string ml_808gx::A0 = STX + "02A02D" + ETX;
 const string ml_808gx::A2 = STX + "02A22B" + ETX; 
 const string ml_808gx::CAN = STX + "0218186E" + ETX;
 
-ml_808gx::ml_808gx(serial_interface* ser) : ml_808gx()
+ml_808gx::ml_808gx(std::unique_ptr<serial_interface> ser) : ml_808gx()
 {
-    this->connect(ser);
+    this->connect(std::move(ser));
     return;
 }
 
@@ -34,7 +34,7 @@ ml_808gx::~ml_808gx()
     return;
 }
 
-void ml_808gx::connect(serial_interface* ser)
+void ml_808gx::connect(std::unique_ptr<serial_interface> ser)
 {
     if ( this->connected() ) {
         string err = this->get_info() + " : device is already connected";
@@ -43,7 +43,7 @@ void ml_808gx::connect(serial_interface* ser)
     }
 
     // Check and assign interface
-    this->set_comm(ser);
+    m_comm = std::move(ser);
 
     // 8N1, supported baud = 9600/19200/38400 (see manual p. 24)
     unsigned baud = ser->get_baud();
@@ -73,7 +73,7 @@ void ml_808gx::connect(serial_interface* ser)
 
 void ml_808gx::disconnect()
 {
-    this->reset_comm();
+    m_comm.reset();
     return;
 }
 
@@ -336,7 +336,7 @@ void ml_808gx::send_command(string cmd, string data)
         checksum -= msg.str()[i];
     msg << uppercase << hex << (int)checksum;
     msg << ETX;
-    get_comm()->write(msg.str());  
+    m_comm->write(msg.str());  
 
     return;
 }
@@ -344,49 +344,49 @@ void ml_808gx::send_command(string cmd, string data)
 void ml_808gx::download_command(string cmd, string data) 
 {
     // Initialize enquary
-    get_comm()->write(ENQ);
-    string resp = get_comm()->read();
+    m_comm->write(ENQ);
+    string resp = m_comm->read();
     if (resp != ACK)
         throw bad_protocol("Did not receive ACK", resp.size());
     
     this->send_command(cmd, data);
-    resp = get_comm()->read_until(ETX);
+    resp = m_comm->read_until(ETX);
     
     // Check response
     if ( resp == A2) {
         // Handle error and throw
-        get_comm()->write(CAN);
+        m_comm->write(CAN);
         throw bad_protocol("Received error A2", -1);
     }
 
     // End transmission
-    get_comm()->write(EOT);
+    m_comm->write(EOT);
     return;
 }
 
 void ml_808gx::upload_command(string cmd, string& payload) 
 {    
     // Initialize enquary
-    get_comm()->write(ENQ);
-    string resp = get_comm()->read();
+    m_comm->write(ENQ);
+    string resp = m_comm->read();
     if (resp != ACK)
         throw bad_protocol("Did not receive ACK", resp.size());
     
     this->send_command(cmd);
-    resp = get_comm()->read_until(ETX);
+    resp = m_comm->read_until(ETX);
 
     // Check response
     if (resp == A2) {
         // Handle error and throw
-        get_comm()->write(CAN);
+        m_comm->write(CAN);
         throw bad_protocol("Received error A2", -1);
     }
 
-    get_comm()->write(ACK);
-    payload = get_comm()->read_until(ETX);
+    m_comm->write(ACK);
+    payload = m_comm->read_until(ETX);
 
     // End transmission
-    get_comm()->write(EOT);
+    m_comm->write(EOT);
     return;
 }
 

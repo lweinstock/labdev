@@ -34,10 +34,7 @@ OBJ+=$(SRC)/eth_to_ser.o
 OBJ+=$(SRC)/tcpip_interface.o
 OBJ+=$(SRC)/usb_interface.o
 OBJ+=$(SRC)/usbtmc_interface.o
-
-# Protocols
-OBJ+=$(SRC)/protocols/scpi.o
-OBJ+=$(SRC)/protocols/modbus_tcp.o
+OBJ+=$(SRC)/modbus_tcp_interface.o
 
 # Utilies
 OBJ+=$(SRC)/utils/utils.o

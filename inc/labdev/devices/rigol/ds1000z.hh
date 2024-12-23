@@ -18,14 +18,14 @@ namespace labdev {
 class ds1000z : public osci {
 public:
     ds1000z();
-    ds1000z(tcpip_interface* tcpip);
-    ds1000z(usbtmc_interface* usbtmc);
-    ds1000z(visa_interface* visa);
+    ds1000z(std::unique_ptr<tcpip_interface> tcpip);
+    ds1000z(std::unique_ptr<usbtmc_interface> usbtmc);
+    ds1000z(std::unique_ptr<visa_interface> visa);
     ~ds1000z();
 
-    void connect(tcpip_interface* tcpip);
-    void connect(usbtmc_interface* usbtmc);
-    void connect(visa_interface* visa);
+    void connect(std::unique_ptr<tcpip_interface> tcpip);
+    void connect(std::unique_ptr<usbtmc_interface> usbtmc);
+    void connect(std::unique_ptr<visa_interface> visa);
 
     void disconnect() override;
 
@@ -100,8 +100,6 @@ private:
         {NEG_PHASE, "FPH"}
     };
     std::string meas_to_str(meas_item item) { return m_meas_string[item]; }
-
-    scpi* m_scpi;
 };
 
 }

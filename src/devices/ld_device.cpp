@@ -16,42 +16,4 @@ std::string ld_device::get_info() const
  *      P R O T E C T E D   M E T H O D S
  */
 
-void ld_device::set_comm(ld_interface* comm)
-{
-    // Skip if already connected to this interface
-    if (comm == m_comm)
-        return;
-
-    // Only connect if not already connected
-    if ( this->connected() ) {
-        throw device_error(this->get_info() + ": device is already connected");
-        return;
-    }
-
-    // Check if pointer is valid
-    if (comm == nullptr) {
-        cerr << this->get_info() << ": received nullptr interface" << endl;
-        abort();
-    }
-
-    // Check if communication interface is ready to use
-    if ( !comm->good() ) {
-        throw bad_connection(this->get_info() + ": interface not ready");
-        return;
-    }
-
-    // Everything seems to be in order
-    m_comm = comm;
-    return;
-}
-
-ld_interface* ld_device::get_comm() const
-{
-    if ( !this->connected() ) {
-        throw bad_connection(this->get_info() + ": device is not connected");
-        return nullptr;
-    }
-    return m_comm;
-}
-
 }

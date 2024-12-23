@@ -8,26 +8,26 @@ using namespace std;
 
 namespace labdev {
 
-sdg1000x::sdg1000x() : fgen(2, "Siglent,SDG1000X"), m_scpi(nullptr)
+sdg1000x::sdg1000x() : fgen(2, "Siglent,SDG1000X")
 {
     return;
 }
 
-sdg1000x::sdg1000x(tcpip_interface* tcpip) : sdg1000x()
+sdg1000x::sdg1000x(std::unique_ptr<tcpip_interface> tcpip) : sdg1000x()
 {
-    this->connect(tcpip);
+    this->connect(std::move(tcpip));
     return;
 }
 
-sdg1000x::sdg1000x(usbtmc_interface* usbtmc) : sdg1000x()
+sdg1000x::sdg1000x(std::unique_ptr<usbtmc_interface> usbtmc) : sdg1000x()
 {
-    this->connect(usbtmc);
+    this->connect(std::move(usbtmc));
     return;
 }
 
-sdg1000x::sdg1000x(visa_interface* visa) : sdg1000x()
+sdg1000x::sdg1000x(std::unique_ptr<visa_interface> visa) : sdg1000x()
 {
-    this->connect(visa);
+    this->connect(std::move(visa));
     return;
 }
 
@@ -39,10 +39,10 @@ sdg1000x::~sdg1000x()
 }
 
 
-void sdg1000x::connect(tcpip_interface* tcpip)
+void sdg1000x::connect(std::unique_ptr<tcpip_interface> tcpip)
 {
     // Check and assign interface
-    this->set_comm(tcpip);
+    m_comm = std::move(tcpip);
 
     if (tcpip->get_port() != sdg1000x::PORT)
     {
@@ -54,10 +54,10 @@ void sdg1000x::connect(tcpip_interface* tcpip)
     return;
 }
 
-void sdg1000x::connect(usbtmc_interface* usbtmc)
+void sdg1000x::connect(std::unique_ptr<usbtmc_interface> usbtmc)
 {
     // Check and assign interface
-    this->set_comm(usbtmc);
+    m_comm = std::move(usbtmc);
 
     usbtmc->claim_interface(0);
     usbtmc->set_endpoint_in(0);
@@ -69,18 +69,14 @@ void sdg1000x::connect(usbtmc_interface* usbtmc)
 
 void sdg1000x::disconnect()
 {
-    this->reset_comm();
-    if (m_scpi) {
-        delete m_scpi;
-        m_scpi = nullptr;
-    }
+    m_comm.reset();
     return;
 }
 
-void sdg1000x::connect(visa_interface* visa)
+void sdg1000x::connect(std::unique_ptr<visa_interface> visa)
 {
     // Check and assign interface
-    this->set_comm(visa);
+    m_comm = std::move(visa);
 
     this->init();
     return;
@@ -91,14 +87,14 @@ void sdg1000x::enable_channel(unsigned channel, bool ena)
     this->check_channel(channel);
     stringstream msg;
     msg << "C" << channel << ":OUTP " << (ena ? "ON" : "OFF") << "\n";
-    get_comm()->write(msg.str()); 
+    m_comm->write(msg.str()); 
     return;
 }
 
 bool sdg1000x::get_state(unsigned channel)
 {
     this->check_channel(channel);
-    string ret = get_comm()->query("C" + to_string(channel) + ":OUTP?\n");
+    string ret = m_comm->query("C" + to_string(channel) + ":OUTP?\n");
     if (ret.find("ON") != string::npos)
         return true;
     return false;
@@ -131,7 +127,7 @@ fgen::waveform sdg1000x::get_wvfm(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":APPL?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     for (auto m : m_wvfm_string) {
         if (resp.find(m.second) != string::npos)
             return m.first;
@@ -145,14 +141,14 @@ void sdg1000x::set_freq(unsigned channel, float freq_hz)
     stringstream msg;
     msg << "C" << channel << ":BSWV FRQ,";
     msg << setprecision(3) << fixed << freq_hz << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
 float sdg1000x::get_freq(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
     string freq = this->get_bswv_val(bswv, "FRQ");
     if (freq.empty())  // Parameter not found
         return 0.;
@@ -166,14 +162,14 @@ void sdg1000x::set_duty_cycle(unsigned channel, float dcl)
     stringstream msg;
     msg << "C" << channel << ":BSWV DUTY,";
     msg << setprecision(3) << fixed << 100.*dcl << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
 float sdg1000x::get_duty_cycle(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
     string dcl = this->get_bswv_val(bswv, "DUTY");
     if (dcl.empty())  // Parameter not found
         return 0.;
@@ -187,14 +183,14 @@ void sdg1000x::set_phase(unsigned channel, float phase_deg)
     stringstream msg;
     msg << "C" << channel << ":BSWV PHSE,";
     msg << setprecision(3) << fixed << phase_deg << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
 float sdg1000x::get_phase(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
     string phase = this->get_bswv_val(bswv, "PHSE");
     if (phase.empty())  // Parameter not found
         return 0.;
@@ -208,14 +204,14 @@ void sdg1000x::set_ampl(unsigned channel, float ampl_v)
     stringstream msg;
     msg << "C" << channel << ":BSWV AMP,";
     msg << setprecision(3) << fixed << ampl_v << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
 float sdg1000x::get_ampl(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
     string ampl = this->get_bswv_val(bswv, "AMP");
     if (ampl.empty())  // Parameter not found
         return 0.;
@@ -229,14 +225,14 @@ void sdg1000x::set_offset(unsigned channel, float offset_v)
     stringstream msg;
     msg << "C" << channel << ":BSWV OFST,";
     msg << setprecision(3) << fixed << offset_v << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
 float sdg1000x::get_offset(unsigned channel)
 {
     this->check_channel(channel);
-    string bswv = get_comm()->query("C" + to_string(channel) + ":BSWV?\n");
+    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
     string offset = this->get_bswv_val(bswv, "OFST");
     if (offset.empty())  // Parameter not found
         return 0.;
@@ -280,13 +276,9 @@ float sdg1000x::get_pulse_width(unsigned channel)
 
 void sdg1000x::init() 
 {
-    // Setup SCPI
-    if (m_scpi)
-        delete m_scpi;
-    m_scpi = new scpi( get_comm() );
-    m_scpi->clear_status();
-
-    m_dev_name = m_scpi->get_identifier();
+    m_comm->write("*CLS\n");
+    usleep(100e3);
+    m_dev_name = m_comm->query("*IDN?\n");
     return;
 }
 

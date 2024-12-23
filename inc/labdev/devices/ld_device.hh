@@ -34,14 +34,8 @@ protected:
     ld_device() : m_dev_name("unkown device"), m_comm(nullptr) {};
     ld_device(std::string name) : m_dev_name(name), m_comm(nullptr) {};
 
-    // Check and set/get the current communication interface
-    void set_comm(ld_interface* comm);
-    ld_interface* get_comm() const;
-    void reset_comm() { m_comm = nullptr; }
-
-private:
     // Communication interface
-    ld_interface* m_comm;
+    std::unique_ptr<ld_interface> m_comm;
 };
 
 }

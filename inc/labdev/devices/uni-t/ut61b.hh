@@ -14,10 +14,10 @@ namespace labdev {
 class ut61b : public ld_device {
 public:
     ut61b() : ld_device("Uni-T,UT61B"), m_unit("?"), m_serial(nullptr) {};
-    ut61b(serial_interface* ser);
+    ut61b(std::unique_ptr<serial_interface> ser);
     ~ut61b() {};
 
-    void connect(serial_interface* ser);
+    void connect(std::unique_ptr<serial_interface> ser);
     void disconnect() override {};
 
     static constexpr unsigned BAUD = 2400;

@@ -10,12 +10,12 @@ namespace labdev {
 class xenax_xvi : public ld_device {
 public:
     xenax_xvi();
-    xenax_xvi(serial_interface* ser);
-    xenax_xvi(tcpip_interface* tcpip);
+    xenax_xvi(std::unique_ptr<serial_interface> ser);
+    xenax_xvi(std::unique_ptr<tcpip_interface> tcpip);
     ~xenax_xvi();
 
-    void connect(serial_interface* ser);
-    void connect(tcpip_interface* tcpip);
+    void connect(std::unique_ptr<serial_interface> ser);
+    void connect(std::unique_ptr<tcpip_interface> tcpip);
     void disconnect() override;
 
     // XENAX default port 10001

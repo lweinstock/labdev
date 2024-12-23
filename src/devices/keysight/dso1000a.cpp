@@ -10,35 +10,35 @@ using namespace std;
 namespace labdev {
 
 dso1000a::dso1000a()
-    : osci(4, "Keysight,DSO1000A"), m_scpi(nullptr)
+    : osci(4, "Keysight,DSO1000A")
 {
     return;
 }
 
-dso1000a::dso1000a(usbtmc_interface* usbtmc) : dso1000a()
+dso1000a::dso1000a(std::unique_ptr<usbtmc_interface> usbtmc) : dso1000a()
 {
-    this->connect(usbtmc);
+    this->connect(std::move(usbtmc));
     return;
 }
 
-dso1000a::dso1000a(visa_interface* visa) : dso1000a()
+dso1000a::dso1000a(std::unique_ptr<visa_interface> visa) : dso1000a()
 {
-    this->connect(visa);
+    this->connect(std::move(visa));
     return;
 }
 
 dso1000a::~dso1000a() 
 {
-    get_comm()->write(":KEY:LOCK DIS\n");
+    m_comm->write(":KEY:LOCK DIS\n");
     if (this->connected())
         this->disconnect();
     return;
 }
 
-void dso1000a::connect(usbtmc_interface* usbtmc)
+void dso1000a::connect(std::unique_ptr<usbtmc_interface> usbtmc)
 {
     // Check and set comm interface
-    this->set_comm(usbtmc);
+    m_comm = std::move(usbtmc);
 
     // USB initialization
     usbtmc->claim_interface(0);
@@ -49,10 +49,10 @@ void dso1000a::connect(usbtmc_interface* usbtmc)
     return;
 }
 
-void dso1000a::connect(visa_interface* visa)
+void dso1000a::connect(std::unique_ptr<visa_interface> visa)
 {
     // Check and set comm interface
-    this->set_comm(visa);
+    m_comm = std::move(visa);
 
     this->init();
     return;
@@ -60,11 +60,7 @@ void dso1000a::connect(visa_interface* visa)
 
 void dso1000a::disconnect()
 {
-    if (m_scpi) {
-        delete m_scpi;
-        m_scpi = nullptr;
-    }
-    this->reset_comm();
+    m_comm.reset();
     return;
 }
 
@@ -75,7 +71,7 @@ void dso1000a::enable_channel(unsigned channel, bool enable)
     msg << ":CHAN" << channel << ":DISP ";
     if (enable) msg << "1\n";
     else msg << "0\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -84,7 +80,7 @@ bool dso1000a::channel_enabled(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":CHAN" << channel << ":DISP?";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return (stoi(resp) == 1) ? true : false;
 }
 
@@ -93,7 +89,7 @@ void dso1000a::set_atten(unsigned channel, double att)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":CHAN" << channel << ":PROB " << att << "X\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -101,7 +97,7 @@ double dso1000a::get_atten(unsigned channel) {
     this->check_channel(channel);
     stringstream msg("");
     msg << ":CHAN" << channel << ":PROB?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return stof(resp);
 }
 
@@ -110,7 +106,7 @@ void dso1000a::set_vert_base(unsigned channel, double volts_per_div)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":CHAN" << channel << ":SCAL " << volts_per_div << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -119,7 +115,7 @@ double dso1000a::get_vert_base(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":CHAN" << channel << ":SCAL?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return stof(resp);
 }
 
@@ -128,7 +124,7 @@ void dso1000a::set_vert_offs(unsigned channel, double offset_v)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":CHAN" << channel << ":OFFS " << offset_v << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -137,7 +133,7 @@ double dso1000a::get_vert_offs(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":CHAN" << channel << ":OFFS?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return stof(resp);
 }
 
@@ -145,13 +141,13 @@ void dso1000a::set_horz_base(double sec_per_div)
 {
     stringstream msg("");
     msg << ":TIM:SCAL " << sec_per_div << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
 double dso1000a::get_horz_base() 
 {
-    string msg = get_comm()->query(":TIM:SCAL?\n");
+    string msg = m_comm->query(":TIM:SCAL?\n");
     return stof(msg);
 }
 
@@ -159,13 +155,13 @@ void dso1000a::set_horz_offs(double offset_s)
 {
     stringstream msg("");
     msg << ":TIM:OFFS " << offset_s << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
 double dso1000a::get_horz_offs()
 {
-    string msg = get_comm()->query(":TIM:OFFS?\n");
+    string msg = m_comm->query(":TIM:OFFS?\n");
     return stof(msg);
 }
 
@@ -199,7 +195,7 @@ void dso1000a::set_meas(unsigned ch, meas_item meas)
     }
     stringstream msg("");
     msg << ":MEAS:" << this->meas_to_str(meas) << " CHAN" << ch << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -233,7 +229,7 @@ double dso1000a::get_meas(unsigned ch, meas_item meas)
     }
     stringstream msg("");
     msg << ":MEAS:" << this->meas_to_str(meas) << "? CHAN" << ch << "\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return stof(resp);
 }
 
@@ -256,7 +252,7 @@ void dso1000a::set_meas(unsigned ch1, unsigned ch2, meas_item meas)
     stringstream msg("");
     msg << ":MEAS:" << this->meas_to_str(meas) << " CHAN" << ch1;
     msg << ",CHAN" << ch2 << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -279,33 +275,33 @@ double dso1000a::get_meas(unsigned ch1, unsigned ch2, meas_item meas)
     stringstream msg("");
     msg << ":MEAS:" << this->meas_to_str(meas) << "? CHAN" << ch1;
     msg << ",CHAN" << ch2 << "\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return stof(resp);
 }
 
 void dso1000a::clear_meas()
 {
-    get_comm()->write(":MEAS:CLE\n");
+    m_comm->write(":MEAS:CLE\n");
     return;
 }
 
 void dso1000a::run() 
 {
-    get_comm()->write(":RUN\n");
+    m_comm->write(":RUN\n");
     usleep(100e3);
     return;
 }
 
 void dso1000a::stop() 
 {
-    get_comm()->write(":STOP\n");
+    m_comm->write(":STOP\n");
     usleep(100e3);
     return;
 }
 
 void dso1000a::single_shot() 
 {
-    get_comm()->write(":SINGLE\n");
+    m_comm->write(":SINGLE\n");
     usleep(100e3);
     return;
 }
@@ -314,7 +310,7 @@ void dso1000a::set_trigger_type(trig_type trig)
 {
     stringstream msg("");
     msg << ":TRIG:MODE EDGE\n";
-    get_comm()->write(msg.str().c_str());
+    m_comm->write(msg.str().c_str());
 
     msg.str("");
     msg << ":TRIG:EDGE:SLOP ";
@@ -332,7 +328,7 @@ void dso1000a::set_trigger_type(trig_type trig)
         fprintf(stderr, "Invalid trigger type received: %02X\n", trig);
         abort();
     }
-    get_comm()->write(msg.str().c_str());
+    m_comm->write(msg.str().c_str());
 
     return;
 }
@@ -341,7 +337,7 @@ void dso1000a::set_trigger_level(double level)
 {
     stringstream msg("");
     msg << ":TRIG:EDGE:LEV " << level << "\n";
-    get_comm()->write(msg.str().c_str());
+    m_comm->write(msg.str().c_str());
     return;
 }
 
@@ -350,14 +346,14 @@ void dso1000a::set_trigger_source(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":TRIG:EDGE:SOUR CHAN" << channel << "\n";
-    get_comm()->write(msg.str().c_str());
+    m_comm->write(msg.str().c_str());
     return;
 }
 
 
 bool dso1000a::triggered() 
 {
-    string status = get_comm()->query(":TRIG:STAT?\n");
+    string status = m_comm->query(":TRIG:STAT?\n");
     if ( status.find("T'D") != string::npos )
         return true;
     return false;
@@ -365,7 +361,7 @@ bool dso1000a::triggered()
 
 bool dso1000a::stopped() 
 {
-    string status = get_comm()->query(":TRIG:STAT?\n");
+    string status = m_comm->query(":TRIG:STAT?\n");
     if ( status.find("STOP") != string::npos )
         return true;
     return false;
@@ -376,14 +372,14 @@ void dso1000a::read_sample_data(unsigned channel, vector<double> &horz_data,
 {
     // Switch channel
     this->check_channel(channel);
-    get_comm()->write(":WAV:SOUR CHAN" + to_string(channel) + "\n");
+    m_comm->write(":WAV:SOUR CHAN" + to_string(channel) + "\n");
 
     // Clear vectors
     horz_data.clear();
     vert_data.clear();
 
     // Get waveform preamble
-    string data = get_comm()->query(":WAV:PRE?\n");
+    string data = m_comm->query(":WAV:PRE?\n");
     vector<string> preamble = split(data, ",", 10);
     if (preamble.size() != 10) {
         debug_print("Received wrong preamble size (%lu): '%s'\n",
@@ -430,15 +426,13 @@ void dso1000a::read_sample_data(unsigned channel, vector<double> &horz_data,
 
 void dso1000a::init() 
 {
-    // Setup SCPI
-    m_scpi = new scpi( this->get_comm() );
-    m_scpi->clear_status();
+    m_comm->write("*CLS\n");
     usleep(100e3);  // DSO needs some time...
-    m_dev_name = m_scpi->get_identifier();
+    m_dev_name = m_comm->query("*IDN?\n");
 
     // Set waveform format
-    get_comm()->write(":WAV:FORM BYTE\n");
-    get_comm()->write(":WAV:POIN:MODE MAX\n");
+    m_comm->write(":WAV:FORM BYTE\n");
+    m_comm->write(":WAV:POIN:MODE MAX\n");
     return;
 }
 
@@ -454,7 +448,7 @@ void dso1000a::check_channel(unsigned channel)
 vector<uint8_t> dso1000a::read_mem_data() 
 {
     // Read data block
-    string data = get_comm()->query(":WAV:DATA?\n");
+    string data = m_comm->query(":WAV:DATA?\n");
     // Extract header
     size_t len = 0;
     string header = data.substr(0, 11);
@@ -463,7 +457,7 @@ vector<uint8_t> dso1000a::read_mem_data()
 
     // Read the waveform
     while (data.size() < len)
-        data.append( get_comm()->read() );
+        data.append( m_comm->read() );
 
     vector<uint8_t> ret;
     for (size_t i = 0; i < len; i++)

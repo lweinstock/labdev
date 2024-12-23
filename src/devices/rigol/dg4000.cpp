@@ -9,21 +9,21 @@ using namespace std;
 
 namespace labdev {
 
-dg4000::dg4000(tcpip_interface* tcpip): dg4000()
+dg4000::dg4000(std::unique_ptr<tcpip_interface> tcpip): dg4000()
 {
-    this->connect(tcpip);
+    this->connect(std::move(tcpip));
     return;
 }
 
-dg4000::dg4000(visa_interface* visa): dg4000()
+dg4000::dg4000(std::unique_ptr<visa_interface> visa): dg4000()
 {
-    this->connect(visa);
+    this->connect(std::move(visa));
     return;
 }
 
-dg4000::dg4000(usbtmc_interface* usbtmc): dg4000()
+dg4000::dg4000(std::unique_ptr<usbtmc_interface> usbtmc): dg4000()
 {
-    this->connect(usbtmc);
+    this->connect(std::move(usbtmc));
     return;
 }
 
@@ -34,10 +34,10 @@ dg4000::~dg4000()
     return;
 }
 
-void dg4000::connect(tcpip_interface* tcpip)
+void dg4000::connect(std::unique_ptr<tcpip_interface> tcpip)
 {
     // Check and set comm interface
-    this->set_comm(tcpip);
+    m_comm = std::move(tcpip);
 
     if ( tcpip->get_port() != dg4000::PORT ) {
         fprintf(stderr, "DG4000 only supports port %i\n", dg4000::PORT);
@@ -47,10 +47,10 @@ void dg4000::connect(tcpip_interface* tcpip)
     return;
 }
 
-void dg4000::connect(usbtmc_interface* usbtmc)
+void dg4000::connect(std::unique_ptr<usbtmc_interface> usbtmc)
 {
     // Check and set comm interface
-    this->set_comm(usbtmc);
+    m_comm = std::move(usbtmc);
 
     // USB initialization
     usbtmc->claim_interface(0);
@@ -61,21 +61,17 @@ void dg4000::connect(usbtmc_interface* usbtmc)
     return;
 }
 
-void dg4000::connect(visa_interface* visa)
+void dg4000::connect(std::unique_ptr<visa_interface> visa)
 {
     // Check and set comm interface
-    this->set_comm(visa);
+    m_comm = std::move(visa);
     this->init();
     return;
 }
 
 void dg4000::disconnect()
 {
-    if (m_scpi) {
-        delete m_scpi;
-        m_scpi = nullptr;
-    }
-    this->reset_comm();
+    m_comm.reset();
     return;
 }
 
@@ -85,14 +81,14 @@ void dg4000::enable_channel(unsigned channel, bool enable)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":OUTP" << channel << ":STAT" << (enable? " ON" : " OFF") << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
 bool dg4000::get_state(unsigned channel)
 {
     this->check_channel(channel);
-    string resp = get_comm()->query(":OUTP" + to_string(channel) + ":STAT?\n");
+    string resp = m_comm->query(":OUTP" + to_string(channel) + ":STAT?\n");
     if ( resp.find("ON") != string::npos )
         return true;
     return false;
@@ -117,7 +113,7 @@ void dg4000::set_wvfm(unsigned channel, waveform wvfm)
     }
     stringstream msg("");
     msg << ":SOUR" << channel << ":APPL:" << wvfm_to_str(wvfm) << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -126,7 +122,7 @@ fgen::waveform dg4000::get_wvfm(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":APPL?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     for (auto m : m_wvfm_string) {
         if (resp.find(m.second) != string::npos)
             return m.first;
@@ -152,7 +148,7 @@ float dg4000::get_freq(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":FREQ?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return stof(resp);
 }
 
@@ -192,7 +188,7 @@ float dg4000::get_phase(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":PHAS?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return stof(resp);
 }
 
@@ -214,7 +210,7 @@ float dg4000::get_ampl(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":VOLT?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return stof(resp);
 }
 
@@ -236,7 +232,7 @@ float dg4000::get_offset(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":VOLT:OFFS?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return stof(resp);
 }
 
@@ -245,7 +241,7 @@ void dg4000::set_rising(unsigned channel, float rise_s)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":PULS:TRAN:LEAD " << rise_s << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -254,7 +250,7 @@ float dg4000::get_rising(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":PULS:TRAN:LEAD?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return stof(resp);
 }
 
@@ -263,7 +259,7 @@ void dg4000::set_falling(unsigned channel, float fall_s)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":PULS:TRAN:TRA " << fall_s << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -272,7 +268,7 @@ float dg4000::get_falling(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":PULS:TRAN:TRA?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return stof(resp);
 }
 
@@ -281,7 +277,7 @@ void dg4000::set_pulse_width(unsigned channel, float width_s)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":PULS:WIDT " << width_s << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -290,7 +286,7 @@ float dg4000::get_pulse_width(unsigned channel)
     this->check_channel(channel);
     stringstream msg("");
     msg << ":SOUR" << channel << ":PULS:WIDT?\n";
-    string resp = get_comm()->query(msg.str());
+    string resp = m_comm->query(msg.str());
     return stof(resp);
 }
 
@@ -300,11 +296,9 @@ float dg4000::get_pulse_width(unsigned channel)
 
 void dg4000::init() 
 {
-    if (m_scpi)
-        delete m_scpi;
-    m_scpi = new scpi( get_comm() );
-    m_scpi->clear_status();
-    m_scpi->wait_to_complete();
+    m_comm->write("*CLS\n");
+    usleep(100e3);
+    m_dev_name = m_comm->query("*IDN?\n");
     return;
 }
 
@@ -322,7 +316,7 @@ void dg4000::check_channel(unsigned channel)
 std::string dg4000::get_waveform_str(unsigned channel)
 {
     this->check_channel(channel);
-    string resp = get_comm()->query(":SOUR" + to_string(channel) + ":APPL?\n");
+    string resp = m_comm->query(":SOUR" + to_string(channel) + ":APPL?\n");
     string waveform = resp.substr(resp.find_first_of(','));
     return waveform;
 }
@@ -338,7 +332,7 @@ void dg4000::write_at_least(string msg, unsigned time_ms) {
 
     struct timeval sta, sto;
     gettimeofday(&sta, NULL);
-    get_comm()->write(msg);
+    m_comm->write(msg);
     gettimeofday(&sto, NULL);
 
     unsigned diff_ms = (sto.tv_sec-sta.tv_sec)*1000 + (sto.tv_usec-sta.tv_usec)/1000;

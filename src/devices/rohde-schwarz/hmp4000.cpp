@@ -14,16 +14,16 @@ hmp4000::hmp4000()
 }
 
 
-hmp4000::hmp4000(tcpip_interface* tcpip) : hmp4000() 
+hmp4000::hmp4000(std::unique_ptr<tcpip_interface> tcpip) : hmp4000() 
 {
-    this->connect(tcpip);
+    this->connect(std::move(tcpip));
     this->init();
     return;
 }
 
-hmp4000::hmp4000(serial_interface* ser) : hmp4000() 
+hmp4000::hmp4000(std::unique_ptr<serial_interface> ser) : hmp4000() 
 {
-    this->connect(ser);
+    this->connect(std::move(ser));
     this->init();
     return;
 }
@@ -35,10 +35,10 @@ hmp4000::~hmp4000()
     return;
 }
 
-void hmp4000::connect(tcpip_interface* tcpip) 
+void hmp4000::connect(std::unique_ptr<tcpip_interface> tcpip) 
 {
     // Check and assign interface
-    this->set_comm(tcpip);
+    m_comm = std::move(tcpip);
 
     if (tcpip->get_port() != hmp4000::PORT)
     {
@@ -50,10 +50,10 @@ void hmp4000::connect(tcpip_interface* tcpip)
     return;
 }
 
-void hmp4000::connect(serial_interface* ser) 
+void hmp4000::connect(std::unique_ptr<serial_interface> ser) 
 {
     // Check and assign interface
-    this->set_comm(ser);
+    m_comm = std::move(ser);
 
     // TODO: check serial port settings!
 
@@ -63,11 +63,7 @@ void hmp4000::connect(serial_interface* ser)
 
 void hmp4000::disconnect()
 {
-    if (m_scpi) {
-        delete m_scpi;
-        m_scpi = nullptr;
-    }
-    this->reset_comm();
+    m_comm.reset();
     return;
 }
 
@@ -81,7 +77,7 @@ void hmp4000::enable_channel(int channel, bool ena)
 bool hmp4000::channel_enabled(int channel) 
 {
     this->select_channel(channel);
-    std::string resp = get_comm()->query("OUTP?\n");
+    std::string resp = m_comm->query("OUTP?\n");
     if (resp.find("1") != std::string::npos)
         return true;
     return false;
@@ -91,7 +87,7 @@ void hmp4000::enable_outputs(bool ena)
 {
     std::stringstream msg("");
     msg << "OUTP:GEN " << (ena? "1" : "0") << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -105,7 +101,7 @@ void hmp4000::set_voltage(int channel, double volts)
     }
     std::stringstream msg("");
     msg << "VOLT " << volts << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -113,7 +109,7 @@ double hmp4000::get_voltage(int channel)
 {
     // Switch channel
     this->select_channel(channel);
-    std::string resp = get_comm()->query("VOLT?\n");
+    std::string resp = m_comm->query("VOLT?\n");
     return std::stod(resp); // TODO: check conversions with ifnan()
 }
 
@@ -128,7 +124,7 @@ void hmp4000::set_current(int channel, double amps)
     }
     std::stringstream msg("");
     msg << "CURR " << amps << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
@@ -136,21 +132,21 @@ double hmp4000::get_current(int channel)
 {
     // Switch channel
     this->select_channel(channel);
-    std::string resp = get_comm()->query("CURR?\n");
+    std::string resp = m_comm->query("CURR?\n");
     return std::stod(resp);
 }
 
 double hmp4000::measure_voltage(int channel) 
 {
     this->select_channel(channel);
-    std::string resp = get_comm()->query("MEAS:VOLT?\n");
+    std::string resp = m_comm->query("MEAS:VOLT?\n");
     return std::stod(resp);
 }
 
 double hmp4000::measure_current(int channel) 
 {
     this->select_channel(channel);
-    std::string resp = get_comm()->query("MEAS:CURR?\n");
+    std::string resp = m_comm->query("MEAS:CURR?\n");
     return std::stod(resp);
 }
 
@@ -165,21 +161,21 @@ void hmp4000::set_ovp(int channel, double volts)
     }
     std::stringstream msg("");
     msg << "VOLT:PROT " << volts << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 
 void hmp4000::ovp_reset(int channel) 
 {
     this->select_channel(channel);
-    get_comm()->write("VOLT:PROT:CLE\n");
+    m_comm->write("VOLT:PROT:CLE\n");
     return;
 }
 
 bool hmp4000::ovp_tripped(int channel) 
 {
     this->select_channel(channel);
-    std::string resp = get_comm()->query("VOLT:PROT:TRIP?\n");
+    std::string resp = m_comm->query("VOLT:PROT:TRIP?\n");
     if (resp.find("ON") != std::string::npos)
         return true;
     return false;
@@ -191,14 +187,11 @@ bool hmp4000::ovp_tripped(int channel)
 
 void hmp4000::init() 
 {
-    // Setup SCPI
-    if (m_scpi)
-        delete m_scpi;
-    m_scpi = new scpi( get_comm() );
-    m_scpi->clear_status();
-    
+    m_comm->write("*CLS\n");
+    usleep(100e3);
+    m_dev_name = m_comm->query("*IDN?\n");
+
     this->select_channel(1);
-    m_dev_name = m_scpi->get_identifier();
     return;
 }
 
@@ -216,7 +209,7 @@ void hmp4000::select_channel(int channel)
         debug_print("Switching to channel %i...\n", channel);
         std::stringstream msg("");
         msg << "INST OUTP" << channel << "\n";
-        get_comm()->write(msg.str());
+        m_comm->write(msg.str());
     }
     return;
 }
@@ -225,7 +218,7 @@ void hmp4000::activate(bool ena)
 {
     std::stringstream msg("");
     msg << "OUTP:SEL " << (ena? "1" : "0") << "\n";
-    get_comm()->write(msg.str());
+    m_comm->write(msg.str());
     return;
 }
 

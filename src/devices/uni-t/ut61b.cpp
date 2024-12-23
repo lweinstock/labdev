@@ -10,16 +10,16 @@ using namespace std;
 
 namespace labdev {
 
-ut61b::ut61b(serial_interface *ser): ut61b() 
+ut61b::ut61b(std::unique_ptr<serial_interface> ser): ut61b() 
 {
-    this->connect(ser);
+    this->connect(std::move(ser));
     return;
 }
 
-void ut61b::connect(serial_interface* ser)
+void ut61b::connect(std::unique_ptr<serial_interface> ser)
 {
     // Check and assign communication interface
-    this->set_comm(ser);
+    m_comm = std::move(ser);
 
     // Check correct serial setup => 2400 8N1 (manual p. 28)
     if (ser->get_baud() != ut61b::BAUD) {

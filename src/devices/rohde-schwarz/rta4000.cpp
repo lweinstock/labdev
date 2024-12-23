@@ -11,21 +11,21 @@ rta4000::rta4000() : osci(4)
     return;
 }
 
-rta4000::rta4000(tcpip_interface* tcpip) : osci(4) 
+rta4000::rta4000(std::unique_ptr<tcpip_interface> tcpip) : osci(4) 
 {
     // General initialization
     init();
     return;
 }
 
-rta4000::rta4000(visa_interface* visa) : osci(4) 
+rta4000::rta4000(std::unique_ptr<visa_interface> visa) : osci(4) 
 {
     // General initialization
     init();
     return;
 }
 
-rta4000::rta4000(usbtmc_interface* usbtmc) : osci(4)
+rta4000::rta4000(std::unique_ptr<usbtmc_interface> usbtmc) : osci(4)
 {
     // USB initialization
     usbtmc->claim_interface(0);

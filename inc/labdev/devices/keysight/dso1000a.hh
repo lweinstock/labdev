@@ -17,12 +17,12 @@ namespace labdev {
 class dso1000a : public osci {
 public:
     dso1000a();
-    dso1000a(usbtmc_interface* usbtmc);
-    dso1000a(visa_interface* visa);
+    dso1000a(std::unique_ptr<usbtmc_interface> usbtmc);
+    dso1000a(std::unique_ptr<visa_interface> visa);
     ~dso1000a();
 
-    void connect(usbtmc_interface* usbtmc);
-    void connect(visa_interface* visa);
+    void connect(std::unique_ptr<usbtmc_interface> usbtmc);
+    void connect(std::unique_ptr<visa_interface> visa);
 
     void disconnect() override;
 
@@ -94,8 +94,6 @@ private:
         {NEG_PHASE, "NPHA"}
     };
     std::string meas_to_str(meas_item item) { return m_meas_string[item]; }
-
-    scpi* m_scpi;
 };
 
 }
