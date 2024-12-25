@@ -30,3 +30,6 @@
 
 # Ignore local TODO-Folder
 TODO
+
+# Ignore documentation (for now)
+docx

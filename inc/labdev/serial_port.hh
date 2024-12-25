@@ -6,8 +6,11 @@
 
 namespace labdev{
 
-/*
- *      RS232 interface based on UNIX serial port
+/*! \brief Communication interface based on the UNIX serial port
+ *
+ *  This class is a C++ wrapper for the C UNIX serial port (termios).
+ *  It can be used for all serial devices (RS232, RS422, RS485, UART, 
+ *  USB-UART bridged, etc.) that create a tty device file.
  */
 
 class serial_port : public serial_iface {
@@ -24,7 +27,7 @@ public:
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len,
-        unsigned timeout_ms = TIMEOUT_MS) override;
+        unsigned timeout_ms = DFLT_TIMEOUT_MS) override;
 
     // Returns human readable info string
     std::string get_info() const noexcept override;

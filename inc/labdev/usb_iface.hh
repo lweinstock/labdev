@@ -14,7 +14,7 @@ public:
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, 
-        unsigned timeout_ms = TIMEOUT_MS) override;
+        unsigned timeout_ms = DFLT_TIMEOUT_MS) override;
 
     void open() override;
     void open(uint16_t vid, uint16_t pid, std::string serno = "");
@@ -32,12 +32,12 @@ public:
     // libusb-style data transfer to bulk endpoints
     int write_bulk(const uint8_t* data, int len);
     int read_bulk(uint8_t* data, int max_len, 
-        int timeout_ms = TIMEOUT_MS);
+        int timeout_ms = DFLT_TIMEOUT_MS);
 
     // libusb-style data transfer to interrupt endpoints
     int write_interrupt(const uint8_t* data, int len);
     int read_interrupt(uint8_t* data, int max_len, 
-        int timeout_ms = TIMEOUT_MS);
+        int timeout_ms = DFLT_TIMEOUT_MS);
 
     // Set current I/O configuration
     void claim_iface(int int_no, int alt_setting = 0);

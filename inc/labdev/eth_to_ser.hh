@@ -27,7 +27,7 @@ public:
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len,
-        unsigned timeout_ms = TIMEOUT_MS) override;
+        unsigned timeout_ms = DFLT_TIMEOUT_MS) override;
 
     // Returns human readable info string
     std::string get_info() const noexcept override;

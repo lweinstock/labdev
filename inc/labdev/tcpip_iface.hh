@@ -20,7 +20,7 @@ public:
 
     int write_raw(const uint8_t* data, size_t len) override;
     int read_raw(uint8_t* data, size_t max_len, 
-        unsigned timeout_ms = TIMEOUT_MS) override;
+        unsigned timeout_ms = DFLT_TIMEOUT_MS) override;
 
     // Set/get ip address
     void set_ip(std::string ip_addr) noexcept { m_ip_addr = ip_addr; }

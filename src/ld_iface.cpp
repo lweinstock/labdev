@@ -13,7 +13,7 @@ void ld_iface::write_byte(const vector<uint8_t> data)
 }
 
 void ld_iface::write(const string& msg) {
-    uint8_t wbuf[BUF_SIZE] = {0};
+    uint8_t wbuf[DFLT_BUF_SIZE] = {0};
     copy(msg.begin(), msg.end(), begin(wbuf));
     this->write_raw(wbuf, msg.size());
 
@@ -24,16 +24,16 @@ void ld_iface::write(const string& msg) {
 
 vector<uint8_t> ld_iface::read_byte(unsigned timeout_ms)
 {
-    uint8_t rbuf[BUF_SIZE] = {0};
-    ssize_t nbytes = this->read_raw(rbuf, BUF_SIZE, timeout_ms);
+    uint8_t rbuf[DFLT_BUF_SIZE] = {0};
+    ssize_t nbytes = this->read_raw(rbuf, DFLT_BUF_SIZE, timeout_ms);
     vector<uint8_t> ret(rbuf, rbuf + nbytes);
     return ret;
 }
 
 string ld_iface::read(unsigned timeout_ms) 
 {
-    uint8_t rbuf[BUF_SIZE] = {0};
-    ssize_t nbytes = this->read_raw(rbuf, BUF_SIZE, timeout_ms);
+    uint8_t rbuf[DFLT_BUF_SIZE] = {0};
+    ssize_t nbytes = this->read_raw(rbuf, DFLT_BUF_SIZE, timeout_ms);
     string ret((char*)rbuf, nbytes);
 
     debug_print_string_data(ret, "Read %zu bytes: ", ret.size());

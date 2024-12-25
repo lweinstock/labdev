@@ -64,7 +64,7 @@ int usbtmc_iface::read_dev_dep_msg(uint8_t* data, size_t max_len,
     int timeout_ms, uint8_t transfer_attr, uint8_t term_char) 
 {
     uint8_t read_request[HEADER_LEN];
-    uint8_t rbuf[BUF_SIZE] = { 0x00 };
+    uint8_t rbuf[DFLT_BUF_SIZE] = { 0x00 };
 
     // Send read request
     debug_print("%s\n", "Sending read request");
@@ -126,7 +126,7 @@ int usbtmc_iface::write_vendor_specific(string msg)
 
 string usbtmc_iface::read_vendor_specific(int timeout_ms) 
 {
-    uint8_t read_request[HEADER_LEN], rbuf[BUF_SIZE];
+    uint8_t read_request[HEADER_LEN], rbuf[DFLT_BUF_SIZE];
     // Send read request
     debug_print("%s\n", "Sending vendor specific read request\n");
     this->create_usbtmc_header(read_request, REQUEST_VENDOR_SPECIFIC_IN,

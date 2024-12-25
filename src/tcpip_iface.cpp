@@ -45,7 +45,7 @@ void tcpip_iface::open(std::string ip_addr, unsigned port)
     m_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     check_and_throw(m_socket_fd, "Could not open socket.");
 
-    set_buffer_size(BUF_SIZE);
+    set_buffer_size(DFLT_BUF_SIZE);
     set_timeout(0); // never time out -> we will use select() for timeout
 
     // Set up instrument ip address
