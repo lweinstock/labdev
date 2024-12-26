@@ -3,61 +3,78 @@
 
 #include <vector>
 
+namespace labdev {
+
+/*! \brief Abstract base class for modbus communication.
+ *  
+ *  Modbus implements several types of data structures, that can be written to
+ *  and read from. 
+ *  Coils are 1bit registers that control discrete outputs and be written to and
+ *  read from (Function Code 01, 05 & 15).
+ *  Discrete inputs are 1bit or 16bit input registers that can obly be read 
+ *  (Function code 02 & 04).
+ *  Holding registers are 16bit in length and usually contain an analog value
+ *  (Function code 03, 06 & 16).
+ */
+
 class modbus_iface 
 {
 public:
     modbus_iface() {};
     virtual ~modbus_iface() {};
 
-    // Function Code 01; read coils -> returns true = on, false = off
+    //! Function Code 01; read coils -> returns true = on, false = off
     virtual std::vector<bool> read_coils(uint8_t uid, uint16_t addr, 
         uint16_t len) = 0;
 
-    // Function Code 02; read discrete inputs
+    //! Function Code 02; read discrete inputs
     virtual std::vector<bool> read_discrete_inputs(uint8_t uid, uint16_t addr, 
         uint16_t len) = 0;
 
-    // Function Code 03; read multiple holding registers
+    //! Function Code 03; read multiple holding registers
     virtual std::vector<uint16_t> read_multiple_holding_regs(uint8_t uid, 
         uint16_t addr, uint16_t len) = 0;
 
-    // Function Code 04; read input registers
+    //! Function Code 04; read input registers
     virtual std::vector<uint16_t> read_input_regs(uint8_t uid, uint16_t addr, 
         uint16_t len) = 0;
 
-    // Function Code 05; write single coil -> on = true, off = false
+    //! Function Code 05; write single coil -> on = true, off = false
     virtual void write_single_coil(uint8_t uid, uint16_t addr, bool ena) = 0;    
 
-    // Function Code 06; write single holding register
+    //! Function Code 06; write single holding register
     virtual void write_single_holding_reg(uint8_t uid, uint16_t addr, 
         uint16_t data) = 0;
 
-    // Function Code 15; write multiple coils -> on = true, off = false
+    //! Function Code 15; write multiple coils -> on = true, off = false
     virtual void write_multiple_coils(uint8_t uid, uint16_t addr, 
         std::vector<bool> ena) = 0;
 
-    // Function Code 16; write multiple holding registers
+    //! Function Code 16; write multiple holding registers
     virtual void write_multiple_holding_regs(uint8_t uid, uint16_t addr, 
         std::vector<uint16_t> data) = 0;
     
-    // Modbus function codes
-    static constexpr uint8_t FC01 = 0x01;
-    static constexpr uint8_t FC02 = 0x02;
-    static constexpr uint8_t FC03 = 0x03;
-    static constexpr uint8_t FC04 = 0x04;
-    static constexpr uint8_t FC05 = 0x05;
-    static constexpr uint8_t FC06 = 0x06;
-    static constexpr uint8_t FC15 = 0x0F;
-    static constexpr uint8_t FC16 = 0x10;
-    // Error codes
-    static constexpr uint8_t ERRC = 0x80;
-    static constexpr uint8_t ERR1 = 0x01;
-    static constexpr uint8_t ERR2 = 0x02;
-    static constexpr uint8_t ERR3 = 0x03;
-    static constexpr uint8_t ERR4 = 0x04;
-
 protected:
+    // Modbus function codes
+    static constexpr uint8_t FC01 = 0x01;   //!< Read coils
+    static constexpr uint8_t FC02 = 0x02;   //!< Read discrete inputs
+    static constexpr uint8_t FC03 = 0x03;   //!< Read multiple holding registers
+    static constexpr uint8_t FC04 = 0x04;   //!< Read input registers
+    static constexpr uint8_t FC05 = 0x05;   //!< Write single coil
+    static constexpr uint8_t FC06 = 0x06;   //!< Write single holding register
+    static constexpr uint8_t FC15 = 0x0F;   //!< Write multiple coils
+    static constexpr uint8_t FC16 = 0x10;   //!< Write multiple holding registers
+    // Error codes
+    static constexpr uint8_t ERRC = 0x80;   //!< Function code for errors
+    static constexpr uint8_t ERR1 = 0x01;   //!< Illegal Function
+    static constexpr uint8_t ERR2 = 0x02;   //!< Illegal Data Address
+    static constexpr uint8_t ERR3 = 0x03;   //!< Illegal Data Value
+    static constexpr uint8_t ERR4 = 0x04;   //!< Slave Device Failure
+
+    //! Check error codes and throw corresponding exception
     void check_error_code(uint8_t error);
 };
+
+}
 
 #endif

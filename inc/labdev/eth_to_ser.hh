@@ -6,20 +6,32 @@
 
 namespace labdev{
 
-/*
- *      Serial interface provided by the Waveshare RS232-485-422 TO POE ETH (B)
- *      ethernet to serial converter
+/*! \brief Communication interface for an ethernet to serial converter. 
+ *
+ *  The Waveshare RS232-485-422 TO POE ETH (B) ethernet to serial converter
+ *  provides a serial communication interface via TCP/IP.
  */
 
 class eth_to_ser : public serial_iface {
 public:
     eth_to_ser();
+    /*! \brief Open TCP/IP socket with specified baud rate and frame format.
+     *  
+     *  \param ip_addr IPv4 address of the converter (e.g. "192.168.2.100")
+     *  \param port Port of the TCP/IP socket.
+     *  \param baud Baud rate in bits per second.
+     *  \param nbits Number of data bits (8/7/6/5) per the frame.
+     *  \param par_ena En-/disable parity for the frame.
+     *  \param par_even Use even/off parity for the frame.
+     *  \param stop_bits Number of stop bits (1/2) per frame.
+     */
     eth_to_ser(std::string ip_addr, unsigned port, unsigned baud = 9600, 
         unsigned nbits = 8, bool par_ena = false, bool par_even = false, 
         unsigned stop_bits = 1);
     ~eth_to_ser();
 
     void open() override;
+    //! \copydoc eth_to_ser::eth_to_ser(std::string, unsigned, unsigned, unsigned, bool, bool, unsigned)
     void open(std::string ip_addr, unsigned port, unsigned baud = 9600, 
         unsigned nbits = 8, bool par_ena = false, bool par_even = false, 
         unsigned stop_bits = 1);
@@ -32,12 +44,14 @@ public:
     // Returns human readable info string
     std::string get_info() const noexcept override;
 
-    // Set/get ip address
+    //! Set ip address
     void set_ip(std::string ip_addr);
+    //! Returns ip address
     std::string get_ip() const { return m_ip_addr; }
 
-    // Set/get port number
+    //! Set port number
     void set_port(unsigned port);
+    //! Returns port number
     unsigned get_port() const { return m_port; }
 
     // Set baud rate for serial interface

@@ -34,6 +34,7 @@ OBJ+=$(SRC)/eth_to_ser.o
 OBJ+=$(SRC)/tcpip_iface.o
 OBJ+=$(SRC)/usb_iface.o
 OBJ+=$(SRC)/usbtmc_iface.o
+OBJ+=$(SRC)/modbus_iface.o
 OBJ+=$(SRC)/modbus_tcp_iface.o
 
 # Utilies
