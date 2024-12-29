@@ -121,9 +121,9 @@ vector<uint16_t> modbus_rtu_iface::read_16bit_regs(uint8_t uid, uint8_t func,
     vector<uint8_t> resp = this->read_byte();
 
     struct frame rframe(resp);
-
     if (rframe.function_code & ERRC)
         this->check_error_code(rframe.get_error());
+    rframe.data.erase(rframe.data.begin()); // skip first byte (data byte count)
 
     // TODO: check returned values (function code, address, etc. ...)
 
