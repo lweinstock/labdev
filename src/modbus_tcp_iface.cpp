@@ -49,15 +49,15 @@ void modbus_tcp_iface::write_single_holding_reg(uint8_t uid, uint16_t addr,
     payload.push_back(static_cast<uint8_t>(0xFF & addr));
     payload.push_back(static_cast<uint8_t>(0xFF & (data >> 8)));
     payload.push_back(static_cast<uint8_t>(0xFF & data));
-    tcp_frame sframe(m_tid, uid, FC06, payload);
+    frame sframe(m_tid, uid, FC06, payload);
 
     debug_print("Writing 0x%04X to address 0x%04X (tid=%u, uid=%u)\n",
         data, addr, m_tid, uid);
 
-    this->write_byte(sframe.get_frame());
+    this->write_byte(sframe.get());
     vector<uint8_t> resp = this->read_byte();
 
-    tcp_frame rframe(resp);
+    frame rframe(resp);
     if (rframe.function_code & ERRC)
         this->check_error_code(rframe.byte_count);
     
@@ -90,15 +90,15 @@ void modbus_tcp_iface::write_multiple_holding_regs(uint8_t uid,
         payload.push_back(static_cast<uint8_t>(0xFF & (data.at(i) >> 8)));
         payload.push_back(static_cast<uint8_t>(0xFF & data.at(i)));
     }
-    tcp_frame sframe(m_tid, uid, FC16, payload);
+    frame sframe(m_tid, uid, FC16, payload);
 
     debug_print("Writing %u registers with starting address 0x%04X "
         "(tid=%u, uid=%u)\n", len, addr, m_tid, uid);
 
-    this->write_byte(sframe.get_frame());
+    this->write_byte(sframe.get());
     vector<uint8_t> resp = this->read_byte();
 
-    tcp_frame rframe(resp);
+    struct frame rframe(resp);
     if (rframe.function_code & ERRC)
         this->check_error_code(rframe.byte_count);
     
@@ -122,15 +122,15 @@ vector<uint16_t> modbus_tcp_iface::read_16bit_regs(uint8_t uid, uint8_t func,
     payload.push_back(static_cast<uint8_t>(0xFF & addr));
     payload.push_back(static_cast<uint8_t>(0xFF & (len >> 8)));
     payload.push_back(static_cast<uint8_t>(0xFF & len));
-    tcp_frame frame(m_tid, uid, func, payload);
+    frame frame(m_tid, uid, func, payload);
 
     debug_print("Reading %u registers with starting address 0x%04X "
         "(tid=%u, uid=%u)\n", len, addr, m_tid, uid);
 
-    this->write_byte(frame.get_frame());
+    this->write_byte(frame.get());
     vector<uint8_t> resp = this->read_byte();
 
-    tcp_frame rframe(resp);
+    struct frame rframe(resp);
     if (rframe.function_code & ERRC)
         this->check_error_code(rframe.byte_count);
     if (rframe.byte_count != rframe.data.size())
@@ -159,7 +159,7 @@ void modbus_tcp_iface::increase_tid_counter()
     return;
 }
 
-modbus_tcp_iface::tcp_frame::tcp_frame(vector<uint8_t> msg)
+modbus_tcp_iface::frame::frame(vector<uint8_t> msg)
     : transaction_id(0x0000), protocol_id(0x0000), length(0x0000),
         function_code(0x0000), unit_id(0x00), byte_count(0x00), data()
 {
@@ -173,7 +173,7 @@ modbus_tcp_iface::tcp_frame::tcp_frame(vector<uint8_t> msg)
     return;
 }
 
-modbus_tcp_iface::tcp_frame::tcp_frame(uint16_t trans_id, uint8_t uid, 
+modbus_tcp_iface::frame::frame(uint16_t trans_id, uint8_t uid, 
     uint8_t func, std::vector<uint8_t> payload)
     : transaction_id(trans_id), protocol_id(0x0000), length(0x0000),
         function_code(func), unit_id(uid), byte_count(0x00), data(payload)
@@ -181,7 +181,7 @@ modbus_tcp_iface::tcp_frame::tcp_frame(uint16_t trans_id, uint8_t uid,
     return;
 }
 
-vector<uint8_t> modbus_tcp_iface::tcp_frame::get_frame() 
+vector<uint8_t> modbus_tcp_iface::frame::get() 
 { 
     vector<uint8_t> frame;
     length = 2 + data.size();

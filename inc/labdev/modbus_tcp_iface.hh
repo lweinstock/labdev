@@ -55,17 +55,15 @@ private:
         uint16_t addr, uint16_t len);
 
     void increase_tid_counter();
-    
-    void check_error_code(uint8_t error);
 
     // Container to hold and format modbus tcp messages
-    struct tcp_frame {
-        tcp_frame(std::vector<uint8_t> msg);
-        tcp_frame(uint16_t trans_id, uint8_t uid, uint8_t func, 
+    struct frame {
+        frame(std::vector<uint8_t> msg);
+        frame(uint16_t trans_id, uint8_t uid, uint8_t func, 
             std::vector<uint8_t> payload);
-        ~tcp_frame() {};
+        ~frame() {};
 
-        std::vector<uint8_t> get_frame();
+        std::vector<uint8_t> get();
 
         uint16_t transaction_id, protocol_id, length;
         uint8_t function_code, unit_id, byte_count;

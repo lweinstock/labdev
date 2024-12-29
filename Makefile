@@ -36,6 +36,7 @@ OBJ+=$(SRC)/usb_iface.o
 OBJ+=$(SRC)/usbtmc_iface.o
 OBJ+=$(SRC)/modbus_iface.o
 OBJ+=$(SRC)/modbus_tcp_iface.o
+OBJ+=$(SRC)/modbus_rtu_iface.o
 
 # Utilies
 OBJ+=$(SRC)/utils/utils.o
