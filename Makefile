@@ -56,6 +56,7 @@ OBJ+=$(SRC)/devices/tektronix/afg3000.o
 OBJ+=$(SRC)/devices/baumer/om70_l.o
 OBJ+=$(SRC)/devices/jenny-science/xenax_xvi.o
 OBJ+=$(SRC)/devices/musashi/ml_808gx.o
+OBJ+=$(SRC)/devices/riden/rd6006.o
 
 ###   INSTALL SETUP   ###
 
