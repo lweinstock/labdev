@@ -8,7 +8,6 @@ namespace labdev {
 /*
  *  Implementation of Standard Commands for Programmable Instruments (SCPI)
  */
-
 class scpi {
 public:
     scpi(ld_iface* comm) : m_comm(comm) {};

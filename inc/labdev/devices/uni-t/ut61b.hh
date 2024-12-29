@@ -10,7 +10,6 @@ namespace labdev {
 /*
  *      UNI-T UT61B series multimeter
  */
-
 class ut61b : public ld_device {
 public:
     ut61b() : ld_device("Uni-T,UT61B"), m_unit("?"), m_serial(nullptr) {};

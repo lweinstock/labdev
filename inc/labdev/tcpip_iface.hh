@@ -8,15 +8,14 @@
 
 namespace labdev {
 
-/*! \brief Communication interface based on UNIX TCP sockets
+/** \brief Communication interface based on UNIX TCP sockets
  *
  *  This class is a C++ wrapper for the C UNIX socket api (sys/socket.h).
  */
-
 class tcpip_iface : public ld_iface {
 public:
     tcpip_iface();
-    /*! \brief Open socket at specified ip address and port.
+    /** \brief Open socket at specified ip address and port.
      *  
      *  \param ip_addr IPv4 address (e.g. "192.168.2.200").
      *  \param port Port of socket to connect to.
@@ -25,7 +24,7 @@ public:
     virtual ~tcpip_iface();
 
     void open() override;
-    //! \copydoc labdev::tcpip_iface(std::string, unsigned)
+    /// \copydoc labdev::tcpip_iface(std::string, unsigned)
     void open(std::string ip_addr, unsigned port);
     void close() override;
 
@@ -33,20 +32,20 @@ public:
     int read_raw(uint8_t* data, size_t max_len, 
         unsigned timeout_ms = DFLT_TIMEOUT_MS) override;
 
-    //! Set ip address
+    /// Set ip address
     void set_ip(std::string ip_addr) noexcept { m_ip_addr = ip_addr; }
-    //! Returns ip address
+    /// Returns ip address
     std::string get_ip() const { return m_ip_addr; }
 
-    //! Set port number
+    /// Set port number
     void set_port(unsigned port) noexcept { m_port =  port; }
-    //! Returns port number
+    /// Returns port number
     unsigned get_port() const { return m_port; }
 
-    //! Set read/write buffer size
+    /// Set read/write buffer size
     void set_buffer_size(size_t buf_size);
 
-    //! Set read/write timeout in milliseconds
+    /// Set read/write timeout in milliseconds
     void set_timeout(unsigned timeout_ms);
 
     // Returns interface type

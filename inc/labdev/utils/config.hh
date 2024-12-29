@@ -22,7 +22,6 @@ namespace labdev {
  *  HELLO   Hello World
  *
  */
-
 class config {
 public:
     config(std::string conf_path);

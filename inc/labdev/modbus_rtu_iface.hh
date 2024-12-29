@@ -7,12 +7,11 @@
 
 namespace labdev {
 
-/*! \brief MODBUS Remote Terminal Unit (RTU) implementation
+/** \brief MODBUS Remote Terminal Unit (RTU) implementation
  *
  *  Implementation of a mininal version of MODBUS RTU to control lab devices.
  *  Great source for MODBUS protocol: https://www.modbustools.com/modbus.html
  */
-
 class modbus_rtu_iface : public serial_port, public modbus_iface 
 {
 public:
@@ -57,26 +56,26 @@ public:
 
 private:
 
-    //! Used for reading holding and input registers
+    /// Used for reading holding and input registers
     std::vector<uint16_t> read_16bit_regs(uint8_t uid, uint8_t func,
         uint16_t addr, uint16_t len);
 
-    //! Calculate 16 bit CRC for modbus (copied from stackoverflow...)
+    /// Calculate 16 bit CRC for modbus (copied from stackoverflow...)
     static uint16_t calc_crc16(std::vector<uint8_t> data);
 
-    //! Container to hold and format modbus rtu messages
+    /// Container to hold and format modbus rtu messages
     struct frame {
-        //! Create frame from raw message
+        /// Create frame from raw message
         frame(std::vector<uint8_t> msg);
-        //! Create frame with given address, function code, and payload
+        /// Create frame with given address, function code, and payload
         frame(uint8_t addr, uint8_t func, std::vector<uint8_t> payload);
         ~frame() {};
 
-        //! Returns vector of bytes formatted according to modbus rtu protocol
+        /// Returns vector of bytes formatted according to modbus rtu protocol
         std::vector<uint8_t> get();
 
-        //! If the highest bit of the function code is set, the payload contains 
-        //! the error code
+        /// If the highest bit of the function code is set, the payload contains 
+        /// the error code
         uint8_t get_error() { return data.at(0); }
 
         uint8_t address, function_code;

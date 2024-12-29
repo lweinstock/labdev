@@ -6,17 +6,16 @@
 
 namespace labdev{
 
-/*! \brief Communication interface based on the UNIX serial port
+/** \brief Communication interface based on the UNIX serial port
  *
  *  This class is a C++ wrapper for the C UNIX serial port (termios).
  *  It can be used for all serial devices (RS232, RS422, RS485, UART, 
  *  USB-UART bridged, etc.) that create a tty device file.
  */
-
 class serial_port : public serial_iface {
 public:
     serial_port();
-    /*! \brief Open device file with specified baud rate and frame format.
+    /** \brief Open device file with specified baud rate and frame format.
      *  
      *  \param path Path to device file (e.g. "/dev/ttyUSB0").
      *  \param baud Baud rate in bits per second.
@@ -30,7 +29,7 @@ public:
     ~serial_port();
 
     void open() override;
-    //! \copydoc serial_port::serial_port(std::string, unsigned baud, unsigned, bool, bool, unsigned)
+    /// \copydoc serial_port::serial_port(std::string, unsigned baud, unsigned, bool, bool, unsigned)
     void open(std::string path, unsigned baud = 9600, unsigned nbits = 8,
         bool par_ena = false, bool par_even = false, unsigned stop_bits = 1);
     void close() override;
@@ -80,7 +79,7 @@ private:
     struct timeval m_timeout;
     bool m_update_settings;
 
-    //! Check return value and throw corresponding exception
+    /// Check return value and throw corresponding exception
     void check_and_throw(int status, const std::string &msg) const;
     static speed_t check_baud(unsigned baud);
     static uint32_t check_bits(unsigned nbits);

@@ -12,7 +12,6 @@ namespace labdev{
 /*
  *  Abstract base class for all function generators
  */
-
 class fgen : public ld_device {
 public:
     fgen(unsigned n_ch, std::string name = "?") : 

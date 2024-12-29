@@ -12,7 +12,6 @@ namespace labdev{
 /*
  *  Abstract base class for all oscis
  */
-
 class osci : public ld_device {
 public:
     osci(unsigned n_ch, std::string name = "?") : ld_device(name), m_n_ch(n_ch) {};

@@ -14,7 +14,6 @@ namespace labdev {
 /*
  *  Rigol DS1000Z series oscilloscope
  */
-
 class ds1000z : public osci {
 public:
     ds1000z();

@@ -14,7 +14,6 @@ namespace labdev {
 /*
  *      Rigol DG4000 series function generator
  */
-
 class dg4000 : public fgen {
 public:
     dg4000() : fgen(2, "Rigol,DG4000") {};

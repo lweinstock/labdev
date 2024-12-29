@@ -13,7 +13,6 @@ namespace labdev {
 /*
  *  Keysight 1000 series oscilloscope
  */
-
 class dso1000a : public osci {
 public:
     dso1000a();

@@ -12,7 +12,6 @@ namespace labdev {
 /*
  *      Rhode und Schwarz HMP4000 series linear power supply
  */
-
 class hmp4000 : public ld_device {
 public:
     hmp4000();

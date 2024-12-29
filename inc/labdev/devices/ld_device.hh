@@ -8,7 +8,6 @@ namespace labdev {
 /*
  *  Abstract class for basic devices
  */
-
 class ld_device {
 public:
     virtual ~ld_device() {};
