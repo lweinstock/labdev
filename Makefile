@@ -6,7 +6,7 @@
 
 # General compiler settings/flags
 CC=g++
-CFLAGS=-Wall --std=c++14 -fPIC
+CFLAGS=-Wall --std=c++17 -fPIC
 # Debugging
 CFLAGS+=-g -D LD_DEBUG
 
@@ -82,7 +82,7 @@ ifeq ($(VISA),1)
 endif
 
 # Generate pkg-config file
-PC_CFLAGS=--std=c++14 -I$${includedir}
+PC_CFLAGS=--std=c++17 -I$${includedir}
 PC_LDFLAGS=-L$${libdir} -llabdev
 
 ifeq ($(VISA),1)  # Add VISA dependencies
