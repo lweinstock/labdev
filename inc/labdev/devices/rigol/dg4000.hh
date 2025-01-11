@@ -27,7 +27,7 @@ public:
 
     static constexpr uint16_t DG4162_VID = 0x1AB1;
     static constexpr uint16_t DG4162_PID = 0x0641;
-    static constexpr unsigned PORT = 5555;
+    static constexpr unsigned PORT = 5025;
 
     // Turn channel on/off
     void enable_channel(unsigned channel, bool ena = true) override;
