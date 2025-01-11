@@ -73,6 +73,8 @@ void rd6006::enable_output(bool ena)
 bool rd6006::output_enabled()
 {
     auto resp = m_modbus->read_multiple_holding_regs(UID, OUTP, 1);
+    if (resp.size() == 0)
+        throw bad_protocol("Received empty response");
     return static_cast<bool>(resp.at(0));
 }
 
@@ -86,20 +88,24 @@ void rd6006::set_voltage(double volts)
 double rd6006::get_voltage()
 {
     auto resp = m_modbus->read_multiple_holding_regs(UID, VSET0, 0x0001);
+    if (resp.size() == 0)
+        throw bad_protocol("Received empty response");
     double volt = 1e-2 * static_cast<double>(resp.at(0));
     return volt;
 }
 
-void rd6006::set_current(double amps)
+void rd6006::set_current_limit(double amps)
 {
     uint16_t amp = static_cast<uint16_t>(1000. * amps);
     m_modbus->write_single_holding_reg(UID, VSET0, amp);
     return;
 }
 
-double rd6006::get_current()
+double rd6006::get_current_limit()
 {
     auto resp = m_modbus->read_multiple_holding_regs(UID, ISET0, 0x0001);
+    if (resp.size() == 0)
+        throw bad_protocol("Received empty response");
     double curr = 1e-3 * static_cast<double>(resp.at(0));
     return curr;
 }
@@ -107,6 +113,8 @@ double rd6006::get_current()
 double rd6006::measure_voltage()
 {
     auto resp = m_modbus->read_multiple_holding_regs(UID, VOUT, 0x0001);
+    if (resp.size() == 0)
+        throw bad_protocol("Received empty response");
     double volt = 1e-2 * static_cast<double>(resp.at(0));
     return volt;
 }
@@ -114,8 +122,27 @@ double rd6006::measure_voltage()
 double rd6006::measure_current()
 {
     auto resp = m_modbus->read_multiple_holding_regs(UID, IOUT, 0x0001);
+    if (resp.size() == 0)
+        throw bad_protocol("Received empty response");
     double amps = 1e-3 * static_cast<double>(resp.at(0));
     return amps;
+}
+
+void rd6006::set_ovp(double volts)
+{
+    uint16_t volt = static_cast<uint16_t>(100. * volts);
+    m_modbus->write_single_holding_reg(UID, OVP0, volt);
+    return;
+}
+
+bool rd6006::ovp_tripped()
+{
+    auto resp = m_modbus->read_multiple_holding_regs(UID, STAT, 1);
+    if (resp.size() == 0)
+        throw bad_protocol("Received empty response");
+    if (resp.at(0) == 1)    // OVP
+        return true;
+    return false;
 }
 
 /*
