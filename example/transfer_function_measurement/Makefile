@@ -6,14 +6,12 @@
 
 BIN=tfmeas
 CC=g++
-CFLAGS=-Wall -g --std=c++11
+CFLAGS=-Wall -g
 LDFLAGS=
 
 # labdev setup
-LABDEV_CFLAGS=$(shell pkg-config liblabdev --cflags)
-LABDEV_LDFLAGS=$(shell pkg-config liblabdev --libs)
-CFLAGS+=$(LABDEV_CFLAGS)
-LDFLAGS+=$(LABDEV_LDFLAGS)
+CFLAGS+=$(shell pkg-config --cflags liblabdev)
+LDFLAGS+=$(shell pkg-config --libs liblabdev)
 
 .PHONY: all clean
 
