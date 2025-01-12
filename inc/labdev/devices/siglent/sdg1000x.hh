@@ -73,7 +73,7 @@ private:
     std::string get_bswv_val(std::string bswv, std::string par);
 
     std::map<waveform, std::string> m_wvfm_string {
-        {SINE, "SIN"}, {SQUARE, "SQU"}, {RAMP, "RAMP"}, {PULSE, "PULS"}, 
+        {SINE, "SINE"}, {SQUARE, "SQU"}, {RAMP, "RAMP"}, {PULSE, "PULS"}, 
         {NOISE, "NOIS"}, {DC, "DC"}
     };
     std::string wvfm_to_str(waveform item) { return m_wvfm_string[item]; }

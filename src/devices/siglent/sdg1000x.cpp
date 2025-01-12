@@ -128,18 +128,21 @@ void sdg1000x::set_wvfm(unsigned channel, waveform wvfm)
         abort();
     }
     stringstream msg("");
-    msg << ":SOUR" << channel << ":APPL:" << wvfm_to_str(wvfm) << "\n";
+    msg << "C" << channel << ":BSWV WVTP," << wvfm_to_str(wvfm) << "\n";
+    m_comm->write(msg.str()); 
     return;
 }
 
 fgen::waveform sdg1000x::get_wvfm(unsigned channel)
 {
     this->check_channel(channel);
-    stringstream msg("");
-    msg << ":SOUR" << channel << ":APPL?\n";
-    string resp = m_comm->query(msg.str());
+    string bswv = m_comm->query("C" + to_string(channel) + ":BSWV?\n");
+    string wvfm = this->get_bswv_val(bswv, "FRQ");
+    if (wvfm.empty())  // Parameter not found
+        return SINE;
+    debug_print("Received waveform %s\n", wvfm.c_str());
     for (auto m : m_wvfm_string) {
-        if (resp.find(m.second) != string::npos)
+        if (wvfm.find(m.second) != string::npos)
             return m.first;
     }
     return SINE;
