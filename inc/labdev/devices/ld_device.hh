@@ -1,6 +1,8 @@
 #ifndef DEVICE_HH
 #define DEVICE_HH
 
+#include <memory>
+
 #include <labdev/ld_iface.hh>
 
 namespace labdev {

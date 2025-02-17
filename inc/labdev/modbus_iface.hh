@@ -1,6 +1,7 @@
 #ifndef MODBUS_INTERFACE_HH
 #define MODBUS_INTERFACE_HH
 
+#include <cstdint>
 #include <vector>
 
 namespace labdev {

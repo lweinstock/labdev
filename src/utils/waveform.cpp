@@ -92,7 +92,7 @@ void waveform::get_fft(waveform &magn, waveform &phase)
 
     magn.clear();
     phase.clear();
-    for (int i = 0; i < nFFT; i++) 
+    for (unsigned i = 0; i < nFFT; i++) 
     {
         double f = i/(dx * nPts);
         double m = sqrt( fft[i][0]*fft[i][0] + fft[i][1]*fft[i][1] )/nPts;
@@ -116,7 +116,7 @@ void waveform::apply_filter(filter_function filter)
     fftw_execute(plan);
 
     // Apply filter
-    for (int i = 0; i < nFFT; i++) 
+    for (unsigned i = 0; i < nFFT; i++) 
     {
         double f = i/(dx * nPts);
         fft[i][0] *= filter(f)/nPts;

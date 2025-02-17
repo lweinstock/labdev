@@ -416,7 +416,7 @@ void ds1000z::read_sample_data(unsigned channel, vector<double> &horz_data,
     }
 
     // Extract data from preamble
-    int npts  = stoi( preamble.at(2) );
+    unsigned npts  = stoi( preamble.at(2) );
     double xincr = stof( preamble.at(4) );
     double xorg  = stof( preamble.at(5) );
     double xref  = stof( preamble.at(6) );
