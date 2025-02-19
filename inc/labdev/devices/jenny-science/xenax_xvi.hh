@@ -46,6 +46,39 @@ public:
     bool reference_completed();
     bool gantry_initialized();
     bool error_pending();
+    
+    // Read the Process Status Register (PSR) & update status
+    uint32_t get_status_register();
+    // Process Status Register definition (manual p. 56)
+    enum PSR : uint32_t {
+        ERROR                     = (1 << 0),
+        REF                       = (1 << 1),
+        IN_MOTION                 = (1 << 2),
+        IN_POSITION               = (1 << 3),
+        END_OF_PROGRAM            = (1 << 4),
+        IN_FORCE                  = (1 << 5),
+        IN_SECTO                  = (1 << 6),
+        FORCE_IN_SECTOR           = (1 << 7),
+        INVERTER_VOLTAGE          = (1 << 8),
+        END_OF_GANTRY_INIT        = (1 << 9),
+        NEGATIVE_LIMIT_SWITC      = (1 << 10),
+        POSITIVE_LIMIT_SWITC      = (1 << 11),
+        REMAIN_POWER_ON           = (1 << 12),
+        POWER_OFF                 = (1 << 13),
+        FORCE_CALIBRATION_ACTIVE  = (1 << 14),
+        I_FORCE_LIMIT_REACHED     = (1 << 15),
+        STO_PRIMED_HIT            = (1 << 16),
+        SS1_PRIMED_HIT            = (1 << 17),
+        SS2_PRIMED                = (1 << 18),
+        SS2_HIT                   = (1 << 19),
+        SLS_PRIMED                = (1 << 20),
+        SLS_SPEED_HIT             = (1 << 21),
+        SLS_POSITION_HIT          = (1 << 22),
+        WARNING                   = (1 << 23),
+        INFO                      = (1 << 24),
+        PHASING_DONE              = (1 << 25),
+        I_FORCE_DRIFT_COMP_ACTIVE = (1 << 26)
+    };
 
     // Set and get movement parameters;
     //   speed [inc/s], accel [inc/s2], s curve [%]
@@ -169,45 +202,11 @@ private:
         SOA8 = (1 << 7)
     };
 
-    // Process Status Register definition (manual p. 56)
-    enum PSR : uint32_t {
-        ERROR                     = (1 << 0),
-        REF                       = (1 << 1),
-        IN_MOTION                 = (1 << 2),
-        IN_POSITION               = (1 << 3),
-        END_OF_PROGRAM            = (1 << 4),
-        IN_FORCE                  = (1 << 5),
-        IN_SECTO                  = (1 << 6),
-        FORCE_IN_SECTOR           = (1 << 7),
-        INVERTER_VOLTAGE          = (1 << 8),
-        END_OF_GANTRY_INIT        = (1 << 9),
-        NEGATIVE_LIMIT_SWITC      = (1 << 10),
-        POSITIVE_LIMIT_SWITC      = (1 << 11),
-        REMAIN_POWER_ON           = (1 << 12),
-        POWER_OFF                 = (1 << 13),
-        FORCE_CALIBRATION_ACTIVE  = (1 << 14),
-        I_FORCE_LIMIT_REACHED     = (1 << 15),
-        STO_PRIMED_HIT            = (1 << 16),
-        SS1_PRIMED_HIT            = (1 << 17),
-        SS2_PRIMED                = (1 << 18),
-        SS2_HIT                   = (1 << 19),
-        SLS_PRIMED                = (1 << 20),
-        SLS_SPEED_HIT             = (1 << 21),
-        SLS_POSITION_HIT          = (1 << 22),
-        WARNING                   = (1 << 23),
-        INFO                      = (1 << 24),
-        PHASING_DONE              = (1 << 25),
-        I_FORCE_DRIFT_COMP_ACTIVE = (1 << 26)
-    };
-
     void init();
     void flush_buffer();
 
     // General command query
     std::string query_cmd(std::string cmd, unsigned timeout_ms = 1000);
-
-    // Read the Process Status Register (PSR) & update status
-    uint32_t get_status_register();
 
     // Wait until status bits are set
     void wait_status_set(uint32_t status, unsigned interval_ms = 500,

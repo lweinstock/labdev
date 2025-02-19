@@ -217,6 +217,19 @@ bool xenax_xvi::error_pending()
     return m_error_pending;
 }
 
+uint32_t xenax_xvi::get_status_register() 
+{
+    string resp = this->query_cmd("TPSR");
+    uint32_t status = stoi(resp, 0 , 16);
+
+    debug_print("status register = 0x%08X\n", status);
+
+    // Check error, warning, and info bit => update error pending
+    m_error_pending = (status & (ERROR | WARNING | INFO));
+
+    return status;
+}
+
 void xenax_xvi::set_speed(unsigned inc_per_sec) 
 {
     this->query_cmd("SP" + to_string(inc_per_sec));
@@ -615,19 +628,6 @@ void xenax_xvi::flush_buffer()
     m_input_buffer.clear();
     debug_print("%s\n", "buffer flushed");
     return;
-}
-
-uint32_t xenax_xvi::get_status_register() 
-{
-    string resp = this->query_cmd("TPSR");
-    uint32_t status = stoi(resp, 0 , 16);
-
-    debug_print("status register = 0x%08X\n", status);
-
-    // Check error, warning, and info bit => update error pending
-    m_error_pending = (status & (ERROR | WARNING | INFO));
-
-    return status;
 }
 
 string xenax_xvi::query_cmd(string cmd, unsigned timeout_ms) 
