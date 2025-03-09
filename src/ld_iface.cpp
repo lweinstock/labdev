@@ -62,8 +62,14 @@ string ld_iface::read_until(const string& delim,
 }
 
 string ld_iface::query(const string& msg, unsigned timeout_ms) {
-    write(msg);
-    return read(timeout_ms);
+    this->write(msg);
+    return this->read(timeout_ms);
+}
+
+vector<uint8_t> ld_iface::query_byte(const vector<uint8_t> data, unsigned timeout_ms)
+{
+    this->write_byte(data);
+    return this->read_byte(timeout_ms);
 }
 
 }

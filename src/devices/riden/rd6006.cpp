@@ -1,11 +1,12 @@
 #include <labdev/devices/riden/rd6006.hh>
 #include <labdev/exceptions.hh>
+#include <labdev/ld_debug.hh>
 
 using namespace std;
 
 namespace labdev {
 
-rd6006::rd6006(std::unique_ptr<modbus_rtu_iface> modbus) : rd6006()
+rd6006::rd6006(std::unique_ptr<serial_iface> modbus) : rd6006()
 {
     this->connect(std::move(modbus));
     return;
@@ -27,28 +28,28 @@ void rd6006::connect(std::unique_ptr<ld_iface> comm)
     }
 
     Interface_type type = comm->type();
-    if (type == MODBUS_RTU) {
+    if (type == SERIAL) {
         // Convert to modbus rtu interface
-        unique_ptr<modbus_rtu_iface> modbus(
-            dynamic_cast<modbus_rtu_iface*>(comm.release()));
+        unique_ptr<serial_iface> serial(
+            dynamic_cast<serial_iface*>(comm.release()));
         
-        if (modbus->get_nbits() != 8) {
+        if (serial->get_nbits() != 8) {
             fprintf(stderr, "Invalid number of bits %u; RD6006 only supports 8N1\n", 
-                modbus->get_nbits());
+                serial->get_nbits());
             abort();
         }
-        if (modbus->get_parity() != false) {
+        if (serial->get_parity() != false) {
             fprintf(stderr, "Invalid parity; RD6006 only supports 8N1\n");
             abort();
         }
-        if (modbus->get_stop_bits() != 1) {
+        if (serial->get_stop_bits() != 1) {
             fprintf(stderr, "Invalid number of stop bits %u; RD6006 only supports 8N1\n", 
-                modbus->get_stop_bits());
+                serial->get_stop_bits());
             abort();
         }
 
         // Everything seems to be in order
-        m_modbus = std::move(modbus);
+        m_comm = std::move(serial);
     } else {
         string err = this->get_info() + " : interface is not supported";
         throw device_error(err); 
@@ -60,19 +61,19 @@ void rd6006::connect(std::unique_ptr<ld_iface> comm)
 
 void rd6006::disconnect()
 {
-    m_modbus.reset();
+    m_comm.reset();
     return;
 }
 
 void rd6006::enable_output(bool ena)
 {
-    m_modbus->write_single_holding_reg(UID, OUTP, static_cast<uint16_t>(ena));
+    this->write_single_holding_reg(UID, OUTP, static_cast<uint16_t>(ena));
     return;
 }
 
 bool rd6006::output_enabled()
 {
-    auto resp = m_modbus->read_multiple_holding_regs(UID, OUTP, 1);
+    auto resp = this->read_multiple_holding_regs(UID, OUTP, 1);
     if (resp.size() == 0)
         throw bad_protocol("Received empty response");
     return static_cast<bool>(resp.at(0));
@@ -81,13 +82,14 @@ bool rd6006::output_enabled()
 void rd6006::set_voltage(double volts)
 {
     uint16_t volt = static_cast<uint16_t>(100. * volts);
-    m_modbus->write_single_holding_reg(UID, VSET0, volt);
+    debug_print("Setting voltage to %.3f (0x%04X)\n", volts, volt);
+    this->write_single_holding_reg(UID, VSET0, volt);
     return;
 }
 
 double rd6006::get_voltage()
 {
-    auto resp = m_modbus->read_multiple_holding_regs(UID, VSET0, 0x0001);
+    auto resp = this->read_multiple_holding_regs(UID, VSET0, 0x0001);
     if (resp.size() == 0)
         throw bad_protocol("Received empty response");
     double volt = 1e-2 * static_cast<double>(resp.at(0));
@@ -97,13 +99,14 @@ double rd6006::get_voltage()
 void rd6006::set_current_limit(double amps)
 {
     uint16_t amp = static_cast<uint16_t>(1000. * amps);
-    m_modbus->write_single_holding_reg(UID, VSET0, amp);
+    debug_print("Setting current to %.3f (0x%04X)\n", amps, amp);
+    this->write_single_holding_reg(UID, ISET0, amp);
     return;
 }
 
 double rd6006::get_current_limit()
 {
-    auto resp = m_modbus->read_multiple_holding_regs(UID, ISET0, 0x0001);
+    auto resp = this->read_multiple_holding_regs(UID, ISET0, 0x0001);
     if (resp.size() == 0)
         throw bad_protocol("Received empty response");
     double curr = 1e-3 * static_cast<double>(resp.at(0));
@@ -112,7 +115,7 @@ double rd6006::get_current_limit()
 
 double rd6006::measure_voltage()
 {
-    auto resp = m_modbus->read_multiple_holding_regs(UID, VOUT, 0x0001);
+    auto resp = this->read_multiple_holding_regs(UID, VOUT, 0x0001);
     if (resp.size() == 0)
         throw bad_protocol("Received empty response");
     double volt = 1e-2 * static_cast<double>(resp.at(0));
@@ -121,7 +124,7 @@ double rd6006::measure_voltage()
 
 double rd6006::measure_current()
 {
-    auto resp = m_modbus->read_multiple_holding_regs(UID, IOUT, 0x0001);
+    auto resp = this->read_multiple_holding_regs(UID, IOUT, 0x0001);
     if (resp.size() == 0)
         throw bad_protocol("Received empty response");
     double amps = 1e-3 * static_cast<double>(resp.at(0));
@@ -131,13 +134,13 @@ double rd6006::measure_current()
 void rd6006::set_ovp(double volts)
 {
     uint16_t volt = static_cast<uint16_t>(100. * volts);
-    m_modbus->write_single_holding_reg(UID, OVP0, volt);
+    this->write_single_holding_reg(UID, OVP0, volt);
     return;
 }
 
 bool rd6006::ovp_tripped()
 {
-    auto resp = m_modbus->read_multiple_holding_regs(UID, STAT, 1);
+    auto resp = this->read_multiple_holding_regs(UID, STAT, 1);
     if (resp.size() == 0)
         throw bad_protocol("Received empty response");
     if (resp.at(0) == 1)    // OVP
@@ -152,7 +155,7 @@ bool rd6006::ovp_tripped()
 void rd6006::init()
 {
     // Recall memory settings 0
-    m_modbus->write_single_holding_reg(UID, MEMID, 0x0000);
+    this->write_single_holding_reg(UID, MEMID, 0x0000);
     return;
 }
 

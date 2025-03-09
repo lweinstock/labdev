@@ -34,9 +34,6 @@ OBJ+=$(SRC)/eth_to_ser.o
 OBJ+=$(SRC)/tcpip_iface.o
 OBJ+=$(SRC)/usb_iface.o
 OBJ+=$(SRC)/usbtmc_iface.o
-OBJ+=$(SRC)/modbus_iface.o
-OBJ+=$(SRC)/modbus_tcp_iface.o
-OBJ+=$(SRC)/modbus_rtu_iface.o
 
 # Utilies
 OBJ+=$(SRC)/utils/utils.o
@@ -45,6 +42,8 @@ OBJ+=$(SRC)/utils/waveform.o
 
 # Vendor specific devices
 OBJ+=$(SRC)/devices/ld_device.o
+OBJ+=$(SRC)/devices/scpi_device.o
+OBJ+=$(SRC)/devices/modbus_device.o
 OBJ+=$(SRC)/devices/feeltech/fy6900.o
 OBJ+=$(SRC)/devices/siglent/sdg1000x.o
 OBJ+=$(SRC)/devices/uni-t/ut61b.o

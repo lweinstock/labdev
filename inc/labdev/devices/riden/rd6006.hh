@@ -1,16 +1,16 @@
 #ifndef RD6006_HH
 #define RD6006_HH
 
-#include <labdev/devices/ld_device.hh>
-#include <labdev/modbus_rtu_iface.hh>
+#include <labdev/serial_iface.hh>
+#include <labdev/devices/modbus_device.hh>
 
 namespace labdev {
 
-class rd6006 : public ld_device
+class rd6006 : public modbus_device
 {
 public:
-    rd6006() : ld_device("Riden,RD6006") {};
-    rd6006(std::unique_ptr<modbus_rtu_iface> modbus);
+    rd6006() : modbus_device("Riden,RD6006") {};
+    rd6006(std::unique_ptr<serial_iface> modbus);
     ~rd6006();
 
     void connect(std::unique_ptr<ld_iface> comm) override;
@@ -44,7 +44,6 @@ public:
 
 private:
     void init();
-    std::unique_ptr<modbus_rtu_iface> m_modbus;
 
     static constexpr uint16_t UID  = 0x01;      ///< Default unit id of RD6006
     // Register addresses

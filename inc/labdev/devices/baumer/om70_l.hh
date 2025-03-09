@@ -1,16 +1,16 @@
 #ifndef OM70_L_HH
 #define OM70_L_HH
 
-#include <labdev/devices/ld_device.hh>
-#include <labdev/modbus_tcp_iface.hh>
+#include <labdev/devices/modbus_device.hh>
+#include <labdev/tcpip_iface.hh>
 #include <vector>
 
 namespace labdev {
 
-class om70_l : public ld_device {
+class om70_l : public modbus_device {
 public:
     om70_l();
-    om70_l(std::unique_ptr<modbus_tcp_iface> modbus);
+    om70_l(std::unique_ptr<tcpip_iface> modbus);
     ~om70_l();
 
     void connect(std::unique_ptr<ld_iface> comm) override;
@@ -75,7 +75,6 @@ private:
     void extract_mem_meas(std::vector<uint16_t> data, float &dist, 
         int &quality, float &sample_rate, float &exposure);
 
-    std::unique_ptr<modbus_tcp_iface> m_modbus;
     int m_quality;
     float m_dist, m_sr, m_exp;
     std::vector<int> m_quality_vec;

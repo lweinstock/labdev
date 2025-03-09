@@ -9,14 +9,14 @@ using namespace std;
 namespace labdev {
 
 om70_l::om70_l() 
-  : ld_device("Baumer,OM70-L"), m_modbus(nullptr), m_quality(0),  m_dist(0),
+  : modbus_device("Baumer,OM70-L"), m_quality(0),  m_dist(0),
     m_sr(0), m_exp(0), m_quality_vec(), m_dist_vec(), m_sr_vec(), m_exp_vec(),
     m_config_mode(false)
 {
     return;
 }
 
-om70_l::om70_l(unique_ptr<modbus_tcp_iface> tcpip) : om70_l() 
+om70_l::om70_l(unique_ptr<tcpip_iface> tcpip) : om70_l() 
 {
     this->connect(std::move(tcpip));
     return;
@@ -38,19 +38,18 @@ void om70_l::connect(unique_ptr<ld_iface> comm)
     }
 
     Interface_type type = comm->type();
-    if ( type == MODBUS_TCP ) {
+    if ( type == TCPIP ) {
         // Convert to MODBUS TCP interface
-        unique_ptr<modbus_tcp_iface> modbus_tcp(
-            dynamic_cast<modbus_tcp_iface*>(comm.release()));
+        unique_ptr<tcpip_iface> tcpip(dynamic_cast<tcpip_iface*>(comm.release()));
 
         // Check port -> 502
-        if (modbus_tcp->get_port() != om70_l::PORT) {
+        if (tcpip->get_port() != om70_l::PORT) {
             fprintf(stderr, "OM70-L only supports port %u.\n", om70_l::PORT);
             abort();
         }
 
         // Everything seems to be in order
-        m_modbus = std::move(modbus_tcp);
+        m_comm = std::move(tcpip);
 
     } else {
         string err = this->get_info() + " : interface is not supported";
@@ -64,21 +63,21 @@ void om70_l::connect(unique_ptr<ld_iface> comm)
 void om70_l::disconnect()
 {
     this->disable_laser();
-    m_modbus.reset();
+    m_comm.reset();
     return;
 }
 
 void om70_l::enable_laser(bool ena)
 {
     if (!m_config_mode) {
-        m_modbus->write_single_holding_reg(UNIT_ID, ADDR_CONF_ON, 0x0001);
+        this->write_single_holding_reg(UNIT_ID, ADDR_CONF_ON, 0x0001);
         m_config_mode = true;
     }
 
     if (ena)
-        m_modbus->write_single_holding_reg(UNIT_ID, ADDR_ENA_LASER, 0x0001);
+        this->write_single_holding_reg(UNIT_ID, ADDR_ENA_LASER, 0x0001);
     else
-        m_modbus->write_single_holding_reg(UNIT_ID, ADDR_ENA_LASER, 0x0000);
+        this->write_single_holding_reg(UNIT_ID, ADDR_ENA_LASER, 0x0000);
 
     return;
 }
@@ -86,19 +85,19 @@ void om70_l::enable_laser(bool ena)
 void om70_l::set_session_timeout(unsigned timeout_sec)
 {
     if (!m_config_mode) {
-        m_modbus->write_single_holding_reg(UNIT_ID, ADDR_CONF_ON, 0x0001);
+        this->write_single_holding_reg(UNIT_ID, ADDR_CONF_ON, 0x0001);
         m_config_mode = true;
     }
     vector<uint16_t> data{};
     data.push_back( static_cast<uint16_t>(timeout_sec & 0xFFFF) );
     data.push_back( static_cast<uint16_t>( (timeout_sec >> 16) & 0xFFFF) );
-    m_modbus->write_multiple_holding_regs(UNIT_ID, ADDR_TIMEOUT, data);
+    this->write_multiple_holding_regs(UNIT_ID, ADDR_TIMEOUT, data);
     return;
 }
 
 unsigned om70_l::get_session_timeout()
 {
-    auto resp = m_modbus->read_multiple_holding_regs(UNIT_ID, ADDR_TIMEOUT, 2);
+    auto resp = this->read_multiple_holding_regs(UNIT_ID, ADDR_TIMEOUT, 2);
     return static_cast<unsigned>( resp.at(0) | (resp.at(1) << 16) );
 }
 
@@ -106,12 +105,12 @@ float om70_l::get_measurement()
 {
     // Turn off config mode to increase sample rate
     if (m_config_mode) {
-        m_modbus->write_single_holding_reg(UNIT_ID, ADDR_CONF_OFF, 0x0001);
+        this->write_single_holding_reg(UNIT_ID, ADDR_CONF_OFF, 0x0001);
         m_config_mode = false;
     }
 
     vector<uint16_t> resp{};
-    resp = m_modbus->read_input_regs(UNIT_ID, ADDR_ALL_MEAS, 17);
+    resp = this->read_input_regs(UNIT_ID, ADDR_ALL_MEAS, 17);
     
     m_quality = resp.at(1);
     // memcopy is required, casting results in wrong conversion to integer and
@@ -133,7 +132,7 @@ vector<float> om70_l::get_measurement_mem()
 {
     // Turn off config mode to increase sample rate
     if (m_config_mode) {
-        m_modbus->write_single_holding_reg(UNIT_ID, ADDR_CONF_OFF, 0x0001);
+        this->write_single_holding_reg(UNIT_ID, ADDR_CONF_OFF, 0x0001);
         m_config_mode = false;
     }
 
@@ -151,9 +150,9 @@ vector<float> om70_l::get_measurement_mem()
         // All memory blocks contain 7 measurements (7x16 = 112 registers) 
         // except the last one which contains only 2 readings (2x16 = 32 regs)
         if (i < 14)
-            resp = m_modbus->read_input_regs(UNIT_ID, ADDR_BLK_MEM0+112*i, 112);
+            resp = this->read_input_regs(UNIT_ID, ADDR_BLK_MEM0+112*i, 112);
         else
-            resp = m_modbus->read_input_regs(UNIT_ID, ADDR_BLK_MEM14, 32);
+            resp = this->read_input_regs(UNIT_ID, ADDR_BLK_MEM14, 32);
 
         // Cut the (usually) 112 registers into 7 slices of 16 registers
         unsigned n_measurements = resp.size()/16;

@@ -97,6 +97,14 @@ public:
     std::string query(const std::string& msg, 
         unsigned timeout_ms = DFLT_TIMEOUT_MS);
 
+    /** \brief C++-style byte write followed by a read.
+     *  \param [in] data Query bytes.
+     *  \param [in] timeout_ms Read timeout in milli seconds.
+     *  \return Response bytes.
+     */
+    std::vector<uint8_t> query_byte(const std::vector<uint8_t> data, 
+        unsigned timeout_ms = DFLT_TIMEOUT_MS);
+
     /// Open interface with stored settings
     virtual void open() = 0;
 
