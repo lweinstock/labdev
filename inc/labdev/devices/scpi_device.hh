@@ -34,6 +34,18 @@ public:
     /// Event Status Read
     uint8_t get_ESR();
 
+    /// Standard Event Status Register (SESR) definitions
+    enum SESR : uint8_t {
+        OPC = (1 << 0),     //> Operation Complete
+        RQC = (1 << 1),     //> Request Control
+        QYE = (1 << 2),     //> Query Error
+        DDE = (1 << 3),     //> Device Dependant Error
+        EXE = (1 << 4),     //> Execution Error
+        CME = (1 << 5),     //> Command Error
+        URQ = (1 << 6),     //> User Request
+        PON = (1 << 7)      //> Power On
+    };
+
     /// IDeNtification query
     std::string get_IDN() { return m_comm->query("*IDN?\n"); }
 
