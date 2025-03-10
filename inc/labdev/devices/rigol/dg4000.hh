@@ -5,7 +5,8 @@
 #include <labdev/visa_iface.hh>
 #include <labdev/usbtmc_iface.hh>
 #include <labdev/devices/fgen.hh>
-#include <labdev/protocols/scpi.hh>
+#include <labdev/devices/scpi_device.hh>
+
 #include <memory>
 #include <map>
 
@@ -14,9 +15,9 @@ namespace labdev {
 /*
  *      Rigol DG4000 series function generator
  */
-class dg4000 : public fgen {
+class dg4000 : public fgen, public scpi_device {
 public:
-    dg4000() : fgen(2, "Rigol,DG4000") {};
+    dg4000() : fgen(2), scpi_device("Rigol,DG4000") {};
     dg4000(std::unique_ptr<tcpip_iface> tcpip);
     dg4000(std::unique_ptr<usbtmc_iface> usbtmc);
     dg4000(std::unique_ptr<visa_iface> visa);

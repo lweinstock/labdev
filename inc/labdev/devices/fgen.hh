@@ -7,15 +7,16 @@
 
 #include <labdev/devices/ld_device.hh>
 
-namespace labdev{
+namespace labdev {
 
-/*
- *  Abstract base class for all function generators
+/** \brief Abstract base class for function generators.
+ *
+ *  The fgen base class defines minimal functionality a device has to provide to
+ *  be a proper function generator. 
  */
-class fgen : public ld_device {
+class fgen {
 public:
-    fgen(unsigned n_ch, std::string name = "?") : 
-        ld_device(name), m_n_ch(n_ch) {};
+    fgen(unsigned n_ch) : m_n_ch(n_ch) {};
     virtual ~fgen() {};
 
     // Returns number of channels of device

@@ -1,6 +1,7 @@
 #ifndef DS1000Z_H
 #define DS1000Z_H
 
+#include <labdev/devices/scpi_device.hh>
 #include <labdev/devices/osci.hh>
 #include <labdev/protocols/scpi.hh>
 #include <labdev/tcpip_iface.hh>
@@ -14,9 +15,9 @@ namespace labdev {
 /*
  *  Rigol DS1000Z series oscilloscope
  */
-class ds1000z : public osci {
+class ds1000z : public osci, public scpi_device {
 public:
-    ds1000z();
+    ds1000z() : osci(4), scpi_device("Rigol,DS1000Z") {};
     ds1000z(std::unique_ptr<tcpip_iface> tcpip);
     ds1000z(std::unique_ptr<usbtmc_iface> usbtmc);
     ds1000z(std::unique_ptr<visa_iface> visa);
@@ -35,7 +36,6 @@ public:
     // Turn channel on/off
     void enable_channel(unsigned channel, bool enable = true) override;
     bool channel_enabled(unsigned channel) override;
-
 
     // Attenuation settings
     void set_atten(unsigned channel, double att) override;

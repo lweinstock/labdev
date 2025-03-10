@@ -2,17 +2,17 @@
 #define SDG1000X_HH
 
 #include <labdev/devices/fgen.hh>
+#include <labdev/devices/scpi_device.hh>
 #include <labdev/tcpip_iface.hh>
 #include <labdev/usbtmc_iface.hh>
 #include <labdev/visa_iface.hh>
-#include <labdev/protocols/scpi.hh>
 #include <map>
 
 namespace labdev {
 
-class sdg1000x: public fgen {
+class sdg1000x: public fgen, public scpi_device {
 public:
-    sdg1000x();
+    sdg1000x() : fgen(2), scpi_device("Siglent,SDG1000X") {};
     sdg1000x(std::unique_ptr<tcpip_iface> tcpip);
     sdg1000x(std::unique_ptr<usbtmc_iface> usbtmc);
     sdg1000x(std::unique_ptr<visa_iface> visa);

@@ -9,12 +9,6 @@ using namespace std;
 
 namespace labdev {
 
-dso1000a::dso1000a()
-    : osci(4, "Keysight,DSO1000A")
-{
-    return;
-}
-
 dso1000a::dso1000a(std::unique_ptr<usbtmc_iface> usbtmc) : dso1000a()
 {
     this->connect(std::move(usbtmc));

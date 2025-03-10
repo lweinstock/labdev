@@ -9,12 +9,14 @@
 
 namespace labdev{
 
-/*
- *  Abstract base class for all oscis
+/** \brief Abstract base class for oscilloscopes.
+ *
+ *  The osci base class defines minimal functionality a device has to provide to
+ *  be a proper oscilloscope. 
  */
-class osci : public ld_device {
+class osci {
 public:
-    osci(unsigned n_ch, std::string name = "?") : ld_device(name), m_n_ch(n_ch) {};
+    osci(unsigned n_ch) : m_n_ch(n_ch) {};
     virtual ~osci() {};
 
     // Returns maximum number of channels

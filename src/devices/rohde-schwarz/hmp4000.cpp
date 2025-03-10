@@ -9,13 +9,6 @@ using namespace std;
 
 namespace labdev {
 
-hmp4000::hmp4000() 
-    : ld_device("Rohde&Schwarz,HMP4000"), m_cur_ch(0)
-{
-    return;
-}
-
-
 hmp4000::hmp4000(std::unique_ptr<tcpip_iface> tcpip) : hmp4000() 
 {
     this->connect(std::move(tcpip));
@@ -207,9 +200,9 @@ bool hmp4000::ovp_tripped(int channel)
 
 void hmp4000::init() 
 {
-    m_comm->write("*CLS\n");
+    this->CLS();
     usleep(100e3);
-    m_dev_name = m_comm->query("*IDN?\n");
+    m_dev_name = this->get_IDN();
 
     this->select_channel(1);
     return;

@@ -2,6 +2,7 @@
 #define DS01000A_H
 
 #include <labdev/devices/osci.hh>
+#include <labdev/devices/scpi_device.hh>
 #include <labdev/protocols/scpi.hh>
 #include <labdev/usbtmc_iface.hh>
 #include <labdev/visa_iface.hh>
@@ -13,9 +14,9 @@ namespace labdev {
 /*
  *  Keysight 1000 series oscilloscope
  */
-class dso1000a : public osci {
+class dso1000a : public osci, public scpi_device {
 public:
-    dso1000a();
+    dso1000a() : osci(4), scpi_device( "Keysight,DSO1000A") {};
     dso1000a(std::unique_ptr<usbtmc_iface> usbtmc);
     dso1000a(std::unique_ptr<visa_iface> visa);
     ~dso1000a();

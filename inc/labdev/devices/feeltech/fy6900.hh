@@ -1,8 +1,9 @@
 #ifndef FY6900_HH
 #define FY6900_HH
 
-#include <labdev/serial_iface.hh>
 #include <labdev/devices/fgen.hh>
+#include <labdev/devices/ld_device.hh>
+#include <labdev/serial_iface.hh>
 #include <map>
 
 namespace labdev {
@@ -10,9 +11,9 @@ namespace labdev {
 /*
  * FeelTech FY6900 series function generator
  */
-class fy6900 : public fgen {
+class fy6900 : public fgen, public ld_device {
 public:
-    fy6900() : fgen(2, "FeelTech,FY6900") {};
+    fy6900() : fgen(2), ld_device("FeelTech,FY6900") {};
     fy6900(std::unique_ptr<serial_iface> ser);
     ~fy6900();
 

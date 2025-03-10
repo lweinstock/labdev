@@ -9,12 +9,6 @@ using namespace std;
 
 namespace labdev {
 
-ds1000z::ds1000z()
-    : osci(4, "Rigol,DS1000Z")
-{
-    return;
-}
-
 ds1000z::ds1000z(std::unique_ptr<tcpip_iface> tcpip) : ds1000z()
 {
     this->connect(std::move(tcpip));
@@ -464,9 +458,9 @@ void ds1000z::read_sample_data(unsigned channel, vector<double> &horz_data,
 
 void ds1000z::init() 
 {
-    m_comm->write("*CLS\n");
+    this->CLS();
     usleep(100e3);
-    m_dev_name = m_comm->query("*IDN?\n");
+    m_dev_name = this->get_IDN();
 
     // Set waveform format
     m_comm->write(":WAV:FORM BYTE\n");

@@ -16,8 +16,11 @@ namespace labdev
 class scpi_device : public ld_device
 {
 public:
-    scpi_device() {};
-    ~scpi_device() {};
+    virtual ~scpi_device() {};
+
+    // No copy constructor or assignment, default move constructor
+    scpi_device(const scpi_device&) = delete;
+    scpi_device& operator=(const scpi_device&) = delete;
 
     /// CLear Status
     void CLS() { m_comm->write("*CLS\n"); }
@@ -61,7 +64,10 @@ public:
     /// WAIt to continue
     void WAI() { m_comm->write("*WAI\n"); }
 
-private:
+protected:
+    // Initializer with name for derived classes
+    scpi_device() : ld_device() {};
+    scpi_device(std::string name) : ld_device(name) {};
 
 };
 

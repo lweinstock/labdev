@@ -2,17 +2,17 @@
 #define AFG3000_HH
 
 #include <labdev/devices/fgen.hh>
+#include <labdev/devices/scpi_device.hh>
 #include <labdev/tcpip_iface.hh>
 #include <labdev/usbtmc_iface.hh>
 #include <labdev/visa_iface.hh>
-#include <labdev/protocols/scpi.hh>
 #include <map>
 
 namespace labdev {
 
-class afg3000: public fgen {
+class afg3000: public fgen, public scpi_device {
 public:
-    afg3000();
+    afg3000() : fgen(2), scpi_device("Tektronix,AFG3000") {};
     afg3000(std::unique_ptr<tcpip_iface> tcpip);
     afg3000(std::unique_ptr<usbtmc_iface> usbtmc);
     afg3000(std::unique_ptr<visa_iface> visa);

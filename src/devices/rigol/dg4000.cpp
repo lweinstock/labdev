@@ -309,9 +309,9 @@ float dg4000::get_pulse_width(unsigned channel)
 
 void dg4000::init() 
 {
-    m_comm->write("*CLS\n");
+    this->CLS();
     usleep(100e3);
-    m_dev_name = m_comm->query("*IDN?\n");
+    m_dev_name = this->get_IDN();
     return;
 }
 

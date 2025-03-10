@@ -4,7 +4,7 @@
 #include <labdev/tcpip_iface.hh>
 #include <labdev/serial_iface.hh>
 #include <labdev/visa_iface.hh>
-#include <labdev/devices/ld_device.hh>
+#include <labdev/devices/scpi_device.hh>
 #include <labdev/protocols/scpi.hh>
 
 namespace labdev {
@@ -12,9 +12,9 @@ namespace labdev {
 /*
  *      Rhode und Schwarz HMP4000 series linear power supply
  */
-class hmp4000 : public ld_device {
+class hmp4000 : public scpi_device {
 public:
-    hmp4000();
+    hmp4000() : scpi_device("Rohde&Schwarz,HMP4000"), m_cur_ch(0) {};
     hmp4000(std::unique_ptr<tcpip_iface> tcpip);
     hmp4000(std::unique_ptr<serial_iface> ser);
     hmp4000(std::unique_ptr<visa_iface> visa);

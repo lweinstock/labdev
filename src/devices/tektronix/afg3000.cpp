@@ -8,11 +8,6 @@ using namespace std;
 
 namespace labdev {
 
-afg3000::afg3000() : fgen(2, "Tektronix,AFG3000")
-{
-    return;
-}
-
 afg3000::afg3000(std::unique_ptr<tcpip_iface> tcpip) : afg3000()
 {
     this->connect(std::move(tcpip));

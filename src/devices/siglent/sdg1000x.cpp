@@ -8,11 +8,6 @@ using namespace std;
 
 namespace labdev {
 
-sdg1000x::sdg1000x() : fgen(2, "Siglent,SDG1000X")
-{
-    return;
-}
-
 sdg1000x::sdg1000x(std::unique_ptr<tcpip_iface> tcpip) : sdg1000x()
 {
     this->connect(std::move(tcpip));
@@ -289,9 +284,9 @@ float sdg1000x::get_pulse_width(unsigned channel)
 
 void sdg1000x::init() 
 {
-    m_comm->write("*CLS\n");
+    this->CLS();
     usleep(100e3);
-    m_dev_name = m_comm->query("*IDN?\n");
+    m_dev_name = this->get_IDN();
     return;
 }
 
