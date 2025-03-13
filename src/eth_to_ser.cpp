@@ -48,11 +48,11 @@ void eth_to_ser::open(std::string ip_addr, unsigned port, unsigned baud,
     m_tcpip_cfg.open(m_ip_addr, HTTP_PORT);
     // Serial communication via "raw" tcpip
     m_tcpip_ser.open(m_ip_addr, m_port);
+    this->disable_rts_cts();
     this->set_baud(baud);
     this->set_nbits(nbits);
     this->set_parity(par_ena, par_even);
     this->set_stop_bits(stop_bits);
-    this->disable_hw_flow_ctrl();
     this->apply_settings();
 
     m_good = m_tcpip_ser.good() && m_tcpip_ser.good();
@@ -182,6 +182,13 @@ void eth_to_ser::enable_rts_cts()
     return;
 }
 
+void eth_to_ser::disable_rts_cts()
+{
+    debug_print("%s\n", "Disabled hardware flow control");
+    m_flc = 0;
+    return;
+}
+
 void eth_to_ser::enable_dtr_dsr()
 {
     debug_print("%s\n", "Enabled DTR/DSR flow control");
@@ -189,7 +196,20 @@ void eth_to_ser::enable_dtr_dsr()
     return;
 }
 
-void eth_to_ser::disable_hw_flow_ctrl()
+void eth_to_ser::disable_dtr_dsr()
+{
+    debug_print("%s\n", "Disabled hardware flow control");
+    m_flc = 0;
+    return;
+}
+
+void eth_to_ser::enable_xon_xoff(char xon, char xoff)
+{
+    throw exception("Software flow control XON/XOFF is not supported by eth_to_ser");
+    return;
+}
+
+void eth_to_ser::disable_xon_xoff()
 {
     debug_print("%s\n", "Disabled hardware flow control");
     m_flc = 0;

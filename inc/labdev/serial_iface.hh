@@ -52,11 +52,17 @@ public:
     /// \brief Enable hardware flow control; use Request To Send (RTS) and 
     /// Clear To Send (CTS) signals for flow control.
     virtual void enable_rts_cts() = 0;
+    /// \brief Disable Request To Send (RTS) and Clear To Send (CTS) flow control
+    virtual void disable_rts_cts() = 0;
     /// \brief Enable hardware flow control; use Data Terminal Ready (DTR) and 
     /// Data Set Ready (DSR) signals for flow control.
     virtual void enable_dtr_dsr() = 0;
-    /// Disable hardware flow control.
-    virtual void disable_hw_flow_ctrl() = 0;
+    /// \brief Disable Data Terminal Ready (DTR) and Data Set Ready (DSR) flow control
+    virtual void disable_dtr_dsr() = 0;
+    /// \brief Enable XON/XOFF software flow control
+    virtual void enable_xon_xoff(char xon = 0x11, char xoff = 0x13) = 0;
+    /// \brief Disable XON/XOFF software flow control
+    virtual void disable_xon_xoff() = 0;
 
     /// Set Data Terminal Ready (DTR) for manual flow control.
     virtual void set_dtr() = 0;

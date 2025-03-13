@@ -72,7 +72,7 @@ void serial_port::open(std::string path, unsigned baud, unsigned nbits,
     m_term_settings.c_cc[VMIN] = 0;
     m_term_settings.c_cc[VTIME] = 0;
 
-    this->disable_hw_flow_ctrl();
+    this->disable_rts_cts();
     this->set_baud(baud);
     this->set_nbits(nbits);
     this->set_parity(par_ena, par_even);
@@ -215,6 +215,9 @@ void serial_port::set_stop_bits(unsigned stop_bits)
 void serial_port::apply_settings() 
 {
     debug_print("%s", "Applying termio settings\n");
+    debug_print(" c_iflag = 0x%08X\n", m_term_settings.c_iflag);
+    debug_print(" c_oflag = 0x%08X\n", m_term_settings.c_oflag);
+    debug_print(" c_cflag = 0x%08X\n", m_term_settings.c_cflag);
     int stat = tcsetattr(m_fd, TCSANOW, &m_term_settings);
     check_and_throw(stat, "Failed apply termios settings");
     tcflush(m_fd, TCIOFLUSH);
@@ -231,17 +234,45 @@ void serial_port::enable_rts_cts()
     return;
 }
 
-void serial_port::enable_dtr_dsr()
-{
-    throw exception("DTR/DSR hardwardware flow control is currently not "
-        "supported by labdev::serial_port");
-    return;
-}
-
-void serial_port::disable_hw_flow_ctrl()
+void serial_port::disable_rts_cts()
 {
     m_term_settings.c_cflag &= ~CRTSCTS;
     debug_print("%s\n", "RTS/CTS hardware flow control disabled");
+    m_update_settings = true;
+    return;
+}
+
+void serial_port::enable_dtr_dsr()
+{
+    m_term_settings.c_cflag |= (CDTR_IFLOW | CDSR_OFLOW);
+    debug_print("%s\n", "DTR/DSR hardware flow control enabled");
+    m_update_settings = true;
+    return;
+}
+
+void serial_port::disable_dtr_dsr()
+{
+    m_term_settings.c_cflag &= ~(CDTR_IFLOW | CDSR_OFLOW);
+    debug_print("%s\n", "DTR/DSR hardware flow control disabled");
+    m_update_settings = true;
+    return;
+}
+
+void serial_port::enable_xon_xoff(char xon, char xoff)
+{
+    m_term_settings.c_iflag |= (IXON | IXOFF);
+    m_term_settings.c_cc[VSTART] = xon;
+    m_term_settings.c_cc[VSTOP] = xoff;
+    debug_print("Enabling XONXOFF flow control with XON = 0x%02X, XOFF = 0x%02X\n", 
+        xon, xoff);
+    m_update_settings = true;
+    return;
+}
+
+void serial_port::disable_xon_xoff()
+{
+    m_term_settings.c_iflag &= ~(IXON | IXOFF);
+    debug_print("%s\n", "Disabling XON/XOFF flow control");
     m_update_settings = true;
     return;
 }
@@ -250,6 +281,7 @@ void serial_port::set_dtr()
 {
     int flag = TIOCM_DTR;
     int stat = ioctl(m_fd, TIOCMBIS, &flag);
+    debug_print("%s\n", "Setting DTR");
     check_and_throw(stat, "Failed to set DTR");
     return;
 }
@@ -258,6 +290,7 @@ void serial_port::clear_dtr()
 {
     int flag = TIOCM_DTR;
     int stat = ioctl(m_fd, TIOCMBIC, &flag);
+    debug_print("%s\n", "Clearing DTR");
     check_and_throw(stat, "Failed to clear DTR");
     return;
 }
@@ -266,6 +299,7 @@ void serial_port::set_rts()
 {
     int flag = TIOCM_RTS;
     int stat = ioctl(m_fd, TIOCMBIS, &flag);
+    debug_print("%s\n", "Setting RTS");
     check_and_throw(stat, "Failed to set RTS");
     return;
 }
@@ -274,6 +308,7 @@ void serial_port::clear_rts()
 {
     int flag = TIOCM_RTS;
     int stat = ioctl(m_fd, TIOCMBIC, &flag);
+    debug_print("%s\n", "Clearing RTS");
     check_and_throw(stat, "Failed to clear RTS");
     return;
 }

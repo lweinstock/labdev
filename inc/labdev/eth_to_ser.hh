@@ -70,8 +70,11 @@ public:
 
     // Enable and set parity
     void enable_rts_cts() override;
+    void disable_rts_cts() override;
     void enable_dtr_dsr() override;
-    void disable_hw_flow_ctrl() override;
+    void disable_dtr_dsr() override;
+    void enable_xon_xoff(char xon = 0x11, char xoff = 0x13) override;
+    void disable_xon_xoff() override;
 
     // Data Terminal Ready (DTR) for manual flow control
     void set_dtr() override;
