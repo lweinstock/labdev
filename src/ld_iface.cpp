@@ -22,10 +22,11 @@ void ld_iface::write(const string& msg) {
     return;
 }
 
-vector<uint8_t> ld_iface::read_byte(unsigned timeout_ms)
+vector<uint8_t> ld_iface::read_byte(size_t max_len, unsigned timeout_ms)
 {
     uint8_t rbuf[DFLT_BUF_SIZE] = {0};
-    ssize_t nbytes = this->read_raw(rbuf, DFLT_BUF_SIZE, timeout_ms);
+    max_len = min(max_len, DFLT_BUF_SIZE);  // Limited size
+    ssize_t nbytes = this->read_raw(rbuf, max_len, timeout_ms);
     vector<uint8_t> ret(rbuf, rbuf + nbytes);
     return ret;
 }

@@ -67,10 +67,12 @@ public:
         unsigned timeout_ms = DFLT_TIMEOUT_MS) = 0;
 
     /** \brief C++-style byte read.
+     *  \param [in] max_len Maximum length of bytes to read.
      *  \param [in] timeout_ms Read timeout in milli seconds.
      *  \return Vector with filled bytes.
      */
-    std::vector<uint8_t> read_byte(unsigned timeout_ms = DFLT_TIMEOUT_MS);
+    std::vector<uint8_t> read_byte(size_t max_len = DFLT_BUF_SIZE, 
+        unsigned timeout_ms = DFLT_TIMEOUT_MS);
 
     /** \brief C++-style string read.
      *  \param [in] timeout_ms Read timeout in milli seconds.
