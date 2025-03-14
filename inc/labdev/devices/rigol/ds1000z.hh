@@ -3,7 +3,6 @@
 
 #include <labdev/devices/scpi_device.hh>
 #include <labdev/devices/osci.hh>
-#include <labdev/protocols/scpi.hh>
 #include <labdev/tcpip_iface.hh>
 #include <labdev/usbtmc_iface.hh>
 #include <labdev/visa_iface.hh>

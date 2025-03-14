@@ -244,17 +244,19 @@ void serial_port::disable_rts_cts()
 
 void serial_port::enable_dtr_dsr()
 {
-    m_term_settings.c_cflag |= (CDTR_IFLOW | CDSR_OFLOW);
+    // TODO: Not defined on linux...
+    //m_term_settings.c_cflag |= (CDTR_IFLOW | CDSR_OFLOW);
     debug_print("%s\n", "DTR/DSR hardware flow control enabled");
-    m_update_settings = true;
+    //m_update_settings = true;
     return;
 }
 
 void serial_port::disable_dtr_dsr()
 {
-    m_term_settings.c_cflag &= ~(CDTR_IFLOW | CDSR_OFLOW);
+    // TODO: Not defined on linux...
+    //m_term_settings.c_cflag &= ~(CDTR_IFLOW | CDSR_OFLOW);
     debug_print("%s\n", "DTR/DSR hardware flow control disabled");
-    m_update_settings = true;
+    //m_update_settings = true;
     return;
 }
 
