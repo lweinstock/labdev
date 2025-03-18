@@ -5,7 +5,6 @@
 #include <labdev/serial_iface.hh>
 #include <labdev/visa_iface.hh>
 #include <labdev/devices/scpi_device.hh>
-#include <labdev/protocols/scpi.hh>
 
 namespace labdev {
 
