@@ -61,8 +61,8 @@ void p3pc::disconnect()
 float p3pc::get_distance()
 {
     auto resp = this->get_pd();
-    uint32_t dist = (resp[3] << 24) | (resp[4] << 16) 
-                  | (resp[5] <<  8) | (resp[6] <<  0);
+    uint32_t dist = (resp[4] << 24) | (resp[5] << 16) 
+                  | (resp[6] <<  8) | (resp[7] <<  0);
     return 1e-3 * static_cast<float>(dist);
 }
 
@@ -70,7 +70,6 @@ std::string p3pc::get_vendor_name()
 {
     // Vendor name: index 0x0010
     this->request_od_read(0x0010);
-    //vector<uint8_t> resp = m_comm->query_byte({0x05, 0x76, 0x26, 0x10, 0x00, 0x00});
     usleep(10e3);
 
     // Update On-request Data buffer
@@ -85,7 +84,6 @@ std::string p3pc::get_vendor_text()
 {
     // Vendor text: index 0x0011
     this->request_od_read(0x0011);
-    //vector<uint8_t> resp = m_comm->query_byte({0x05, 0x67, 0x26, 0x11, 0x00, 0x00});
     usleep(10e3);
 
     // Update On-request Data buffer
@@ -106,7 +104,7 @@ p3pc::iq2_packet::iq2_packet(vector<uint8_t> raw)
         throw bad_protocol("Packet size is too large");
     
     m_len = raw.at(0);
-    if (raw.size() != m_len + 1)
+    if (raw.size() != (m_len + 1U))
         throw bad_protocol("Size field does not match size of payload");
     
     m_ch_crc = raw.at(1);
@@ -183,7 +181,7 @@ vector<uint8_t> p3pc::query(vector<uint8_t> request)
     uint8_t len {};
     m_comm->read_raw(&len, 1);  // First byte is length of message
 
-    vector<uint8_t> resp {};
+    vector<uint8_t> resp {len};
     while (resp.size() < len)   // Read until full message was received
     {
         auto temp = m_comm->read_byte(len);
@@ -191,8 +189,7 @@ vector<uint8_t> p3pc::query(vector<uint8_t> request)
         usleep(10e3);
     }
 
-    iq2_packet packet(resp);    // TODO: Check CRC, length, etc.
-    return packet.get_payload();
+    return resp;
 }
 
 vector<uint8_t> p3pc::request_od_read(uint16_t index, uint8_t subindex)
