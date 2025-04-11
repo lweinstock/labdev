@@ -52,7 +52,7 @@ void ut61b::connect(std::unique_ptr<ld_iface> comm)
         }
 
         // Everything seems to be in order
-        m_comm = std::move(ser);
+        m_serial = std::move(ser);
     } else {
         string err = this->get_info() + " : interface is not supported";
         throw device_error(err); 
@@ -72,9 +72,11 @@ double ut61b::get_value() {
     m_serial->clear_rts();
 
     // Extract single packet
-    size_t pos1 = msg.find_first_of("+-");
-    size_t pos2 = msg.find(EOM) + strlen(EOM);
-    msg = msg.substr(pos1, pos2 - pos1);
+    size_t pos1 = msg.find_first_of("+-");      // Start of message
+    size_t pos2 = msg.find(EOM, pos1) + strlen(EOM);  // End of message
+    size_t len = pos2 - pos1;
+    msg = msg.substr(pos1, len);
+
     if (msg.size() != 14)
         throw bad_protocol("Packet has wrong size " + to_string(msg.size()), msg.size());
 
@@ -97,7 +99,9 @@ double ut61b::get_value() {
     }
 
     // byte 9 determines prefix
-    if ( msg.at(9) & prefix_flag::micro)
+    if (msg.at(9) & prefix_flag::none)
+        value *= 1.;
+    else if ( msg.at(9) & prefix_flag::micro)
         value *= 1e-6;
     else if (msg.at(9) & prefix_flag::milli)
         value *= 1e-3;
@@ -105,8 +109,6 @@ double ut61b::get_value() {
         value *= 1e3;
     else if (msg.at(9) & prefix_flag::mega)
         value *= 1e6;
-    else if (msg.at(9) & prefix_flag::none)
-        value *= 1.;
 
     // byte 10 defines quantity
     m_unit.clear();

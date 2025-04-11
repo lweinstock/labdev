@@ -19,12 +19,13 @@ public:
     void connect(std::unique_ptr<ld_iface> comm) override;
     void disconnect() override { m_serial.reset(); }
 
+    /// Baud rate used by UT61B
     static constexpr unsigned BAUD = 2400;
 
-    // Get current value from screen
+    /// Get current value from screen
     double get_value();
 
-    // Get current unit from screen
+    /// Get current unit from screen
     std::string get_unit() { return m_unit; }
 
 private:
@@ -35,11 +36,11 @@ private:
     static constexpr const char* EOM = "\r\n";
 
     enum prefix_flag : uint8_t {
-        micro   = (1 << 7),
-        milli   = (1 << 6),
-        kilo    = (1 << 5),
-        mega    = (1 << 4),
-        none    = (1 << 0)
+        micro   = 0x80,
+        milli   = 0x40,
+        kilo    = 0x20,
+        mega    = 0x10,
+        none    = 0x30  // at least for temperature and frequency (?)
     };
 
     enum unit_flag : uint8_t {
@@ -47,8 +48,8 @@ private:
         amp     = (1 << 6),
         ohm     = (1 << 5),
         hertz   = (1 << 3),
-        degf    = (1 << 1),
-        degc    = (1 << 0)
+        degc    = (1 << 1),
+        degf    = (1 << 0)
     };
 
 };
