@@ -2,6 +2,8 @@
 #include <labdev/exceptions.hh>
 #include <labdev/ld_debug.hh>
 
+#include <sys/time.h>
+
 using namespace std;
 
 namespace labdev{
@@ -46,11 +48,20 @@ string ld_iface::read_until(const string& delim, size_t& pos,
     unsigned timeout_ms) 
 {
     string ret("");
+    struct timeval sta, sto;
+    gettimeofday(&sta, NULL);
     do {
         string rbuf = this->read(timeout_ms);
         if (rbuf.size() > 0)
             ret.append(rbuf);
         pos = ret.rfind(delim);
+
+        // Check timeout
+        gettimeofday(&sto, NULL);
+        unsigned diff_ms = (sto.tv_sec-sta.tv_sec)*1000 
+            + (sto.tv_usec-sta.tv_usec)/1000;
+        if (diff_ms > timeout_ms) 
+            throw timeout("Did not receive delimiter '" + delim + "' in time");
     } while ( pos == string::npos );
     return ret;
 }
