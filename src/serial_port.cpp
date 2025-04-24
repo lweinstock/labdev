@@ -61,6 +61,8 @@ void serial_port::open(std::string path, unsigned baud, unsigned nbits,
 
     // Input modes: no sw flow control, ignore break conditions
     m_term_settings.c_iflag &= ~(IXON | IXOFF | IXANY | IGNBRK);
+    // Don't map NL (\n) to CR (\r) and vice versa, don't ignore CR
+    m_term_settings.c_iflag &= ~(INLCR | ICRNL | IGNCR);
 
     // Output modes: no processing
     m_term_settings.c_oflag &= ~OPOST;
