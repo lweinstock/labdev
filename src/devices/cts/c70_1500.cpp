@@ -4,6 +4,8 @@
 #include <labdev/utils/utils.hh>
 
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -56,6 +58,18 @@ void c70_1500::connect(std::unique_ptr<ld_iface> comm)
     return;
 }
 
+void c70_1500::run_program(unsigned idx)
+{
+    stringstream program;
+    program << "p" << setw(3) << setfill('0') << idx;
+    debug_print("Running program '%s' ...", program.str().c_str());
+    auto resp = m_comm->query(program.str());
+    if (resp != program.str())
+        throw bad_protocol("Received wrong echo '" + resp + "'");
+    return;
+}
+
+
 double c70_1500::get_current_temperature()
 {
     double temperature {-1}, dummy {-1};
@@ -85,7 +99,7 @@ void c70_1500::read_analog_channel(unsigned ch, double& actual, double& set)
 
     // Expect three entries (see ASCII protocol manual p. 7)
     if (respv.size() != 3)
-        throw bad_protocol("Expected 3 values, received " + respv.size());
+        throw bad_protocol("Expected 3 values, received " + to_string(respv.size()));
     // First entry = "A" + analog channel number
     if (respv.at(0) != query)
         throw bad_protocol("Expected " + query + ", received " + respv.at(0));
