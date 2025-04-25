@@ -21,6 +21,8 @@ vector<string> split(string list, string delim, size_t max_size) {
             break;
         }
     }
+    // Push back the rest of the string as last entry
+    ret.push_back(list.substr(last));
     return ret;
 }
 

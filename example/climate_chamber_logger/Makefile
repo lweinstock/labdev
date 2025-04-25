@@ -14,8 +14,8 @@ CFLAGS+=$(shell pkg-config liblabdev --cflags)
 LDFLAGS+=$(shell pkg-config liblabdev --libs)
 
 # opencv setup
-CFLAGS+=$(shell pkg-config liblabdev --libs)
-LDFLAGS+=$(shell pkg-config opencv --libs)
+CFLAGS+=$(shell pkg-config opencv4 --cflags)
+LDFLAGS+=$(shell pkg-config opencv4 --libs)
 
 .PHONY: all clean
 
