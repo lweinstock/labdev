@@ -44,16 +44,18 @@ int main(int argc, char** argv)
     signal(SIGINT, handler);
 
     // DMM setup
-    string dmm_path = "/dev/ttyUSB0";
+    string dmm_path = "/dev/tty.usbserial-130";
     ut61b dmm(make_unique<serial_port>(dmm_path, 2400));
 
     // Climate chamber setup
     string chamber_ip = "192.168.1.90";
     c70_1500 chamber(make_unique<tcpip_iface>(chamber_ip, c70_1500::PORT));
+    //chamber.run_program(120);
+    //chamber.stop_program();
 
     // Camera setup
     cv::VideoCapture cap;
-    if (!cap.open("/dev/video14", cv::CAP_V4L2))
+    if (!cap.open(0))
     {
         cout << "Could not open camera" << endl;
         return -1;
@@ -81,6 +83,12 @@ int main(int argc, char** argv)
 
         // Create timestamp for logging
         time_t cur_time = time(nullptr);
+
+        if (cur_time % 5)
+        {
+            sleep(1);
+            continue;
+        }
         string time_stamp = asctime(localtime(&cur_time));
         // Remove year and date => result: "hh:mm:ss"
         time_stamp = time_stamp.erase(time_stamp.find_last_of(" "));
