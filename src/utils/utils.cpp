@@ -22,7 +22,9 @@ vector<string> split(string list, string delim, size_t max_size) {
         }
     }
     // Push back the rest of the string as last entry
-    ret.push_back(list.substr(last));
+    string rest = list.substr(last);
+	if (!rest.empty())
+		ret.push_back(rest);
     return ret;
 }
 
