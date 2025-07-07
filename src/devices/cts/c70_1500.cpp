@@ -85,7 +85,7 @@ void c70_1500::read_analog_channel(unsigned ch, double& actual, double& set)
 
     // Expect three entries (see ASCII protocol manual p. 7)
     if (respv.size() != 3)
-        throw bad_protocol("Expected 3 values, received " + respv.size());
+        throw bad_protocol("Expected 3 values, received " + to_string(respv.size()));
     // First entry = "A" + analog channel number
     if (respv.at(0) != query)
         throw bad_protocol("Expected " + query + ", received " + respv.at(0));

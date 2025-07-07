@@ -16,7 +16,7 @@ public:
 
     static constexpr unsigned PORT = 1080;
 
-    void connect(std::unique_ptr<ld_iface> comm);
+    void connect(std::unique_ptr<ld_iface> comm) override;
     void disconnect() override { m_comm.reset(); }
 
     // Returns the current temperature in degC
