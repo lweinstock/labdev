@@ -29,7 +29,7 @@ int main(int argc, char** argv)
     signal(SIGINT, handler);
 
     // LC setup
-    string lc_path = "/dev/tty.usbmodem1101"; // serial device
+    string lc_path = "/dev/ttyACM1"; // serial device
     hx711_arduino lchx711;
     // Force the serial_iface overload explicitly:
     std::unique_ptr<serial_iface> ser = std::make_unique<serial_port>(lc_path, 115200);

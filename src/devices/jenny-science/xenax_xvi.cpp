@@ -232,7 +232,9 @@ uint32_t xenax_xvi::get_status_register()
 
 void xenax_xvi::set_speed(unsigned inc_per_sec) 
 {
-    this->query_cmd("SP" + to_string(inc_per_sec));
+    // Minimum speed is 10 incs per sec!
+    unsigned speed = max(10u, inc_per_sec);
+    this->query_cmd("SP" + to_string(speed));
     return;
 }
 

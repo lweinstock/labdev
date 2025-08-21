@@ -15,8 +15,8 @@ CFLAGS  := -Wall -g --std=c++17
 LDFLAGS :=
 
 # labdev setup via pkg-config
-LABDEV_CFLAGS := $(shell pkg-config liblabdev --cflags)
-LABDEV_LDFLAGS := $(shell pkg-config liblabdev --libs)
+LABDEV_CFLAGS := -I../../inc #$(shell pkg-config liblabdev --cflags)
+LABDEV_LDFLAGS := -L../../ -llabdev -lusb-1.0 -lfftw3 #$(shell pkg-config liblabdev --libs)
 CFLAGS += $(LABDEV_CFLAGS)
 LDFLAGS += $(LABDEV_LDFLAGS)
 
