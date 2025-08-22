@@ -58,7 +58,6 @@ OBJ+=$(SRC)/devices/musashi/ml_808gx.o
 OBJ+=$(SRC)/devices/riden/rd6006.o
 OBJ+=$(SRC)/devices/wenglor/p3pc.o
 OBJ+=$(SRC)/devices/cts/c70_1500.o
-OBJ+=$(SRC)/devices/lc_hx711/hx711_arduino.o
 
 
 ###   INSTALL SETUP   ###
