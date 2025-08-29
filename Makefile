@@ -149,6 +149,3 @@ clean:
 	rm -f $(OBJ)
 	rm -f $(LIBNAME).a
 	rm -f $(LIBNAME).pc
-
-test:
-	@echo $(PC_PATH)

@@ -26,10 +26,12 @@ public:
 
     // En-/disable channel for output switching
     void enable_channel(int channel, bool ena = true);
+    void disable_channel(int channel) { this->enable_channel(1, false); }
     bool channel_enabled(int channel);
 
     // Switches the outputs of all enabled channels on/off
     void enable_outputs(bool ena = true);
+    void disable_outputs() {this->enable_outputs(false); }
 
     // Set/get output voltage/current for given channel
     void set_voltage(int channel, double volts);
